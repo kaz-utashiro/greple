@@ -5,7 +5,7 @@ Greple Examples
 ## Keywords / キーワード
 
 
-### find mutiple words all / 全部ある行を表示する
+### find multiple words all / 全部ある行を表示する
 
 	greple 'foo bar baz'
 	greple -e foo -e bar -e baz
@@ -85,9 +85,9 @@ Greple Examples
 
 	# show preveous and next paragraph together
 	# 前後のパラグラフも表示する	
-	greple -pC1p 'foo bar baz' …
+	greple -pC1 'foo bar baz' …
 
-### show paragraph not includeing pattern / 何かが含まれないパラグラフを表示する
+### show paragraph not including pattern / 何かが含まれないパラグラフを表示する
 
 	greple --nocolor --re '(.+\n)+' -v '(?i)pattern'
 
@@ -114,7 +114,8 @@ Greple Examples
 
 	greple リゾート
 	will match this text:
-	すればこんなのもみつけてくれます。というか、日本語を処理する場合、そうでないと使い物にならないでしょ。
+	すればこんなのもみつけてくれます。
+	というか、日本語を処理する場合、そうでないと使い物にならない。
 	
 		長い駅名を探すと「東京ディズニーランド・ステーション駅」「リ
 		ゾートゲートウェイ・ステーション駅」「東京ディズニーシー・ス
