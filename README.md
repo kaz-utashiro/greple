@@ -330,7 +330,7 @@ If the pattern name begins by ampersand (&) character, it is treated
 as a name of subroutine which returns a list of blocks to exclude.
 Using this option, user can use arbitrary function to determine from
 what part of the text they want to search.  User defined function is
-written in '.greplerc' file or explicitly included by __--require__
+written in `.greplerc` file or explicitly included by __--require__
 option.
 
     greple --require mycode.pl --outside '&myfunc' pattern *
@@ -339,13 +339,13 @@ Argument can be specified after function name with '=' character.
 Next example is equivalent to the above example.
 
     sub myfunc {
-        my($pattern) = '_;
-        my 'matched;
+        my($pattern) = @_;
+        my @matched;
         my $re = qr/$pattern/m;
         while (/$re/g) {
-            push('matched, [ $-[0], $+[0] ]);
+            push(@matched, [ $-[0], $+[0] ]);
         }
-        'matched;
+        @matched;
     }
 
     greple --outside '&myfunc=(?s)/\*.*?\*/' if *.c
@@ -467,7 +467,7 @@ Show manual page.
 
 - __--norc__
 
-Do not read startup file: '~/.greplerc'.
+Do not read startup file: `~/.greplerc`.
 
 - __-d__ _flags_
 
@@ -487,7 +487,7 @@ information can be display by giving appropriate flag to -d option.
 Environment variable GREPLEOPTS is used as a default options.  They
 are inserted before command line options.
 
-Before starting execution, _greple_ reads the file named '.greplerc'
+Before starting execution, _greple_ reads the file named `.greplerc`
 on user's home directory.  In rc file, user can define own options.
 There are three directives rc file: 'option', 'define' and 'help'.
 First argument of 'option' directive is user defined option name.  The
@@ -513,7 +513,7 @@ in usage message.
     option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
     help   --kanalist List up Katakana string
 
-When _greple_ found '__CODE__' line in '.greplerc' file, the rest of
+When _greple_ found '__CODE__' line in `.greplerc` file, the rest of
 the file is evaluated as a Perl program.  You can define your own
 subroutines which can be used by --inside and --outside options.  For
 those subroutines, file content will be provided by global variable
@@ -521,16 +521,16 @@ $_.  Expected response from the subroutine is the list of numbers,
 which is made up by start and end offset pairs.
 
 For example, suppose that the following function is defined in your
-'.greplerc' file.
+`.greplerc` file.
 
     __CODE__
     sub odd_line {
-        my 'list;
+        my @list;
         my $i;
         while (/.*\n/g) {
-            push('list, [ $-[0], $+[0] ]) if ++$i % 2;
+            push(@list, [ $-[0], $+[0] ]) if ++$i % 2;
         }
-        'list;
+        @list;
     }
 
 You can use next command to search pattern included in odd number
