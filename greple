@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.2 2013/11/18 05:03:18 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.3 2013/11/18 17:27:31 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -61,28 +61,28 @@ B<OPTIONS>
     -B[n]             before match context
     -C[n]             after and before match context
     -f file           file contains search pattern
-    -Z                do not uncompress automatically
     -d flags          display info (f:file d:dir c:count m:misc s:stat)
 
     --man             show manual page
     --color=when      use termninal color (auto, always, never)
     --colormode=mode  Red, Green, Blue, Cyan, Magenta, Yellow, White,
-    		      Standout, bolD, Underline
+                      Standout, bolD, Underline
     --nocolor         Same as --color=never
-    --icode=name      specify file encoding (repeatable)
+    --icode=name      specify file encoding
     --ocode=name      specify output encoding
     --block=pattern   specify the block of records
     --blockend=s      specify the block end mark (Default: "--\n")
     --inside=pattern  limit matching area
     --outside=pattern opposite of --inside
     --join            delete newline in the matched part
-    --joinby string   replace newline in the matched text by string
+    --joinby=string   replace newline in the matched text by string
     --if=filter       set filter command
     --of=filter       output filter command
-    --[no]pgp         remember passphrase and use it for PGP processing
+    --[no]pgp         decrypt and find PGP file (Default: false)
     --pgppass=phrase  pgp passphrase
+    --[no]decompress  process compressed data (Default: true)
     --readlist        get filenames from stdin
-    --glob=glob       glob target files (repeatable)
+    --glob=glob       glob target files
     --norc            skip reading startup file
 
 =cut
@@ -739,7 +739,7 @@ sub do_grep {
 	    }
 
 	    substr($block, $ms, $me - $ms) = $color_s . $s . $color_e
-		if $need_color;
+		if $s ne '';
 	}
 
 	if ($opt_n) {
@@ -840,7 +840,7 @@ sub grep_pattern {
     use constant {
 	POSI_BASE => 0, POSI_POSI => 0, POSI_NEGA => 1, POSI_LIST => 2,
 	NEGA_BASE => 3, NEGA_POSI => 3, NEGA_NEGA => 4, NEGA_LIST => 5,
-			POSI_INDX => 0, NEGA_INDX => 1, LIST_INDX => 2,
+			INDX_POSI => 0, INDX_NEGA => 1, INDX_LIST => 2,
     };
     for my $i (0 .. $#result) {
 	my $base = $patterns[$i][0] eq MATCH_POSITIVE ? POSI_BASE : NEGA_BASE;
@@ -848,10 +848,10 @@ sub grep_pattern {
 	for my $bi (0 .. $#b) {
 	    my $te = $match_table[$bi];
 	    if (@{$b[$bi]}) {
-		${$te}[$base + POSI_INDX]++;
-		push(@{$te->[$base + LIST_INDX]}, @{$b[$bi]});
+		${$te}[$base + INDX_POSI]++;
+		push(@{$te->[$base + INDX_LIST]}, @{$b[$bi]});
 	    } else {
-		${$te}[$base + NEGA_INDX]++;
+		${$te}[$base + INDX_NEGA]++;
 	    }
 	}
     }
@@ -1024,7 +1024,7 @@ sub colorseq {
     use Term::ANSIColor qw(:constants);
     my($start, $end) = ('', '');
     if (($opt_color eq 'always') or
-	($opt_color eq 'auto' and -t STDOUT)) {
+	($opt_color eq 'auto' and (!$opt_o and -t STDOUT))) {
 	if ($opt_colormode =~ /,/) {
 	    ($start, $end) = split(/,/, $opt_colormode, 2);
 	} else {
