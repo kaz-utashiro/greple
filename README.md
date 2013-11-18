@@ -14,7 +14,7 @@ __greple__ [ __-options__ ] pattern [ file... ]
     --re pattern      regular expression
     --fe pattern      fixed expression
 
-__OPTIONS__
+## __OPTIONS__
 
     -i                ignore case
     -l                list filename only
@@ -90,7 +90,7 @@ This can be written as this using __-e__ and __-v__ option.
     greple -e foo -e bar -v yabba -v dabba -v doo
     greple -e foo -e bar -v 'yabba|dabba|doo'
 
-__LINE ACROSS MATCH__
+## __LINE ACROSS MATCH__
 
 __greple__ also search the pattern across the line boundaries.  This is
 especially useful to handle Asian multi-byte text.  Japanese text can
@@ -104,7 +104,7 @@ token separator in the bare pattern.
 
 # OPTIONS
 
-__PATTERNS__
+## __PATTERNS__
 
 If specific option is not provided, __greple__ takes the first argument
 as a search pattern specified by __-le__ option.  All of these patterns
@@ -113,7 +113,7 @@ can be specified multiple times.
 Command itself is written in Perl, and any kind of Perl style regular
 expression can be used in patterns.
 
-- __--le__=_pattern_
+#### __--le__=_pattern_
 
 Treat the string as a collection of tokens separated by spaces.  Each
 token is interpreted by the first character.  Token start with '-'
@@ -129,7 +129,7 @@ Multiple '?' preceded tokens are treated all mixed together.  That
 means '?A|B ?C|D' is equivalent to '?A|B|C|D'.  If you want to mean
 '(A or B) and (C or D)', use AND syntax instead: 'A|B C|D'.
 
-- __-e__ _pattern_, __--and__=_pattern_
+#### __-e__ _pattern_, __--and__=_pattern_
 
 Specify positive match token.  Next two commands are equivalent.
 
@@ -149,7 +149,7 @@ and 'baz' even if they are separated by newlines.
 
     greple -e 'foo bar baz'
 
-- __-v__ _pattern_, __--not__=_pattern_
+#### __-v__ _pattern_, __--not__=_pattern_
 
 Specify negative match token.  Because it does not affect to the bare
 pattern argument, you can narrow down the search result like this.
@@ -158,50 +158,52 @@ pattern argument, you can narrow down the search result like this.
     greple foo pattern file -v bar
     greple foo pattern file -v bar -v baz
 
-- __--re__=_pattern_
+#### __--re__=_pattern_
 
 Specify regular expression.  No special treatment for space and wide
 characters.
 
-- __--fe__=_pattern_
+#### __--fe__=_pattern_
 
 Specify fixed string pattern, like fgrep.
 
 
 
-__GREP LIKE OPTIONS__
+## __GREP LIKE OPTIONS__
 
-- __-i__
+#### __-i__
 
 Ignore case.
 
-- __-l__
+#### __-l__
 
 List filename only.
 
-- __-c__, __--count__
+#### __-c__, __--count__
 
 Print count of matched block.
 
-- __-n__
+#### __-n__
 
 Show line number.
 
-- __-h__, __--no-filename__
+#### __-h__, __--no-filename__
 
 Do not display filename.
 
-- __-H__
+#### __-H__
 
 Display filename always.
 
-- __-o__
+#### __-o__
 
 Print matched string only.
 
-- __-A__[_n_], __--after-context__[=_n_]
-- __-B__[_n_], __--before-context__[=_n_]
-- __-C__[_n_], __--context__[=_n_]
+#### __-A__[_n_], __--after-context__[=_n_]
+
+#### __-B__[_n_], __--before-context__[=_n_]
+
+#### __-C__[_n_], __--context__[=_n_]
 
 Print _n_-blocks before/after matched string.  The value _n_ can be
 omitted and the default is 2.  When used with paragraph option __-p__,
@@ -225,17 +227,17 @@ Moreover
 also matches this text, because matching blocks around 'foo' and 'bar'
 overlaps each other and makes single block.
 
-- __-f__ _file_, __--file__=_file_
+#### __-f__ _file_, __--file__=_file_
 
 Specify the file which contains search pattern.  When file contains
 multiple lines, patterns on each lines are search in OR context.  The
 line starting with sharp (#) character is ignored.
 
-- __--__[__no__]__decompress__
+#### __--__[__no__]__decompress__
 
 Switch for handling compressed files.  Default is true.
 
-- __--color__=_auto_|_always_|_never_, __--nocolor__
+#### __--color__=_auto_|_always_|_never_, __--nocolor__
 
 Use terminal color capability to emphasize the matched text.  Default
 is 'auto': effective when STDOUT is terminal, not otherwise.  Option
@@ -243,7 +245,7 @@ value 'always' and 'never' will work as expected.
 
 Option __--nocolor__ is alias for __--color__=_never_.
 
-- __--colormode__=_RGBCYMWrgbcymwUBR_, __--quote__=_start_,_end_
+#### __--colormode__=_RGBCYMWrgbcymwUBR_, __--quote__=_start_,_end_
 
 Specify color mode.  Use combination string from R(ed), G(reen),
 B(lue), C(yan), M(agenta), Y(ellow), W(hite), U(nderline), (bol)D,
@@ -258,9 +260,9 @@ bracket, use like this.
 
 
 
-__OTHER OPTIONS__
+## __OTHER OPTIONS__
 
-- __-p__, __--paragraph__
+#### __-p__, __--paragraph__
 
 Print the paragraph which contains the pattern.  Each paragraph is
 delimited by two or more successive newline characters by default.  Be
@@ -274,7 +276,7 @@ space characters.  Example:
 It changes the unit of context specified by __-A__, __-B__, __-C__
 options.
 
-- __--block__=_pattern_, __--block__=_&sub_
+#### __--block__=_pattern_, __--block__=_&sub_
 
 Specify the record block to display.
 
@@ -300,13 +302,14 @@ into single block.
 Please be aware that this option is sometimes quite time consuming,
 because it finds all blocks before processing.
 
-- __--blockend__=_string_
+#### __--blockend__=_string_
 
 Change the end mark displayed after __-pABC__ or __--block__ options.
 Default value is "--\n".
 
-- __--inside__=_pattern_
-- __--outside__=_pattern_
+#### __--inside__=_pattern_
+
+#### __--outside__=_pattern_
 
 Option __--inside__ and __--outside__ limit the text area to be matched.
 For simple example, if you want to find string 'and' not in the word
@@ -323,8 +326,9 @@ Next command searches only from POD part of the perl script.
 
     greple --inside='(?s)^=.*?(^=cut|\Z)'
 
-- __--inside__=_&function_
-- __--outside__=_&function_
+#### __--inside__=_&function_
+
+#### __--outside__=_&function_
 
 If the pattern name begins by ampersand (&) character, it is treated
 as a name of subroutine which returns a list of blocks to exclude.
@@ -353,8 +357,9 @@ Next example is equivalent to the above example.
 __--outside__ and __--inside__ option can be specified mixed together
 and multiple times.
 
-- __--join__
-- __--joinby__=_string_
+#### __--join__
+
+#### __--joinby__=_string_
 
 Convert newline character found in matched string to empty or specifed
 _string_.  Using __--join__ with __-o__ (only-matching) option, you can
@@ -364,7 +369,7 @@ example next command prints the list of KATAKANA words.
 
     greple -ho --join '\p{utf8::InKatakana}[\n\p{utf8::InKatakana}]*'
 
-- __--icode__=_code_
+#### __--icode__=_code_
 
 Target file is assumed to be encoded in utf8 by default.  Use this
 option to set specific encoding.  When handling Japanese text, you may
@@ -386,11 +391,11 @@ and UTF-16/32.
 
     greple --icode=+euc-kr ...
 
-- __--ocode__=_code_
+#### __--ocode__=_code_
 
 Specify output code.  Default is utf8.
 
-- __--cut__=_n_, __--allow__=_n_
+#### __--cut__=_n_, __--allow__=_n_
 
 Option to compromize matching condition.  Option __--cut__ specifiy the
 number to cut down positive match count, and __--allow__ is the number
@@ -402,7 +407,7 @@ Above command prints the line which contains two or more from 'foo',
 'bar' and 'baz', and does not include more than one of 'yabba',
 'dabba' or 'doo'.
 
-- __--if__=_filter_, __--if__=_EXP_:_filter_:_EXP_:_filter_:...
+#### __--if__=_filter_, __--if__=_EXP_:_filter_:_EXP_:_filter_:...
 
 You can specify filter command which is applied to each files before
 search.  If only one filter command is specified, it is applied to all
@@ -424,35 +429,35 @@ __--nodecompress__ option is given.  Default action is like this:
 
     greple --if='s/\.Z$//:zcat:s/\.g?z$//:gunzip -c'
 
-- __--of__=_filter_
+#### __--of__=_filter_
 
 Specify output filter commands.
 
-- __--require__=_filename_
+#### __--require__=_filename_
 
 Include arbitrary perl program.
 
-- __--pgp__
+#### __--pgp__
 
 Invoke PGP decrypt command for files end with .pgp, .gpg or .asc.  PGP
 passphrase is asked only once at the beginning of command execution.
 
-- __--pgppass__=_phrase_
+#### __--pgppass__=_phrase_
 
 You can specify PGP passphrase by this option.  Generally, it is not
 recommended to use.
 
-- __--chdir__=_directory_
+#### __--chdir__=_directory_
 
 Change directory before processing.
 
-- __--glob__=_pattern_
+#### __--glob__=_pattern_
 
 Get files matches to specified pattern and use them as a target
 files.  Using __--chdir__ and __--glob__ makes easy to use __greple__ for
 fixed common job.
 
-- __--readlist__
+#### __--readlist__
 
 Get filenames from standard input.  Read standard input and use each
 line as a filename for searching.  You can feed the output from other
@@ -461,15 +466,15 @@ searches string from files modified within 7 days:
 
     find . -mtime -7 -print | greple -S pattern
 
-- __--man__
+#### __--man__
 
 Show manual page.
 
-- __--norc__
+#### __--norc__
 
 Do not read startup file: `~/.greplerc`.
 
-- __-d__ _flags_
+#### __-d__ _flags_
 
 Display informations.  Various kind of debug, diagnostic, monitor
 information can be display by giving appropriate flag to -d option.
