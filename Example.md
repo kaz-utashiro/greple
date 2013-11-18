@@ -66,7 +66,7 @@ Greple Examples
 
 ### find from C comment / C のコメント部分を検索
 
-	greple --inside='\/\*.*?\*\/'
+	greple --inside='(?s)\/\*.*?\*\/'
 
 ### find from shell comment / シェルのコメントを検索する
 
@@ -81,10 +81,11 @@ Greple Examples
 
 ### paragraph mode / パラグラフモード
 
-	greple -p …
+	greple -p 'foo bar baz'
 
+	# show preveous and next paragraph together
 	# 前後のパラグラフも表示する	
-	greple -C1 -p
+	greple -pC1p 'foo bar baz' …
 
 ### show paragraph not includeing pattern / 何かが含まれないパラグラフを表示する
 
@@ -104,7 +105,7 @@ Greple Examples
 
 ### show all comment blocks / コメントブロックを全部表示する
 
-	greple -o --re '\/\*(?s:.*?)\*\/' /usr/include/stdio.h
+	greple -o --nocolor --re '\/\*(?s:.*?)\*\/' /usr/include/stdio.h
 
 
 ---
@@ -125,7 +126,7 @@ Greple Examples
 
 	greple -ho --nocolor --join '\p{utf8::InKatakana}[\n\p{utf8::InKatakana}]*'
 
-### it's nice! / そりゃいいね!
+### you like it? / 気に入ったらこんな風にどうぞ
 
 	cat >> ~/.greplerc
 	define :kana: \p{utf8::InKatakana}
