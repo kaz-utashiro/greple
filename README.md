@@ -28,28 +28,28 @@ __greple__ [ __-options__ ] pattern [ file... ]
     -B[n]             before match context
     -C[n]             after and before match context
     -f file           file contains search pattern
-    -Z                do not uncompress automatically
     -d flags          display info (f:file d:dir c:count m:misc s:stat)
 
     --man             show manual page
     --color=when      use termninal color (auto, always, never)
     --colormode=mode  Red, Green, Blue, Cyan, Magenta, Yellow, White,
-    		      Standout, bolD, Underline
+                      Standout, bolD, Underline
     --nocolor         Same as --color=never
-    --icode=name      specify file encoding (repeatable)
+    --icode=name      specify file encoding
     --ocode=name      specify output encoding
     --block=pattern   specify the block of records
     --blockend=s      specify the block end mark (Default: "--\n")
     --inside=pattern  limit matching area
     --outside=pattern opposite of --inside
     --join            delete newline in the matched part
-    --joinby string   replace newline in the matched text by string
+    --joinby=string   replace newline in the matched text by string
     --if=filter       set filter command
     --of=filter       output filter command
-    --[no]pgp         remember passphrase and use it for PGP processing
+    --[no]pgp         decrypt and find PGP file (Default: false)
     --pgppass=phrase  pgp passphrase
+    --[no]decompress  process compressed data (Default: true)
     --readlist        get filenames from stdin
-    --glob=glob       glob target files (repeatable)
+    --glob=glob       glob target files
     --norc            skip reading startup file
 
 # DESCRIPTION
@@ -565,6 +565,8 @@ Kazumasa Utashiro
 # SEE ALSO
 
 [grep(1)](http://man.he.net/man1/grep), [perl(1)](http://man.he.net/man1/perl)
+
+[github](http://kaz-utashiro.github.io/greple/)
 
 
 
