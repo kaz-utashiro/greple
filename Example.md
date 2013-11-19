@@ -13,8 +13,14 @@ Greple Examples
 	x foo baz
 	o foo bar baz
 	o baz, bar and foo
+	
+	# yes, you can do it by grep, too.
+	# grep foo | grep bar | grep baz
 
-### negative match / 除外したい単語を指定する
+	# or with pcregrep
+	# pcregep '^(?=.*foo)(?=.*bar)(?=.*baz)'
+
+### negative match / あっては困る単語を指定する
 
 	greple 'foo bar baz -yabba -dabba -doo'
 	greple -e foo -e bar -e baz -v yabba -v dabba -v doo
@@ -22,6 +28,8 @@ Greple Examples
 	x foo bar
 	o baz bar foo
 	x foo bar baz doo
+	
+	# grep foo | grep bar | grep baz | egrep -v 'yabba|dabba|doo'
 
 ### alternative match / どれかひとつあればいいんだけど
 
@@ -54,8 +62,9 @@ Greple Examples
 	greple pattern *.html -v foo
 	greple pattern *.html -v foo -v bar
 	greple pattern *.html -v foo -v bar -v baz
-	# isn't this nice?
-	# これ、結構、よくないすか?
+
+	isn't this nice?
+	これ、結構、よくないすか?
 
 ---
 ## Areas / 領域
@@ -114,8 +123,7 @@ Greple Examples
 
 	greple リゾート
 	will match this text:
-	すればこんなのもみつけてくれます。
-	というか、日本語を処理する場合、そうでないと使い物にならない。
+	は、こんなのもみつけてくれます。というか、日本語を処理する場合、そうでないと困ります。
 	
 		長い駅名を探すと「東京ディズニーランド・ステーション駅」「リ
 		ゾートゲートウェイ・ステーション駅」「東京ディズニーシー・ス
@@ -141,6 +149,7 @@ Greple Examples
 ### find Kanji and not CJKUnifiedIdeographs / 漢字だけど CJKUnifiedIdeographs じゃない文字を探す
 
 	greple --inside='\p{Han}+' '[^\s\p{InCJKUnifiedIdeographs}]'
+	
 	# This works, but quite slow.  Not recommended.
 	# 動くけどチョー遅いからこんなことしちゃ駄目よ。
 
@@ -163,6 +172,12 @@ Greple Examples
 
 ---
 ## Filter / フィルター
+
+### expand tabs before seach / タブを展開してから検索する
+
+	greple -n --if=expand
+	
+	# give better looking for tab indented text
 
 ### find from EXIF data / EXIF 情報を検索する
 
