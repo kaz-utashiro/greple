@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.3 2013/11/18 17:27:31 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.4 2013/11/19 07:26:52 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -772,11 +772,9 @@ sub grep_pattern {
     ## build match result list
     ##
     my @result;
-    my $required_count = 0;
     my %required = (yes => 0, no => 0);
     for my $i (0 .. $#patterns) {
 	my($sw, $regex) = @{$patterns[$i]};
-	$required_count++ if $sw eq MATCH_POSITIVE;
 	my $rp = $result[$i] = [];
 	while ($_ =~ /$regex/g) {
 	    push(@$rp, [$-[0], $+[0]]);
@@ -870,7 +868,7 @@ sub grep_pattern {
 	my %mark;
 	for my $i (@effective_index) {
 	    map($mark{$_} = 1,
-		max($i - $opt_B, 0) .. min($i + $opt_A, 0+@blocks));
+		max($i - $opt_B, 0) .. min($i + $opt_A, $#blocks));
 	}
 	@effective_index = sort keys %mark;
     }
@@ -1431,8 +1429,9 @@ Switch for handling compressed files.  Default is true.
 =item B<--color>=I<auto>|I<always>|I<never>, B<--nocolor>
 
 Use terminal color capability to emphasize the matched text.  Default
-is `auto': effective when STDOUT is terminal, not otherwise.  Option
-value `always' and `never' will work as expected.
+is `auto': effective when STDOUT is a terminal and option B<-o> is not
+given, not otherwise.  Option value `always' and `never' will work as
+expected.
 
 Option B<--nocolor> is alias for B<--color>=I<never>.
 
@@ -1717,7 +1716,7 @@ in usage message.
     option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
     help   --kanalist List up Katakana string
 
-When I<greple> found `__CODE__' line in F<.greplerc> file, the rest of
+When I<greple> found C<__CODE__> line in F<.greplerc> file, the rest of
 the file is evaluated as a Perl program.  You can define your own
 subroutines which can be used by --inside and --outside options.  For
 those subroutines, file content will be provided by global variable
@@ -1762,6 +1761,8 @@ Kazumasa Utashiro
 =head1 SEE ALSO
 
 L<grep(1)>, L<perl(1)>
+
+L<github|http://kaz-utashiro.github.io/greple/>
 
 
 =head1 LICENSE
