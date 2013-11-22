@@ -108,6 +108,10 @@ Greple Examples
 
 	greple -n --block='(.*\n){1,66}' pattern
 
+### handling fixed length record data / 固定長レコードを検索する
+
+	greple -n --block='(?s).{80}' pattern
+
 ### show entire file / ファイル全体を表示する
 
 	greple --block='(?s).*'
