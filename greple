@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.4 2013/11/19 07:26:52 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.5 2013/11/21 15:38:47 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -74,6 +74,7 @@ B<OPTIONS>
     --blockend=s      specify the block end mark (Default: "--\n")
     --inside=pattern  limit matching area
     --outside=pattern opposite of --inside
+    --strict          strict mode for --inside/outside --block
     --join            delete newline in the matched part
     --joinby=string   replace newline in the matched text by string
     --if=filter       set filter command
@@ -119,6 +120,7 @@ my $opt_readlist;
 my $opt_rc = 1;
 my $opt_cut = 0;
 my $opt_allow = 0;
+my $opt_strict = 0;
 
 my $opt_c;
 my @opt_d = ();
@@ -170,6 +172,7 @@ my @optargs = (
     'blockend:s'         => \$opt_blockend,
     'inside=s'           => \@opt_inside,
     'outside=s'          => \@opt_outside,
+    'strict!'            => \$opt_strict,
     'chdir=s'            => \$opt_chdir,
     'glob=s'             => \@opt_glob,
     'clean!'             => \$opt_clean,
@@ -458,10 +461,10 @@ if (@opt_of) {
 my @opt_region;
 if (@opt_inside or @opt_outside) {
     for my $region (@opt_inside) {
-	push(@opt_region, [1, $region]);
+	push @opt_region, [1, $region];
     }
     for my $region (@opt_outside) {
-	push(@opt_region, [0, $region]);
+	push @opt_region, [0, $region];
     }
 }
 
@@ -777,9 +780,9 @@ sub grep_pattern {
 	my($sw, $regex) = @{$patterns[$i]};
 	my $rp = $result[$i] = [];
 	while ($_ =~ /$regex/g) {
-	    push(@$rp, [$-[0], $+[0]]);
+	    push @$rp, [$-[0], $+[0]];
 	    if ($sw eq MATCH_POSITIVE) {
-		push(@blocks, [$-[0], $+[0]]);
+		push @blocks, [$-[0], $+[0]];
 		$stat{match_positive}++;
 	    } else {
 		$stat{match_negative}++;
@@ -804,7 +807,8 @@ sub grep_pattern {
 	my @select = get_regions(\$_, $arg);
 	if ($region_sw or @select) {
 	    for my $r (@result) {
-		@$r = select_regions($r, \@select, $region_sw);
+		@$r = select_regions({ strict => $opt_strict },
+				     $r, \@select, $region_sw);
 	    }
 	}
     }
@@ -815,7 +819,7 @@ sub grep_pattern {
     if (@opt_block) {
 	@blocks = ();
 	for my $re (@opt_block) {
-	    push(@blocks, get_regions(\$_, $re));
+	    push @blocks, get_regions(\$_, $re);
 	}
     	@blocks = merge_regions({nojoin => 1, sort => 1}, @blocks);
     }
@@ -842,18 +846,21 @@ sub grep_pattern {
     };
     for my $i (0 .. $#result) {
 	my $base = $patterns[$i][0] eq MATCH_POSITIVE ? POSI_BASE : NEGA_BASE;
-	my @b = classify_regions($result[$i], \@blocks);
+	my @b = classify_regions({ strict => $opt_strict },
+				 $result[$i], \@blocks);
 	for my $bi (0 .. $#b) {
 	    my $te = $match_table[$bi];
 	    if (@{$b[$bi]}) {
 		${$te}[$base + INDX_POSI]++;
-		push(@{$te->[$base + INDX_LIST]}, @{$b[$bi]});
+		push @{$te->[$base + INDX_LIST]}, @{$b[$bi]};
 	    } else {
 		${$te}[$base + INDX_NEGA]++;
 	    }
 	}
     }
     
+    show_match_table(\@match_table) if $opt_d{v};
+
     ##
     ## now it is quite easy to get effective blocks
     ##
@@ -881,9 +888,9 @@ sub grep_pattern {
 	my @matched = merge_regions({nojoin => $opt_o, sort => 1},
 				    @{$match_table[$bi][POSI_LIST]});
 	if ($opt_o) {
-	    push(@list, map({ [ $_, $_ ] } @matched));
+	    push @list, map({ [ $_, $_ ] } @matched);
 	} else {
-	    push(@list, [ $blocks[$bi], @matched ]);
+	    push @list, [ $blocks[$bi], @matched ];
 	}
     }
 
@@ -894,7 +901,42 @@ sub grep_pattern {
     return @list;
 }
 
+BEGIN {
+    $Data::Dumper::Terse = 1;
+}
+sub show_match_table {
+    my $i = 0;
+    for my $t (@{+shift}) {
+	my $m = Dumper($t);
+	$m =~ s/\s+(?!$)/ /gs;
+	printf STDERR "%d %s", $i++, $m;
+    }
+}
+
 sub classify_regions {
+    my $opt = ref $_[0] eq 'HASH' ? shift : {};
+
+    if ($opt->{strict}) {
+	return classify_regions_strict(@_);
+    }
+
+    my @list = @{+shift};
+    my @by = @{+shift};
+    my @table;
+    for (my $i = 0; $i < @by; $i++) {
+	my($from, $to) = @{$by[$i]};
+	while (@list and $list[0][1] < $from) {
+	    shift @list;
+	}
+	my $t = $table[$i] = [];
+	for (my $i = 0; $i < @list and $list[$i][0] < $to; $i++) {
+	    push @$t, $list[$i];
+	}
+    }
+    @table;
+}
+
+sub classify_regions_strict {
     my @list = @{+shift};
     my @by = @{+shift};
     my @table;
@@ -905,10 +947,68 @@ sub classify_regions {
 	}
 	my $t = $table[$i] = [];
 	while (@list and $list[0][0] < $to and $list[0][1] <= $to) {
-	    push(@$t, shift @list);
+	    push @$t, shift @list;
 	}
     }
     @table;
+}
+
+sub select_regions {
+    my $opt = ref $_[0] eq 'HASH' ? shift : {};
+
+    if ($opt->{strict}) {
+	return select_regions_strict(@_);
+    }
+
+    my @list = @{+shift};
+    my @by = @{+shift};
+    my $how = shift;
+
+    my(@exclude, @include);
+
+    for (my $i = 0; $i < @by; $i++) {
+	my($from, $to) = @{$by[$i]};
+	for (my $j = 0; $j < @list and $list[$j][0] < $from; $j++) {
+	    push @exclude, $list[$j];
+	}
+	while (@list and $list[0][1] < $from) {
+	    shift @list;
+	}
+	for (my $j = 0; $j < @list and $list[$j][0] < $to; $j++) {
+	    push @include, $list[$j];
+	}
+	while (@list and $list[0][1] <= $to) {
+	    shift @list;
+	}
+    }
+    push @exclude, @list;
+    $how ? @include : @exclude;
+}
+
+sub select_regions_strict {
+    my @list = @{+shift};
+    my @by = @{+shift};
+    my $how = shift;
+
+    my(@exclude, @include);
+
+    for (my $i = 0; $i < @by; $i++) {
+	my($from, $to) = @{$by[$i]};
+	while (@list and $list[0][0] < $from and $list[0][1] <= $from) {
+	    push @exclude, shift(@list);
+	}
+	while (@list and $list[0][0] < $from) {
+	    shift @list;
+	}
+	while (@list and $list[0][0] < $to and $list[0][1] <= $to) {
+	    push @include, shift(@list);
+	}
+	while (@list and $list[0][0] < $to) {
+	    shift @list;
+	}
+    }
+    push @exclude, @list;
+    $how ? @include : @exclude;
 }
 
 sub get_regions {
@@ -946,7 +1046,7 @@ sub merge_regions {
 	} elsif (!$nojoin and $out[-1][1] == $top->[0]) {
 	    $out[-1][1] = $top->[1] if $out[-1][1] < $top->[1];
 	} else {
-	    push(@out, $top);
+	    push @out, $top;
 	}
     }
     @out;
@@ -1056,39 +1156,12 @@ sub pattern_list {
     my $re = qr/$pattern/m;
     while (/$re/g) {
 	if ($opt->{catchgroup}) {
-	    push(@list, defined $-[1] ? [$-[1], $+[1]] : [$-[0], $+[0]]);
+	    push @list, defined $-[1] ? [$-[1], $+[1]] : [$-[0], $+[0]];
 	} else {
-	    push(@list, [$-[0], $+[0]]);
+	    push @list, [$-[0], $+[0]];
 	}
     }
     @list;
-}
-
-sub select_regions {
-    my($from, $what, $how) = @_;
-    my @from = @$from;
-    my @what = @$what;
-
-    my(@exclude, @include);
-    while (@from) {
-	while (@what and $what[0][1] <= $from[0][0]) {
-	    shift(@what);
-	}
-	if (@what == 0) {
-	    push(@exclude, splice(@from, 0));
-	    last;
-	}
-	while (@from and $from[0][0] < $what[0][0]) {
-	    push(@exclude, shift(@from));
-	}
-	while (@from and $from[0][1] <= $what[0][1]) {
-	    push(@include, shift(@from));
-	}
-	while (@from and $from[0][0] < $what[0][1]) {
-	    push(@exclude, shift(@from));
-	}
-    }	
-    $how ? @include : @exclude;
 }
 
 package PgpFilter;
@@ -1549,6 +1622,20 @@ Next example is equivalent to the above example.
 
 B<--outside> and B<--inside> option can be specified mixed together
 and multiple times.
+
+=item B<--strict>
+
+Limit the match area strictly.
+
+By default, B<--block>, B<--inside>, B<--outside> option allows
+partial match within the specified area.  For example,
+
+    greple --inside and command
+
+matches pattern C<command> because the part of matched string is
+included in specified inside-area.  Partial match failes when option
+B<--strict> provided, and longer string never matches within shorter
+area.
 
 =item B<--join>
 
