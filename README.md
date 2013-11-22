@@ -41,6 +41,7 @@ __greple__ [ __-options__ ] pattern [ file... ]
     --blockend=s      specify the block end mark (Default: "--\n")
     --inside=pattern  limit matching area
     --outside=pattern opposite of --inside
+    --strict          strict mode for --inside/outside --block
     --join            delete newline in the matched part
     --joinby=string   replace newline in the matched text by string
     --if=filter       set filter command
@@ -240,8 +241,9 @@ Switch for handling compressed files.  Default is true.
 #### __--color__=_auto_|_always_|_never_, __--nocolor__
 
 Use terminal color capability to emphasize the matched text.  Default
-is 'auto': effective when STDOUT is terminal, not otherwise.  Option
-value 'always' and 'never' will work as expected.
+is 'auto': effective when STDOUT is a terminal and option __-o__ is not
+given, not otherwise.  Option value 'always' and 'never' will work as
+expected.
 
 Option __--nocolor__ is alias for __--color__=_never_.
 
@@ -356,6 +358,20 @@ Next example is equivalent to the above example.
 
 __--outside__ and __--inside__ option can be specified mixed together
 and multiple times.
+
+#### __--strict__
+
+Limit the match area strictly.
+
+By default, __--block__, __--inside__, __--outside__ option allows
+partial match within the specified area.  For example,
+
+    greple --inside and command
+
+matches pattern `command` because the part of matched string is
+included in specified inside-area.  Partial match failes when option
+__--strict__ provided, and longer string never matches within shorter
+area.
 
 #### __--join__
 
@@ -518,7 +534,7 @@ in usage message.
     option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
     help   --kanalist List up Katakana string
 
-When _greple_ found '__CODE__' line in `.greplerc` file, the rest of
+When _greple_ found `__CODE__` line in `.greplerc` file, the rest of
 the file is evaluated as a Perl program.  You can define your own
 subroutines which can be used by --inside and --outside options.  For
 those subroutines, file content will be provided by global variable
