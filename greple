@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.5 2013/11/21 15:38:47 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.6 2013/11/27 04:11:21 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -738,13 +738,17 @@ sub do_grep {
 		    $s =~ s/\n/$opt_joinby/g;
 		}
 	    } else {
-		$s =~ s/(\n)/$color_e$1$color_s/g if $need_color;
+		$s =~ s/(\n+)(?!\Z)/$color_e$1$color_s/g if $need_color;
 	    }
 
-	    substr($block, $ms, $me - $ms) = $color_s . $s . $color_e
-		if $s ne '';
+	    if ($s ne '') {
+		my $tailnl = '';
+		if ($s =~ s/(\n+)\Z//s) {
+		    $tailnl = $1;
+		}
+		substr($block, $ms, $me - $ms) = $color_s . $s . $color_e . $tailnl;
+	    }
 	}
-
 	if ($opt_n) {
 	    my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
 	    $block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
