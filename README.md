@@ -260,6 +260,9 @@ bracket, use like this.
 
     greple --quote='<,>' pattern
 
+Option __--quote__ is an alias for __--colormode__, but it set the
+option __--color__=_always_ at the same time.
+
 
 
 ## __OTHER OPTIONS__

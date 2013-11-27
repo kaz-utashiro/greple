@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.6 2013/11/27 04:11:21 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.7 2013/11/27 05:17:12 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -177,9 +177,10 @@ my @optargs = (
     'glob=s'             => \@opt_glob,
     'clean!'             => \$opt_clean,
     'decompress!'        => \$opt_decompress,
-    'color|colour=s'               => \$opt_color,
-    'colormode|colourmode|quote=s' => \$opt_colormode,
-    'nocolor|nocolour'             => sub { $opt_color = 'never' },
+    'color|colour=s'         => \$opt_color,
+    'colormode|colourmode=s' => \$opt_colormode,
+    'quote=s'                => sub { $opt_color = 'always'; $opt_colormode = $_[1] },
+    'nocolor|nocolour'       => sub { $opt_color = 'never' },
 );
 
 binmode STDERR, ":encoding(utf8)";
@@ -1524,6 +1525,9 @@ quote the matched string.  If you want to quote the pattern by angle
 bracket, use like this.
 
     greple --quote='<,>' pattern
+
+Option B<--quote> is an alias for B<--colormode>, but it set the
+option B<--color>=I<always> at the same time.
 
 =back
 
