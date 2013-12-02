@@ -186,3 +186,38 @@ Greple Examples
 ### find from EXIF data / EXIF 情報を検索する
 
 	greple --if='env LC_ALL=en_US exif -x /dev/stdin' 'Image_Description|Manufacturer' *.jpg
+
+---
+## Print Function / プリント関数
+
+### Search iCal data / iCal のデータを検索する
+
+    help   --ical Search iCal data
+    option --ical \
+            --all \
+            --chdir ~/Library/Calendars/*.caldav/*.calendar/Events \
+            --glob *.ics \
+            --print print_ical_line
+    
+    __CODE__
+    sub print_ical_line {
+        s/\r//g;
+        my(@s, @e);
+        if (@s = /^DTSTART.*(\d{4})(\d\d)(\d\d)(?:T(\d\d)(\d\d))?/m) {
+            print "$1/$2/$3";
+            print " $4:$5" if defined $4;
+        }
+        if (@e = /^DTEND.*(\d{4})(\d\d)(\d\d)(?:T(\d\d)(\d\d))?/m) {
+            if ($s[0]eq$e[0] and $s[1]eq$e[1] and $s[2]+1>=$e[2]) {
+                print "-$4:$5" if defined $4;
+            } else {
+                print "-";
+                print "$1/" if $s[0] ne $e[0];
+                print "$2/$3";
+            }
+        }
+        print " ";
+        /^SUMMARY:(.*)/m and print $1;
+        /^LOCATION:(.*)/m and print " \@[$1]";
+        print "\n";
+    }
