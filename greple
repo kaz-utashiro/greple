@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.8 2013/12/02 09:55:30 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.9 2013/12/02 17:22:32 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -87,6 +87,7 @@ B<OPTIONS>
     --readlist        get filenames from stdin
     --chdir           change directory before search
     --glob=glob       glob target files
+    --print=func      print function
     --norc            skip reading startup file
 
 =cut
@@ -183,10 +184,10 @@ my @optargs = (
     'glob=s'             => \@opt_glob,
     'clean!'             => \$opt_clean,
     'decompress!'        => \$opt_decompress,
+    'quote=s'            => sub {$opt_color='always'; $opt_colormode=$_[1]},
     'color|colour=s'         => \$opt_color,
     'colormode|colourmode=s' => \$opt_colormode,
-    'quote=s'                => sub { $opt_color = 'always'; $opt_colormode = $_[1] },
-    'nocolor|nocolour'       => sub { $opt_color = 'never' },
+    'nocolor|nocolour'       => sub {$opt_color = 'never'},
     'print=s'                => \$opt_print,
 );
 
@@ -535,7 +536,11 @@ my %stat = (
 #
 local *printfunc;
 if ($opt_print) {
-    *printfunc = $opt_print;
+    if ($opt_print =~ /^sub\s*{/) {
+	*printfunc = eval $opt_print;
+    } else {
+	*printfunc = $opt_print;
+    }
     unless (defined &printfunc) {
 	die "&$opt_print is not defined\n";
     }
@@ -1003,9 +1008,12 @@ sub classify_regions {
 	while (@list and $list[0][1] < $from) {
 	    shift @list;
 	}
+	while (@list and $list[0][1] == $from and $list[0][0] < $from) {
+	    shift @list;
+	}
 	my $t = $table[$i] = [];
-	for (my $i = 0; $i < @list and $list[$i][0] < $to; $i++) {
-	    push @$t, $list[$i];
+	for (my $i = 0; ($i < @list) and ($list[$i][0] < $to); $i++) {
+	    push @$t, [ @{$list[$i]} ];
 	}
     }
     @table;
@@ -1044,13 +1052,13 @@ sub select_regions {
     for (my $i = 0; $i < @by; $i++) {
 	my($from, $to) = @{$by[$i]};
 	for (my $j = 0; $j < @list and $list[$j][0] < $from; $j++) {
-	    push @exclude, $list[$j];
+	    push @exclude, [ @{$list[$j]} ];
 	}
 	while (@list and $list[0][1] < $from) {
 	    shift @list;
 	}
 	for (my $j = 0; $j < @list and $list[$j][0] < $to; $j++) {
-	    push @include, $list[$j];
+	    push @include, [ @{$list[$j]} ];
 	}
 	while (@list and $list[0][1] <= $to) {
 	    shift @list;
@@ -1818,6 +1826,35 @@ repeating option, B<--glob> file expantion will be done for every
 directories.  Multiple directories have to be specified by absolute
 path.
 
+    greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
+
+=item B<--print>=I<function>, B<--print>=I<sub{...}>
+
+Specify user defined print function.  Arbitrary function can be
+defined in F<.greplerc> file.  Matched data is placed in variable
+C<$_>.  Other information is passed by key-value pair in the
+arguments.  Filename is passed by C<file> key.  Matched informaiton is
+passed by C<matched> key, in the form of perl array reference:
+C<[[start,end],[start,end]...]>.
+
+Simplest print function is B<--print>='I<sub{print}>'.  Coloring
+capability can be used like this:
+
+    # ~/.greplerc
+    __CODE__
+    sub print_simple {
+        my %attr = @_;
+        for my $r (reverse @{$attr{matched}}) {
+            my($s, $e) = @$r;
+            substr($_, $s, $e - $s) = color(substr($_, $s, $e - $s));
+        }
+        print;
+    }
+
+Then, you can use this function in the command line.
+
+    greple --print=print_simple ...
+
 =item B<--readlist>
 
 Get filenames from standard input.  Read standard input and use each
@@ -1825,7 +1862,7 @@ line as a filename for searching.  You can feed the output from other
 command like L<find(1)> for B<greple> with this option.  Next example
 searches string from files modified within 7 days:
 
-    find . -mtime -7 -print | greple -S pattern
+    find . -mtime -7 -print | greple --readlist pattern
 
 =item B<--man>
 
