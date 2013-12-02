@@ -19,37 +19,40 @@ __greple__ [ __-options__ ] pattern [ file... ]
     -i                ignore case
     -l                list filename only
     -c                print count of matched block only
-    -o                print only the matching part
     -n                print line number
     -h                do not display filenames
     -H                always display filenames
-    -p                paragraph mode
-    -A[n]             after match context
-    -B[n]             before match context
-    -C[n]             after and before match context
-    -f file           file contains search pattern
-    -d flags          display info (f:file d:dir c:count m:misc s:stat)
-
-    --man             show manual page
     --color=when      use termninal color (auto, always, never)
     --colormode=mode  Red, Green, Blue, Cyan, Magenta, Yellow, White,
                       Standout, bolD, Underline
     --nocolor         Same as --color=never
-    --icode=name      specify file encoding
-    --ocode=name      specify output encoding
-    --block=pattern   specify the block of records
-    --blockend=s      specify the block end mark (Default: "--\n")
     --inside=pattern  limit matching area
-    --outside=pattern opposite of --inside
+    --outside=pattern opposite to --inside
     --strict          strict mode for --inside/outside --block
     --join            delete newline in the matched part
     --joinby=string   replace newline in the matched text by string
+
+    -o                print only the matching part
+    -p                paragraph mode
+    -A[n]             after match context
+    -B[n]             before match context
+    -C[n]             after and before match context
+    --all             print whole data
+    --block=pattern   specify the block of records
+    --blockend=s      specify the block end mark (Default: "--\n")
+
+    -f file           file contains search pattern
+    -d flags          display info (f:file d:dir c:count m:misc s:stat)
+    --man             show manual page
+    --icode=name      specify file encoding
+    --ocode=name      specify output encoding
     --if=filter       set filter command
     --of=filter       output filter command
     --[no]pgp         decrypt and find PGP file (Default: false)
     --pgppass=phrase  pgp passphrase
     --[no]decompress  process compressed data (Default: true)
     --readlist        get filenames from stdin
+    --chdir           change directory before search
     --glob=glob       glob target files
     --norc            skip reading startup file
 
@@ -281,14 +284,13 @@ space characters.  Example:
 It changes the unit of context specified by __-A__, __-B__, __-C__
 options.
 
+#### __--all__
+
+Print whole data.
+
 #### __--block__=_pattern_, __--block__=_&sub_
 
-Specify the record block to display.
-
-Next command prints entire file because it handles the whole text as a
-single large block.
-
-    greple --block='(?s).*'
+Specify the record block to display.  Default block is a single line.
 
 Next is almost same as __--paragraph__ option.
 
@@ -466,15 +468,19 @@ passphrase is asked only once at the beginning of command execution.
 You can specify PGP passphrase by this option.  Generally, it is not
 recommended to use.
 
-#### __--chdir__=_directory_
-
-Change directory before processing.
-
 #### __--glob__=_pattern_
 
-Get files matches to specified pattern and use them as a target
-files.  Using __--chdir__ and __--glob__ makes easy to use __greple__ for
-fixed common job.
+Get files matches to specified pattern and use them as a target files.
+Using __--chdir__ and __--glob__ makes easy to use __greple__ for fixed
+common job.
+
+#### __--chdir__=_directory_
+
+Change directory before processing files.  When multiple directories
+are specified in __--chdir__ option, by using wildcard form or
+repeating option, __--glob__ file expantion will be done for every
+directories.  Multiple directories have to be specified by absolute
+path.
 
 #### __--readlist__
 
@@ -531,7 +537,8 @@ Metacharacters can be included without escaping.  Defined string
 replacement is done only in definition in option argument.  If you
 want to use the word in command line, use option directive instead.
 If 'help' directive is used for same option name, it will be printed
-in usage message.
+in usage message.  If the help message is 'ignore', corresponding line
+won't show up in the usage,
 
     define :kana: \p{utf8::InKatakana}
     option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
