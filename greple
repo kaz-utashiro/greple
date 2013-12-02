@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.7 2013/11/27 05:17:12 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.8 2013/12/02 09:55:30 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -52,37 +52,40 @@ B<OPTIONS>
     -i                ignore case
     -l                list filename only
     -c                print count of matched block only
-    -o                print only the matching part
     -n                print line number
     -h                do not display filenames
     -H                always display filenames
-    -p                paragraph mode
-    -A[n]             after match context
-    -B[n]             before match context
-    -C[n]             after and before match context
-    -f file           file contains search pattern
-    -d flags          display info (f:file d:dir c:count m:misc s:stat)
-
-    --man             show manual page
     --color=when      use termninal color (auto, always, never)
     --colormode=mode  Red, Green, Blue, Cyan, Magenta, Yellow, White,
                       Standout, bolD, Underline
     --nocolor         Same as --color=never
-    --icode=name      specify file encoding
-    --ocode=name      specify output encoding
-    --block=pattern   specify the block of records
-    --blockend=s      specify the block end mark (Default: "--\n")
     --inside=pattern  limit matching area
-    --outside=pattern opposite of --inside
+    --outside=pattern opposite to --inside
     --strict          strict mode for --inside/outside --block
     --join            delete newline in the matched part
     --joinby=string   replace newline in the matched text by string
+
+    -o                print only the matching part
+    -p                paragraph mode
+    -A[n]             after match context
+    -B[n]             before match context
+    -C[n]             after and before match context
+    --all             print whole data
+    --block=pattern   specify the block of records
+    --blockend=s      specify the block end mark (Default: "--\n")
+
+    -f file           file contains search pattern
+    -d flags          display info (f:file d:dir c:count m:misc s:stat)
+    --man             show manual page
+    --icode=name      specify file encoding
+    --ocode=name      specify output encoding
     --if=filter       set filter command
     --of=filter       output filter command
     --[no]pgp         decrypt and find PGP file (Default: false)
     --pgppass=phrase  pgp passphrase
     --[no]decompress  process compressed data (Default: true)
     --readlist        get filenames from stdin
+    --chdir           change directory before search
     --glob=glob       glob target files
     --norc            skip reading startup file
 
@@ -102,7 +105,8 @@ my @opt_icode;
 my @opt_inside;
 my @opt_outside;
 my @opt_block;
-my $opt_chdir;
+my @opt_chdir;
+my $opt_all;
 my $opt_blockend;
 my $opt_color = 'auto';
 my $opt_colormode = 'RD';	# red and bold
@@ -121,6 +125,7 @@ my $opt_rc = 1;
 my $opt_cut = 0;
 my $opt_allow = 0;
 my $opt_strict = 0;
+my $opt_print;
 
 my $opt_c;
 my @opt_d = ();
@@ -155,6 +160,7 @@ my @optargs = (
     'A|after-context:2'  => \$opt_A,
     'B|before-context:2' => \$opt_B,
     'C|context:2'        => \$opt_C,
+    'all'                => \$opt_all,
     'f|file=s'           => \$opt_f,
     'rc!'                => \$opt_rc,
     'S'                  => \$opt_readlist,
@@ -173,7 +179,7 @@ my @optargs = (
     'inside=s'           => \@opt_inside,
     'outside=s'          => \@opt_outside,
     'strict!'            => \$opt_strict,
-    'chdir=s'            => \$opt_chdir,
+    'chdir=s'            => \@opt_chdir,
     'glob=s'             => \@opt_glob,
     'clean!'             => \$opt_clean,
     'decompress!'        => \$opt_decompress,
@@ -181,6 +187,7 @@ my @optargs = (
     'colormode|colourmode=s' => \$opt_colormode,
     'quote=s'                => sub { $opt_color = 'always'; $opt_colormode = $_[1] },
     'nocolor|nocolour'       => sub { $opt_color = 'never' },
+    'print=s'                => \$opt_print,
 );
 
 binmode STDERR, ":encoding(utf8)";
@@ -226,6 +233,7 @@ if (grep { /^--norc$/ } @ARGV) {
 my $code_segment;
 if ($opt_rc &&
     open(GREPLERC, "<:encoding(utf8)", "$ENV{HOME}/.greplerc")) { # XXX
+    my $buf = '';
     while (<GREPLERC>) {
 	next if /^\s*($|\#)/;
 	if (/^\s*__CODE__\s*$/) {
@@ -233,9 +241,15 @@ if ($opt_rc &&
 	    $code_segment = <GREPLERC>;
 	    last;
 	}
+	if (s/ \\ \n? \Z //x) {
+	    $buf .= $_;
+	    next;
+	}
+	$_ = $buf . $_;
 	if (my($arg0, $arg1, $rest) = /^\s*(\S+)\s+(\S+)\s+(.*)/) {
 	    set_option($arg0, $arg1, $rest);
 	}
+	$buf = '';
     }
     close GREPLERC;
 }
@@ -313,8 +327,11 @@ if (@opt_icode) {
 	    Encode::Guess->add_suspects($file_code);
 	    $file_code = 'Guess';
 	}
-	elsif ($file_code =~ /^guess$/i) {
+	elsif ($file_code =~ /^(?:guess|auto)$/i) {
 	    Encode::Guess->set_suspects(@default_icode_list);
+	    $file_code = 'Guess';
+	} else {
+	    ;
 	}
     } else {
 	Encode::Guess->set_suspects(@opt_icode);
@@ -472,17 +489,22 @@ if (@opt_inside or @opt_outside) {
 ##
 ## chdir before processing $opt_glob
 ##
-if (defined $opt_chdir) {
-    chdir $opt_chdir or die "$!: $opt_chdir\n";
+if (@opt_chdir) {
+
+    @opt_chdir = map { glob $_ } @opt_chdir;
+
+    my $dir = shift @opt_chdir;
+    warn "chdir $dir\n" if $opt_d{d};
+    chdir glob($dir) or die "$!: $dir\n";
 }
 
-##
+##------------------------------------------------------------
 ## miscellaneous setups
 ##
 
 open(SAVESTDIN, '<&STDIN');
 unshift(@ARGV, map(glob, @opt_glob)) if @opt_glob;
-push(@ARGV, '-') unless @ARGV || $opt_readlist;
+push(@ARGV, '-') unless @ARGV || @opt_glob || $opt_readlist;
 
 $opt_join = 1 if $opt_joinby ne "";
 
@@ -499,6 +521,7 @@ if ($opt_C) {
     $opt_B ||= $opt_C;
 }
 my %stat = (
+    files => 0,
     match_effective => 0,
     match_positive => 0,
     match_negative => 0,
@@ -506,6 +529,19 @@ my %stat = (
     time_start => [],
     time_end => [],
     );
+
+#
+# user defined print function
+#
+local *printfunc;
+if ($opt_print) {
+    *printfunc = $opt_print;
+    unless (defined &printfunc) {
+	die "&$opt_print is not defined\n";
+    }
+}
+
+##------------------------------------------------------------
 
 ## record start time
 if ($opt_d{s}) {
@@ -563,6 +599,7 @@ sub main {
 	my $matched = grep_file();
 	no warnings 'uninitialized'; # why ?
 	$stat{match_effective} += $matched;
+	$stat{files}++;
     } continue {
 	close STDIN; # wait;	# wait for 4.019 or earlier?
 	# recover STDIN for opening '-' and some weird command which needs
@@ -577,8 +614,10 @@ sub usage {
     if (%user_option) {
 	print "User defined options:\n";
 	foreach my $k (sort keys %user_option) {
+	    my $help = $user_help{$k} || '';
+	    next if $help eq 'ignore';
 	    printf("        %-17s %s\n", $k,
-		   $user_help{$k} ||
+		   $help ||
 		   join(' ', map({ /\s/ ? "\"$_\"" : $_ }
 				 @{$user_option{$k}})));
 	}
@@ -635,6 +674,14 @@ sub make_pattern {
 }
 
 sub open_nextfile {
+
+    while (@ARGV == 0 and @opt_chdir and @opt_glob) {
+	my $dir = shift @opt_chdir;
+	warn "chdir $dir/\n" if $opt_d{d};
+	chdir $dir or die "$!: $dir\n";
+	push(@ARGV, map(glob, @opt_glob)) if @opt_glob;
+    }
+
     my $file;
     while (defined($file = shift(@ARGV)) ||
 	   defined($file = $opt_readlist && <SAVESTDIN>)) {
@@ -694,7 +741,6 @@ sub grep_file {
 sub do_grep {
     my $file = shift;
     local *_ = shift;
-
     my @result = grep_pattern(\$_, \@xpattern);
 
     my $matched_count;
@@ -719,6 +765,18 @@ sub do_grep {
 	my $block = substr($_, $block_start, $block_end - $block_start);
 	my $need_newline = not $block =~ /\n\Z/;
 
+	for (@$result) {
+	    $_->[0] = $_->[0] > $block_start ? $_->[0] - $block_start : 0;
+	    $_->[1] = $_->[1] - $block_start;
+	}
+
+	if (defined &printfunc) {
+	    for ($block) {
+		printfunc(file => $file, matched => $result);
+	    }
+	    next;
+	}
+
 	if ($opt_n) {
 	    my $gap = substr($_, $lastpos, $block_start - $lastpos);
 	    $line += $gap =~ tr/\n/\n/;
@@ -728,8 +786,6 @@ sub do_grep {
 	my $mark = "\001";
 	for my $matched (reverse @$result) {
 	    my($ms, $me) = @$matched;
-	    $ms = $ms > $block_start ? $ms - $block_start : 0;
-	    $me = $me - $block_start;
 	    my $s = substr($block, $ms, $me - $ms);
 
 	    if ($opt_join) {
@@ -739,15 +795,11 @@ sub do_grep {
 		    $s =~ s/\n/$opt_joinby/g;
 		}
 	    } else {
-		$s =~ s/(\n+)(?!\Z)/$color_e$1$color_s/g if $need_color;
+		$s =~ s/(\n+)(?!\Z)/uncolor($1)/ge if $need_color;
 	    }
 
 	    if ($s ne '') {
-		my $tailnl = '';
-		if ($s =~ s/(\n+)\Z//s) {
-		    $tailnl = $1;
-		}
-		substr($block, $ms, $me - $ms) = $color_s . $s . $color_e . $tailnl;
+		substr($block, $ms, $me - $ms) = color($s);
 	    }
 	}
 	if ($opt_n) {
@@ -769,6 +821,18 @@ sub do_grep {
     }
 
     $matched_count;
+}
+
+sub color {
+    my $s = shift;
+    my $newline = ($s =~ s/(\n+)\Z//s) ? $1 : '';
+    $color_s . $s . $color_e . $newline;
+
+}
+
+sub uncolor {
+    $color_e . shift . $color_s;
+
 }
 
 sub grep_pattern {
@@ -819,9 +883,15 @@ sub grep_pattern {
     }
 
     ##
+    ## --all
+    ##
+    if ($opt_all) {
+	@blocks = ( [0, length $_] );
+    }
+    ##
     ## --block
     ##
-    if (@opt_block) {
+    elsif (@opt_block) {
 	@blocks = ();
 	for my $re (@opt_block) {
 	    push @blocks, get_regions(\$_, $re);
@@ -1550,14 +1620,13 @@ space characters.  Example:
 It changes the unit of context specified by B<-A>, B<-B>, B<-C>
 options.
 
+=item B<--all>
+
+Print whole data.
+
 =item B<--block>=I<pattern>, B<--block>=I<&sub>
 
-Specify the record block to display.
-
-Next command prints entire file because it handles the whole text as a
-single large block.
-
-    greple --block='(?s).*'
+Specify the record block to display.  Default block is a single line.
 
 Next is almost same as B<--paragraph> option.
 
@@ -1735,15 +1804,19 @@ passphrase is asked only once at the beginning of command execution.
 You can specify PGP passphrase by this option.  Generally, it is not
 recommended to use.
 
-=item B<--chdir>=I<directory>
-
-Change directory before processing.
-
 =item B<--glob>=I<pattern>
 
-Get files matches to specified pattern and use them as a target
-files.  Using B<--chdir> and B<--glob> makes easy to use B<greple> for
-fixed common job.
+Get files matches to specified pattern and use them as a target files.
+Using B<--chdir> and B<--glob> makes easy to use B<greple> for fixed
+common job.
+
+=item B<--chdir>=I<directory>
+
+Change directory before processing files.  When multiple directories
+are specified in B<--chdir> option, by using wildcard form or
+repeating option, B<--glob> file expantion will be done for every
+directories.  Multiple directories have to be specified by absolute
+path.
 
 =item B<--readlist>
 
@@ -1805,7 +1878,8 @@ Metacharacters can be included without escaping.  Defined string
 replacement is done only in definition in option argument.  If you
 want to use the word in command line, use option directive instead.
 If `help' directive is used for same option name, it will be printed
-in usage message.
+in usage message.  If the help message is `ignore', corresponding line
+won't show up in the usage,
 
     define :kana: \p{utf8::InKatakana}
     option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
