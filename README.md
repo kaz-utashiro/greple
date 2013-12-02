@@ -54,6 +54,7 @@ __greple__ [ __-options__ ] pattern [ file... ]
     --readlist        get filenames from stdin
     --chdir           change directory before search
     --glob=glob       glob target files
+    --print=func      print function
     --norc            skip reading startup file
 
 # DESCRIPTION
@@ -482,6 +483,35 @@ repeating option, __--glob__ file expantion will be done for every
 directories.  Multiple directories have to be specified by absolute
 path.
 
+    greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
+
+#### __--print__=_function_, __--print__=_sub{...}_
+
+Specify user defined print function.  Arbitrary function can be
+defined in `.greplerc` file.  Matched data is placed in variable
+`$_`.  Other information is passed by key-value pair in the
+arguments.  Filename is passed by `file` key.  Matched informaiton is
+passed by `matched` key, in the form of perl array reference:
+`[[start,end],[start,end]...]`.
+
+Simplest print function is __--print__='_sub{print}_'.  Coloring
+capability can be used like this:
+
+    # ~/.greplerc
+    __CODE__
+    sub print_simple {
+        my %attr = @_;
+        for my $r (reverse @{$attr{matched}}) {
+            my($s, $e) = @$r;
+            substr($_, $s, $e - $s) = color(substr($_, $s, $e - $s));
+        }
+        print;
+    }
+
+Then, you can use this function in the command line.
+
+    greple --print=print_simple ...
+
 #### __--readlist__
 
 Get filenames from standard input.  Read standard input and use each
@@ -489,7 +519,7 @@ line as a filename for searching.  You can feed the output from other
 command like [find(1)](http://man.he.net/man1/find) for __greple__ with this option.  Next example
 searches string from files modified within 7 days:
 
-    find . -mtime -7 -print | greple -S pattern
+    find . -mtime -7 -print | greple --readlist pattern
 
 #### __--man__
 
