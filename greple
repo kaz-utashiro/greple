@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.9 2013/12/02 17:22:32 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.10 2013/12/06 13:54:54 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -55,15 +55,21 @@ B<OPTIONS>
     -n                print line number
     -h                do not display filenames
     -H                always display filenames
-    --color=when      use termninal color (auto, always, never)
-    --colormode=mode  Red, Green, Blue, Cyan, Magenta, Yellow, White,
-                      Standout, bolD, Underline
-    --nocolor         Same as --color=never
     --inside=pattern  limit matching area
     --outside=pattern opposite to --inside
     --strict          strict mode for --inside/outside --block
     --join            delete newline in the matched part
     --joinby=string   replace newline in the matched text by string
+
+    --need=n          required positive match count
+    --cut=n           acceptable failure count for positive match
+    --allow=n         acceptable negative match count
+
+    --color=when      use termninal color (auto, always, never)
+    --nocolor         same as --color=never
+    --colormode=mode  R, G, B, C, M, Y, W, Standout, bolD, Underline
+    --colorful        same as --colormode 'RD GD BD CD MD YD'
+    --random          random color
 
     -o                print only the matching part
     -p                paragraph mode
@@ -88,6 +94,7 @@ B<OPTIONS>
     --chdir           change directory before search
     --glob=glob       glob target files
     --print=func      print function
+    --continue        continue after print function
     --norc            skip reading startup file
 
 =cut
@@ -110,7 +117,9 @@ my @opt_chdir;
 my $opt_all;
 my $opt_blockend;
 my $opt_color = 'auto';
-my $opt_colormode = 'RD';	# red and bold
+my $opt_colormode = 'RD';
+my $opt_colorfull;
+my $opt_random;
 my $opt_icode;
 my $opt_ocode;
 my $opt_man;
@@ -125,8 +134,10 @@ my $opt_readlist;
 my $opt_rc = 1;
 my $opt_cut = 0;
 my $opt_allow = 0;
+my $opt_need;
 my $opt_strict = 0;
 my $opt_print;
+my $opt_continue;
 
 my $opt_c;
 my @opt_d = ();
@@ -149,6 +160,7 @@ my @optargs = (
     're=s'               => \@opt_re,
     'fe=s'               => \@opt_fe,
     'cut=i'              => \$opt_cut,
+    'need=i'             => \$opt_need,
     'allow=i'            => \$opt_allow,
     'i'                  => \$opt_i,
     'l'                  => \$opt_l,
@@ -188,7 +200,10 @@ my @optargs = (
     'color|colour=s'         => \$opt_color,
     'colormode|colourmode=s' => \$opt_colormode,
     'nocolor|nocolour'       => sub {$opt_color = 'never'},
+    'colorful'               => sub {$opt_colormode = 'RD GD BD CD MD YD'},
+    'random'                 => \$opt_random,
     'print=s'                => \$opt_print,
+    'continue!'              => \$opt_continue,
 );
 
 binmode STDERR, ":encoding(utf8)";
@@ -400,6 +415,11 @@ for my $p (@opt_fe) {
     push(@xpattern, [MATCH_POSITIVE, qr/\Q$p/]);
 }
 
+if ($opt_need and not $opt_cut) {
+    map { $opt_cut++ } grep { $_->[0] == MATCH_POSITIVE } @xpattern;
+    $opt_cut = max(0, $opt_cut - $opt_need);
+}
+
 if ($opt_d{m}) {
     warn "Search pattern:\n";
     for (@xpattern) {
@@ -487,32 +507,41 @@ if (@opt_inside or @opt_outside) {
     }
 }
 
-##
-## chdir before processing $opt_glob
-##
-if (@opt_chdir) {
-
-    @opt_chdir = map { glob $_ } @opt_chdir;
-
-    my $dir = shift @opt_chdir;
-    warn "chdir $dir\n" if $opt_d{d};
-    chdir glob($dir) or die "$!: $dir\n";
-}
-
 ##------------------------------------------------------------
 ## miscellaneous setups
 ##
 
+my @argv_files;
+my $start_directory;
+my $need_filename = ($opt_H or $opt_l);
+my $current_file;
+
+use Cwd;
+if (@opt_chdir) {
+    $start_directory = getcwd;
+    @opt_chdir = map { glob $_ } @opt_chdir;
+    push(@argv_files, splice(@ARGV));
+    unless ($opt_h or
+	    (@opt_chdir == 1 and @argv_files == 1 and @opt_glob == 0)) {
+	$need_filename++;
+    }
+}
+
 open(SAVESTDIN, '<&STDIN');
-unshift(@ARGV, map(glob, @opt_glob)) if @opt_glob;
-push(@ARGV, '-') unless @ARGV || @opt_glob || $opt_readlist;
+push(@ARGV, '-') unless @ARGV || @argv_files || @opt_glob || $opt_readlist;
+if ((@ARGV > 1 or $opt_readlist) and not $opt_h) {
+    $need_filename++;
+}
 
 $opt_join = 1 if $opt_joinby ne "";
 
-my($color_s, $color_e) = colorseq();
-my $need_color = $color_s . $color_e ne "";
-my $current_file;	# global variable for processing file name
-my $showfname = $opt_H || $opt_l || !$opt_h && (@ARGV > 1 || $opt_readlist);
+my @colors;
+for (split(' ', $opt_colormode)) {
+    push @colors, [ colorseq($_) ];
+}
+
+my $need_color = (($opt_color eq 'always')
+		  or (($opt_color eq 'auto') and (!$opt_o and -t STDOUT)));
 my $blockend = "--\n";
 if (defined $opt_blockend) {
     ($blockend = $opt_blockend) =~ s/\\n/\n/g;
@@ -680,11 +709,15 @@ sub make_pattern {
 
 sub open_nextfile {
 
-    while (@ARGV == 0 and @opt_chdir and @opt_glob) {
+    ##
+    ## --chdir
+    ##
+    while (@ARGV == 0 and @opt_chdir and (@argv_files or @opt_glob)) {
 	my $dir = shift @opt_chdir;
 	warn "chdir $dir/\n" if $opt_d{d};
+	chdir $start_directory or die "$!: $start_directory\n";
 	chdir $dir or die "$!: $dir\n";
-	push(@ARGV, map(glob, @opt_glob)) if @opt_glob;
+	push(@ARGV, @argv_files, map(glob, @opt_glob));
     }
 
     my $file;
@@ -732,12 +765,13 @@ sub grep_file {
     $pgp->reset if $pgp;
 
     warn $current_file, ":\n" if $opt_d{f};
-    $current_file = $showfname ? $current_file : '';
 
-    my $matched = do_grep($current_file, \$content);
-
-    if ($opt_clean) {
-	$content =~ s/./\000/gs;
+    my $matched = 0;
+    if (defined $content) {
+	$matched = do_grep($current_file, \$content);
+	if ($opt_clean) {
+	    $content =~ s/./\000/gs;
+	}
     }
 
     $matched;
@@ -752,12 +786,12 @@ sub do_grep {
     map { $matched_count += @{$_} - 1 } @result;
 
     if ($opt_l) {
-	print "$current_file\n";
+	print "$current_file\n" if $matched_count;
 	return $matched_count;
     }
 
     if ($opt_c) {
-	printf "%s%d\n", $file ? "$file:" : "", scalar(@result);
+	printf "%s%d\n", $need_filename ? "$file:" : "", scalar(@result);
 	return $matched_count;
     }
 
@@ -777,9 +811,12 @@ sub do_grep {
 
 	if (defined &printfunc) {
 	    for ($block) {
-		printfunc(file => $file, matched => $result);
+		$_ = printfunc(file => $file, matched => $result);
 	    }
-	    next;
+	    unless ($opt_continue) {
+		print $block if defined $block;
+		next;
+	    }
 	}
 
 	if ($opt_n) {
@@ -790,8 +827,10 @@ sub do_grep {
 
 	my $mark = "\001";
 	for my $matched (reverse @$result) {
-	    my($ms, $me) = @$matched;
+	    my($ms, $me, $pi) = @$matched;
 	    my $s = substr($block, $ms, $me - $ms);
+
+	    $pi = rand(@colors) if $opt_random;
 
 	    if ($opt_join) {
 		if ($opt_n) {
@@ -800,11 +839,12 @@ sub do_grep {
 		    $s =~ s/\n/$opt_joinby/g;
 		}
 	    } else {
-		$s =~ s/(\n+)(?!\Z)/uncolor($1)/ge if $need_color;
+		$s =~ s/(\n+)(?!\Z)/uncolor($1, $pi)/ge if $need_color;
 	    }
 
 	    if ($s ne '') {
-		substr($block, $ms, $me - $ms) = color($s);
+		substr($block, $ms, $me - $ms) = color($s, $pi)
+		    if $need_color;
 	    }
 	}
 	if ($opt_n) {
@@ -816,7 +856,7 @@ sub do_grep {
 		       }gse;
 	}
 
-	if ($file) {
+	if ($need_filename) {
 	    $block =~ s/^/$file:/mg;
 	}
 
@@ -829,15 +869,41 @@ sub do_grep {
 }
 
 sub color {
-    my $s = shift;
-    my $newline = ($s =~ s/(\n+)\Z//s) ? $1 : '';
-    $color_s . $s . $color_e . $newline;
-
+    my $text = shift;
+    my $index = @_ ? shift(@_) % @colors : 0;
+    my $newline = ($text =~ s/(\n+)\Z//s) ? $1 : '';
+    $colors[$index][0] . $text . $colors[$index][1] . $newline;
 }
 
 sub uncolor {
-    $color_e . shift . $color_s;
+    my $text = shift;
+    my $index = @_ ? shift(@_) % @colors : 0;
+    $colors[$index][1] . $text . $colors[$index][0];
+}
 
+use Term::ANSIColor qw(:constants);
+sub colorseq {
+    my $colormode = shift;
+
+    my($start, $end) = ('', '');
+    if ($colormode =~ /,/) {
+	($start, $end) = split(/,/, $colormode, 2);
+    } else {
+	map {
+	    $start .= UNDERLINE if /U/;
+	    $start .= REVERSE   if /S/;
+	    $start .= BOLD      if /D/;
+	    $start .= RED       if /R/; $start .= ON_RED       if /r/;
+	    $start .= GREEN     if /G/; $start .= ON_GREEN     if /g/;
+	    $start .= BLUE      if /B/; $start .= ON_BLUE      if /b/;
+	    $start .= CYAN      if /C/; $start .= ON_CYAN      if /c/;
+	    $start .= MAGENTA   if /M/; $start .= ON_MAGENTA   if /m/;
+	    $start .= YELLOW    if /Y/; $start .= ON_YELLOW    if /y/;
+	    $start .= WHITE     if /W/; $start .= ON_WHITE     if /w/;
+	} $colormode if $colormode;
+	$end = RESET if $start;
+    }
+    ($start, $end);
 }
 
 sub grep_pattern {
@@ -854,7 +920,7 @@ sub grep_pattern {
 	my($sw, $regex) = @{$patterns[$i]};
 	my $rp = $result[$i] = [];
 	while ($_ =~ /$regex/g) {
-	    push @$rp, [$-[0], $+[0]];
+	    push @$rp, [$-[0], $+[0], $i];
 	    if ($sw eq MATCH_POSITIVE) {
 		push @blocks, [$-[0], $+[0]];
 		$stat{match_positive}++;
@@ -938,7 +1004,7 @@ sub grep_pattern {
 	    }
 	}
     }
-    
+
     show_match_table(\@match_table) if $opt_d{v};
 
     ##
@@ -1109,8 +1175,25 @@ sub get_regions {
     ## when /pattern/
     ##
     else {
-	pattern_list({catchgroup => 0}, \$_, $pattern);
+	matched_regions({catchgroup => 0}, \$_, $pattern);
     }
+}
+
+sub matched_regions {
+    my $opt = ref $_[0] eq 'HASH' ? shift : {};
+    local *_ = shift;
+    my($pattern) = @_;
+    my @list;
+
+    my $re = qr/$pattern/m;
+    while (/$re/g) {
+	if ($opt->{catchgroup}) {
+	    push @list, defined $-[1] ? [$-[1], $+[1]] : [$-[0], $+[0]];
+	} else {
+	    push @list, [$-[0], $+[0]];
+	}
+    }
+    @list;
 }
 
 sub merge_regions {
@@ -1124,11 +1207,20 @@ sub merge_regions {
     push(@out, shift @in) if @in;
     while (@in) {
 	my $top = shift @in;
+
 	if ($out[-1][1] > $top->[0]) {
 	    $out[-1][1] = $top->[1] if $out[-1][1] < $top->[1];
-	} elsif (!$nojoin and $out[-1][1] == $top->[0]) {
+	}
+	elsif (!$nojoin
+	       and $out[-1][1] == $top->[0]
+	       ##
+	       ## don't connect regions in different pattern group
+	       ##
+	       and $out[-1][2] == $top->[2]
+	    ) {
 	    $out[-1][1] = $top->[1] if $out[-1][1] < $top->[1];
-	} else {
+	}
+	else {
 	    push @out, $top;
 	}
     }
@@ -1184,7 +1276,6 @@ sub blocknize {
     ($begin, $end);
 }
 
-######################################################################
 sub do_eval {
     my($prog, $debug) = @_;
     if ($debug || $opt_d{e}) {
@@ -1196,57 +1287,17 @@ sub do_eval {
 		    (caller)[1, 2]);
     }
 }
+
 sub unctrl {
     local($_) = shift;
     s/([\000-\010\013-\037])/'^' . pack('c', ord($1)|0100)/ge;
     $_;
 }
-sub colorseq {
-    use Term::ANSIColor qw(:constants);
-    my($start, $end) = ('', '');
-    if (($opt_color eq 'always') or
-	($opt_color eq 'auto' and (!$opt_o and -t STDOUT))) {
-	if ($opt_colormode =~ /,/) {
-	    ($start, $end) = split(/,/, $opt_colormode, 2);
-	} else {
-	    map {
-		$start .= UNDERLINE if /U/;
-		$start .= REVERSE   if /S/;
-		$start .= BOLD      if /D/;
-		$start .= RED       if /R/; $start .= ON_RED       if /r/;
-		$start .= GREEN     if /G/; $start .= ON_GREEN     if /g/;
-		$start .= BLUE      if /B/; $start .= ON_BLUE      if /b/;
-		$start .= CYAN      if /C/; $start .= ON_CYAN      if /c/;
-		$start .= MAGENTA   if /M/; $start .= ON_MAGENTA   if /m/;
-		$start .= YELLOW    if /Y/; $start .= ON_YELLOW    if /y/;
-		$start .= WHITE     if /W/; $start .= ON_WHITE     if /w/;
-	    } $opt_colormode if $opt_colormode;
-	    $end = RESET if $start;
-	}
-    }
-    ($start, $end);
-}
 
 sub max { $_[ ($_[0] < $_[1]) ]; }
 sub min { $_[ ($_[0] > $_[1]) ]; }
 
-sub pattern_list {
-    my $opt = ref $_[0] eq 'HASH' ? shift : {};
-    local *_ = shift;
-    my($pattern) = @_;
-    my @list;
-
-    my $re = qr/$pattern/m;
-    while (/$re/g) {
-	if ($opt->{catchgroup}) {
-	    push @list, defined $-[1] ? [$-[1], $+[1]] : [$-[0], $+[0]];
-	} else {
-	    push @list, [$-[0], $+[0]];
-	}
-    }
-    @list;
-}
-
+######################################################################
 package PgpFilter;
 use strict;
 
@@ -1291,7 +1342,7 @@ sub setphrase {
     my $obj = shift;
     my $fh = $obj->fh;
     my($passphrase_r) = @_;
-    
+
     $obj->reset;
     $fh->syswrite($$passphrase_r, length($$passphrase_r));
     $obj->reset;
@@ -1607,6 +1658,16 @@ bracket, use like this.
 Option B<--quote> is an alias for B<--colormode>, but it set the
 option B<--color>=I<always> at the same time.
 
+Multiple colors can be specified separating by white spaces.  Those
+colors will be applied for each pattern keywords.  Next command will
+show word `foo' in red, `bar' in green and `baz' in blue.
+
+    greple --colormode='R G B' 'foo bar baz' ...
+
+=item B<--colorful>
+
+Shortcut for B<--colormode>='I<RD GD BD CD MD YD>'
+
 =back
 
 
@@ -1630,7 +1691,10 @@ options.
 
 =item B<--all>
 
-Print whole data.
+Treat entire file contents as a single block.  This is almost
+identical to following command.
+
+    greple --block='(?s).*'
 
 =item B<--block>=I<pattern>, B<--block>=I<&sub>
 
@@ -1713,7 +1777,7 @@ and multiple times.
 Limit the match area strictly.
 
 By default, B<--block>, B<--inside>, B<--outside> option allows
-partial match within the specified area.  For example,
+partial match within the specified area.  For instance,
 
     greple --inside and command
 
@@ -1730,7 +1794,7 @@ Convert newline character found in matched string to empty or specifed
 I<string>.  Using B<--join> with B<-o> (only-matching) option, you can
 collect searching sentence list in one per line form.  This is almost
 useless for English text but sometimes useful for Japanese text.  For
-example next command prints the list of KATAKANA words.
+example, next command prints the list of KATAKANA words.
 
     greple -ho --join '\p{utf8::InKatakana}[\n\p{utf8::InKatakana}]*'
 
@@ -1760,17 +1824,28 @@ and UTF-16/32.
 
 Specify output code.  Default is utf8.
 
-=item B<--cut>=I<n>, B<--allow>=I<n>
+=item B<--need>=I<n>
 
-Option to compromize matching condition.  Option B<--cut> specifiy the
-number to cut down positive match count, and B<--allow> is the number
-of negative condition to be overlooked.
+=item B<--cut>=I<n>
+
+=item B<--allow>=I<n>
+
+Option to compromize matching condition.  Option B<--need> specifies
+the required match count, B<--cut> the number to cut down positive
+match count, and B<--allow> the number of negative condition to be
+overlooked.
 
     greple --cut=1 --allow=1 'foo bar baz -yabba -dabba -doo'
 
 Above command prints the line which contains two or more from `foo',
 `bar' and `baz', and does not include more than one of `yabba',
 `dabba' or `doo'.
+
+Using option B<--need>=I<1>, B<greple> produces same result as B<grep>
+command.
+
+    grep -e foo -e bar -e baz
+    greple --need=1 -e foo -e bar -e baz
 
 =item B<--if>=I<filter>, B<--if>=I<EXP>:I<filter>:I<EXP>:I<filter>:...
 
@@ -1823,22 +1898,24 @@ common job.
 Change directory before processing files.  When multiple directories
 are specified in B<--chdir> option, by using wildcard form or
 repeating option, B<--glob> file expantion will be done for every
-directories.  Multiple directories have to be specified by absolute
-path.
+directories.
 
     greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
 
 =item B<--print>=I<function>, B<--print>=I<sub{...}>
 
-Specify user defined print function.  Arbitrary function can be
-defined in F<.greplerc> file.  Matched data is placed in variable
-C<$_>.  Other information is passed by key-value pair in the
+=item B<--continue>
+
+Specify user defined function executed before data print.  Text to be
+printed is replaced by the result of the funcion.  Arbitrary function
+can be defined in F<.greplerc> file.  Matched data is placed in
+variable C<$_>.  Other information is passed by key-value pair in the
 arguments.  Filename is passed by C<file> key.  Matched informaiton is
 passed by C<matched> key, in the form of perl array reference:
 C<[[start,end],[start,end]...]>.
 
-Simplest print function is B<--print>='I<sub{print}>'.  Coloring
-capability can be used like this:
+Simplest function is B<--print>='I<sub{$_}>'.  Coloring capability can
+be used like this:
 
     # ~/.greplerc
     __CODE__
@@ -1848,7 +1925,7 @@ capability can be used like this:
             my($s, $e) = @$r;
             substr($_, $s, $e - $s) = color(substr($_, $s, $e - $s));
         }
-        print;
+        $_;
     }
 
 Then, you can use this function in the command line.
