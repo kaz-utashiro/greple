@@ -22,15 +22,21 @@ __greple__ [ __-options__ ] pattern [ file... ]
     -n                print line number
     -h                do not display filenames
     -H                always display filenames
-    --color=when      use termninal color (auto, always, never)
-    --colormode=mode  Red, Green, Blue, Cyan, Magenta, Yellow, White,
-                      Standout, bolD, Underline
-    --nocolor         Same as --color=never
     --inside=pattern  limit matching area
     --outside=pattern opposite to --inside
     --strict          strict mode for --inside/outside --block
     --join            delete newline in the matched part
     --joinby=string   replace newline in the matched text by string
+
+    --need=n          required positive match count
+    --cut=n           acceptable failure count for positive match
+    --allow=n         acceptable negative match count
+
+    --color=when      use termninal color (auto, always, never)
+    --nocolor         same as --color=never
+    --colormode=mode  R, G, B, C, M, Y, W, Standout, bolD, Underline
+    --colorful        same as --colormode 'RD GD BD CD MD YD'
+    --random          random color
 
     -o                print only the matching part
     -p                paragraph mode
@@ -55,6 +61,7 @@ __greple__ [ __-options__ ] pattern [ file... ]
     --chdir           change directory before search
     --glob=glob       glob target files
     --print=func      print function
+    --continue        continue after print function
     --norc            skip reading startup file
 
 # DESCRIPTION
@@ -267,6 +274,16 @@ bracket, use like this.
 Option __--quote__ is an alias for __--colormode__, but it set the
 option __--color__=_always_ at the same time.
 
+Multiple colors can be specified separating by white spaces.  Those
+colors will be applied for each pattern keywords.  Next command will
+show word 'foo' in red, 'bar' in green and 'baz' in blue.
+
+    greple --colormode='R G B' 'foo bar baz' ...
+
+#### __--colorful__
+
+Shortcut for __--colormode__='_RD GD BD CD MD YD_'
+
 
 
 ## __OTHER OPTIONS__
@@ -287,7 +304,10 @@ options.
 
 #### __--all__
 
-Print whole data.
+Treat entire file contents as a single block.  This is almost
+identical to following command.
+
+    greple --block='(?s).*'
 
 #### __--block__=_pattern_, __--block__=_&sub_
 
@@ -370,7 +390,7 @@ and multiple times.
 Limit the match area strictly.
 
 By default, __--block__, __--inside__, __--outside__ option allows
-partial match within the specified area.  For example,
+partial match within the specified area.  For instance,
 
     greple --inside and command
 
@@ -387,7 +407,7 @@ Convert newline character found in matched string to empty or specifed
 _string_.  Using __--join__ with __-o__ (only-matching) option, you can
 collect searching sentence list in one per line form.  This is almost
 useless for English text but sometimes useful for Japanese text.  For
-example next command prints the list of KATAKANA words.
+example, next command prints the list of KATAKANA words.
 
     greple -ho --join '\p{utf8::InKatakana}[\n\p{utf8::InKatakana}]*'
 
@@ -417,17 +437,28 @@ and UTF-16/32.
 
 Specify output code.  Default is utf8.
 
-#### __--cut__=_n_, __--allow__=_n_
+#### __--need__=_n_
 
-Option to compromize matching condition.  Option __--cut__ specifiy the
-number to cut down positive match count, and __--allow__ is the number
-of negative condition to be overlooked.
+#### __--cut__=_n_
+
+#### __--allow__=_n_
+
+Option to compromize matching condition.  Option __--need__ specifies
+the required match count, __--cut__ the number to cut down positive
+match count, and __--allow__ the number of negative condition to be
+overlooked.
 
     greple --cut=1 --allow=1 'foo bar baz -yabba -dabba -doo'
 
 Above command prints the line which contains two or more from 'foo',
 'bar' and 'baz', and does not include more than one of 'yabba',
 'dabba' or 'doo'.
+
+Using option __--need__=_1_, __greple__ produces same result as __grep__
+command.
+
+    grep -e foo -e bar -e baz
+    greple --need=1 -e foo -e bar -e baz
 
 #### __--if__=_filter_, __--if__=_EXP_:_filter_:_EXP_:_filter_:...
 
@@ -480,22 +511,24 @@ common job.
 Change directory before processing files.  When multiple directories
 are specified in __--chdir__ option, by using wildcard form or
 repeating option, __--glob__ file expantion will be done for every
-directories.  Multiple directories have to be specified by absolute
-path.
+directories.
 
     greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
 
 #### __--print__=_function_, __--print__=_sub{...}_
 
-Specify user defined print function.  Arbitrary function can be
-defined in `.greplerc` file.  Matched data is placed in variable
-`$_`.  Other information is passed by key-value pair in the
+#### __--continue__
+
+Specify user defined function executed before data print.  Text to be
+printed is replaced by the result of the funcion.  Arbitrary function
+can be defined in `.greplerc` file.  Matched data is placed in
+variable `$_`.  Other information is passed by key-value pair in the
 arguments.  Filename is passed by `file` key.  Matched informaiton is
 passed by `matched` key, in the form of perl array reference:
 `[[start,end],[start,end]...]`.
 
-Simplest print function is __--print__='_sub{print}_'.  Coloring
-capability can be used like this:
+Simplest function is __--print__='_sub{$_}_'.  Coloring capability can
+be used like this:
 
     # ~/.greplerc
     __CODE__
@@ -505,7 +538,7 @@ capability can be used like this:
             my($s, $e) = @$r;
             substr($_, $s, $e - $s) = color(substr($_, $s, $e - $s));
         }
-        print;
+        $_;
     }
 
 Then, you can use this function in the command line.
