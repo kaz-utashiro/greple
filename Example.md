@@ -40,9 +40,10 @@ Greple Examples
 	greple '?foo|bar ?yabba|dabba'  # foo|bar|yabba|dabba
 	greple 'foo|bar yabba|dabba'    # you want this? こーいうこと?
 
-### cut down the match count / マッチに必要な数をまける
+### specify the match count / マッチに必要な数を指定する
 
-	greple --cut=1 'foo bar baz'
+	greple --need=2 'foo bar baz'
+	greple --need=-1 'foo bar baz'
 
 	o foo bar baz
 	o foo baz
@@ -52,6 +53,7 @@ Greple Examples
 ### allow negative match / ネガティブマッチを許す
 
 	greple --allow=1 'foo -bar -baz'
+	greple --allow=-1 'foo -bar -baz'
 	
 	o foo bar
 	o foo baz
@@ -202,22 +204,24 @@ Greple Examples
     __CODE__
     sub print_ical_line {
         s/\r//g;
+        my $s = '';
         my(@s, @e);
         if (@s = /^DTSTART.*(\d{4})(\d\d)(\d\d)(?:T(\d\d)(\d\d))?/m) {
-            print "$1/$2/$3";
-            print " $4:$5" if defined $4;
+            $s .= "$1/$2/$3";
+            $s .= " $4:$5" if defined $4;
         }
         if (@e = /^DTEND.*(\d{4})(\d\d)(\d\d)(?:T(\d\d)(\d\d))?/m) {
             if ($s[0]eq$e[0] and $s[1]eq$e[1] and $s[2]+1>=$e[2]) {
-                print "-$4:$5" if defined $4;
+                $s .= "-$4:$5" if defined $4;
             } else {
-                print "-";
-                print "$1/" if $s[0] ne $e[0];
-                print "$2/$3";
+                $s .= "-";
+                $s .= "$1/" if $s[0] ne $e[0];
+                $s .= "$2/$3";
             }
         }
-        print " ";
-        /^SUMMARY:(.*)/m and print $1;
-        /^LOCATION:(.*)/m and print " \@[$1]";
-        print "\n";
+        $s .= " ";
+        /^SUMMARY:(.*)/m and $s .= $1;
+        /^LOCATION:(.*)/m and $s .= " \@[$1]";
+        $s .= "\n";
+        $s;
     }
