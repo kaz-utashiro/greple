@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.11 2013/12/07 03:39:44 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.12 2013/12/07 03:44:57 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -1844,7 +1844,7 @@ Option to compromize matching condition.  Option B<--need> specifies
 the required match count, and B<--allow> the number of negative
 condition to be overlooked.
 
-    greple --cut=1 --allow=1 'foo bar baz -yabba -dabba -doo'
+    greple --need=2 --allow=1 'foo bar baz -yabba -dabba -doo'
 
 Above command prints the line which contains two or more from `foo',
 `bar' and `baz', and does not include more than one of `yabba',
