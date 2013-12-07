@@ -444,7 +444,7 @@ Option to compromize matching condition.  Option __--need__ specifies
 the required match count, and __--allow__ the number of negative
 condition to be overlooked.
 
-    greple --cut=1 --allow=1 'foo bar baz -yabba -dabba -doo'
+    greple --need=2 --allow=1 'foo bar baz -yabba -dabba -doo'
 
 Above command prints the line which contains two or more from 'foo',
 'bar' and 'baz', and does not include more than one of 'yabba',
