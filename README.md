@@ -29,7 +29,6 @@ __greple__ [ __-options__ ] pattern [ file... ]
     --joinby=string   replace newline in the matched text by string
 
     --need=n          required positive match count
-    --cut=n           acceptable failure count for positive match
     --allow=n         acceptable negative match count
 
     --color=when      use termninal color (auto, always, never)
@@ -439,14 +438,11 @@ Specify output code.  Default is utf8.
 
 #### __--need__=_n_
 
-#### __--cut__=_n_
-
 #### __--allow__=_n_
 
 Option to compromize matching condition.  Option __--need__ specifies
-the required match count, __--cut__ the number to cut down positive
-match count, and __--allow__ the number of negative condition to be
-overlooked.
+the required match count, and __--allow__ the number of negative
+condition to be overlooked.
 
     greple --cut=1 --allow=1 'foo bar baz -yabba -dabba -doo'
 
@@ -459,6 +455,9 @@ command.
 
     grep -e foo -e bar -e baz
     greple --need=1 -e foo -e bar -e baz
+
+When the count _n_ is negative value, it is subtracted from maximum
+value.
 
 #### __--if__=_filter_, __--if__=_EXP_:_filter_:_EXP_:_filter_:...
 
