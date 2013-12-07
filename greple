@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.10 2013/12/06 13:54:54 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.11 2013/12/07 03:39:44 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -62,7 +62,6 @@ B<OPTIONS>
     --joinby=string   replace newline in the matched text by string
 
     --need=n          required positive match count
-    --cut=n           acceptable failure count for positive match
     --allow=n         acceptable negative match count
 
     --color=when      use termninal color (auto, always, never)
@@ -132,9 +131,8 @@ my $opt_clean;
 my $opt_decompress = 1;
 my $opt_readlist;
 my $opt_rc = 1;
-my $opt_cut = 0;
+my $opt_need = 0;
 my $opt_allow = 0;
-my $opt_need;
 my $opt_strict = 0;
 my $opt_print;
 my $opt_continue;
@@ -159,7 +157,6 @@ my @optargs = (
     'le=s'               => \@opt_le,
     're=s'               => \@opt_re,
     'fe=s'               => \@opt_fe,
-    'cut=i'              => \$opt_cut,
     'need=i'             => \$opt_need,
     'allow=i'            => \$opt_allow,
     'i'                  => \$opt_i,
@@ -415,18 +412,13 @@ for my $p (@opt_fe) {
     push(@xpattern, [MATCH_POSITIVE, qr/\Q$p/]);
 }
 
-if ($opt_need and not $opt_cut) {
-    map { $opt_cut++ } grep { $_->[0] == MATCH_POSITIVE } @xpattern;
-    $opt_cut = max(0, $opt_cut - $opt_need);
+my($positive_pattern, $negative_pattern);
+for (@xpattern) {
+    $_->[0] == MATCH_POSITIVE ? $positive_pattern++ : $negative_pattern++;
 }
 
-if ($opt_d{m}) {
-    warn "Search pattern:\n";
-    for (@xpattern) {
-	my($mode, $p) = @$_;
-	warn sprintf("  %s /%s/\n", $mode ? 'and' : 'not', $p);
-    }
-}
+$opt_need += $positive_pattern if $opt_need <= 0;
+$opt_allow += $negative_pattern if $opt_allow < 0;
 
 ##
 ## setup input/output filter
@@ -537,7 +529,7 @@ $opt_join = 1 if $opt_joinby ne "";
 
 my @colors;
 for (split(' ', $opt_colormode)) {
-    push @colors, [ colorseq($_) ];
+    push @colors, [ colorseq($_), $_ ];
 }
 
 my $need_color = (($opt_color eq 'always')
@@ -576,6 +568,16 @@ if ($opt_print) {
 }
 
 ##------------------------------------------------------------
+
+## patterns
+if ($opt_d{m}) {
+    warn "Search pattern:\n";
+    for my $i (0 .. $#xpattern) {
+	my($mode, $p) = @{$xpattern[$i]};
+	warn sprintf("  %s /%s/\n", $mode ? 'and' : 'not',
+		     @colors > 1 ? color($p, $i) : $p);
+    }
+}
 
 ## record start time
 if ($opt_d{s}) {
@@ -758,6 +760,8 @@ sub open_nextfile {
     undef;
 }
 
+######################################################################
+
 sub grep_file {
     my $content;
 
@@ -906,6 +910,8 @@ sub colorseq {
     ($start, $end);
 }
 
+######################################################################
+
 sub grep_pattern {
     local *_ = shift;
     my @patterns = @{+shift};
@@ -1011,7 +1017,7 @@ sub grep_pattern {
     ## now it is quite easy to get effective blocks
     ##
     my @effective_index = grep(
-	$match_table[$_][POSI_NEGA] <= $opt_cut &&
+	$match_table[$_][POSI_POSI] >= $opt_need &&
 	$match_table[$_][NEGA_POSI] <= $opt_allow, 0 .. $#blocks);
 
     ##
@@ -1032,7 +1038,9 @@ sub grep_pattern {
     my @list = ();
     for my $bi (@effective_index) {
 	my @matched = merge_regions({nojoin => $opt_o, sort => 1},
-				    @{$match_table[$bi][POSI_LIST]});
+				    @{$match_table[$bi][POSI_LIST]},
+				    @{$match_table[$bi][NEGA_LIST]}
+	    );
 	if ($opt_o) {
 	    push @list, map({ [ $_, $_ ] } @matched);
 	} else {
@@ -1276,6 +1284,8 @@ sub blocknize {
     ($begin, $end);
 }
 
+######################################################################
+
 sub do_eval {
     my($prog, $debug) = @_;
     if ($debug || $opt_d{e}) {
@@ -1443,6 +1453,8 @@ sub decrypt {
 }
 
 1;
+
+######################################################################
 
 =head1 DESCRIPTION
 
@@ -1826,14 +1838,11 @@ Specify output code.  Default is utf8.
 
 =item B<--need>=I<n>
 
-=item B<--cut>=I<n>
-
 =item B<--allow>=I<n>
 
 Option to compromize matching condition.  Option B<--need> specifies
-the required match count, B<--cut> the number to cut down positive
-match count, and B<--allow> the number of negative condition to be
-overlooked.
+the required match count, and B<--allow> the number of negative
+condition to be overlooked.
 
     greple --cut=1 --allow=1 'foo bar baz -yabba -dabba -doo'
 
@@ -1846,6 +1855,9 @@ command.
 
     grep -e foo -e bar -e baz
     greple --need=1 -e foo -e bar -e baz
+
+When the count I<n> is negative value, it is subtracted from maximum
+value.
 
 =item B<--if>=I<filter>, B<--if>=I<EXP>:I<filter>:I<EXP>:I<filter>:...
 
