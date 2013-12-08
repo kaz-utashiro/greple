@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.12 2013/12/07 03:44:57 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.13 2013/12/08 02:34:09 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -198,7 +198,7 @@ my @optargs = (
     'colormode|colourmode=s' => \$opt_colormode,
     'nocolor|nocolour'       => sub {$opt_color = 'never'},
     'colorful'               => sub {$opt_colormode = 'RD GD BD CD MD YD'},
-    'random'                 => \$opt_random,
+    'random!'                => \$opt_random,
     'print=s'                => \$opt_print,
     'continue!'              => \$opt_continue,
 );
@@ -267,18 +267,19 @@ if ($opt_rc &&
     close GREPLERC;
 }
 
+if (defined $user_option{default}) {
+    unshift(@ARGV, @{$user_option{default}});
+    undef $user_option{default};
+}
+if ($ENV{'GREPLEOPTS'}) {
+    unshift(@ARGV, shellwords($ENV{'GREPLEOPTS'}));
+}
 for (my $i = 0; $i < @ARGV; $i++) {
     my $arg = $ARGV[$i];
     if (defined $user_option{$arg}) {
 	splice(@ARGV, $i, 1, @{$user_option{$arg}});
 	redo;
     }
-}
-if (defined $user_option{default}) {
-    unshift(@ARGV, @{$user_option{default}});
-}
-if ($ENV{'GREPLEOPTS'}) {
-    unshift(@ARGV, shellwords($ENV{'GREPLEOPTS'}));
 }
 
 ##
@@ -527,13 +528,11 @@ if ((@ARGV > 1 or $opt_readlist) and not $opt_h) {
 
 $opt_join = 1 if $opt_joinby ne "";
 
-my @colors;
-for (split(' ', $opt_colormode)) {
-    push @colors, [ colorseq($_), $_ ];
-}
+my @colors = map { [ colorseq($_), $_ ] } split(' ', $opt_colormode);
 
 my $need_color = (($opt_color eq 'always')
 		  or (($opt_color eq 'auto') and (!$opt_o and -t STDOUT)));
+
 my $blockend = "--\n";
 if (defined $opt_blockend) {
     ($blockend = $opt_blockend) =~ s/\\n/\n/g;
@@ -843,7 +842,7 @@ sub do_grep {
 		    $s =~ s/\n/$opt_joinby/g;
 		}
 	    } else {
-		$s =~ s/(\n+)(?!\Z)/uncolor($1, $pi)/ge if $need_color;
+		$s =~ s/(\n+)(?!\Z)/decolor($1, $pi)/ge if $need_color;
 	    }
 
 	    if ($s ne '') {
@@ -879,7 +878,7 @@ sub color {
     $colors[$index][0] . $text . $colors[$index][1] . $newline;
 }
 
-sub uncolor {
+sub decolor {
     my $text = shift;
     my $index = @_ ? shift(@_) % @colors : 0;
     $colors[$index][1] . $text . $colors[$index][0];
@@ -1658,8 +1657,8 @@ Option B<--nocolor> is alias for B<--color>=I<never>.
 
 Specify color mode.  Use combination string from R(ed), G(reen),
 B(lue), C(yan), M(agenta), Y(ellow), W(hite), U(nderline), (bol)D,
-S(tandout).  Lowercase form of RGBW means background color.  Default
-is RD: RED and BOLD.
+S(tandout).  Lowercase form of RGBCMYW means background color.
+Default is RD: RED and BOLD.
 
 If the mode string contains comma `,' character, they are used to
 quote the matched string.  If you want to quote the pattern by angle
@@ -2010,6 +2009,9 @@ won't show up in the usage,
     define :kana: \p{utf8::InKatakana}
     option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
     help   --kanalist List up Katakana string
+
+If the option named B<default> is defined, it will be used as a
+default option.
 
 When I<greple> found C<__CODE__> line in F<.greplerc> file, the rest of
 the file is evaluated as a Perl program.  You can define your own
