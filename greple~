@@ -1,0 +1,1801 @@
+#!/usr/bin/perl
+##
+## greple: grep with multiple keywords
+##
+## Copyright (c) 1991-2013 Kazumasa Utashiro
+##
+## Original: Mar 29 1991
+;; my $rcsid = q$Id$;
+##
+## Use and redistribution for ANY PURPOSE are granted as long as all
+## copyright notices are retained.  Redistribution with modification
+## is allowed provided that you make your modified version obviously
+## distinguishable from the original one.  THIS SOFTWARE IS PROVIDED
+## BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
+## DISCLAIMED.
+##
+
+use strict;
+use warnings;
+
+require 5.008;
+
+use File::stat;
+use IO::Handle;
+use Getopt::Long;
+use Pod::Usage;
+use Text::ParseWords qw(shellwords);
+use Data::Dumper;
+
+use utf8;
+use Encode;
+use Encode::Guess;
+
+=head1 NAME
+
+greple - grep with multiple keywords
+
+=head1 SYNOPSIS
+
+B<greple> [ B<-options> ] pattern [ file... ]
+
+    pattern           'positive -negative ?alternative'
+
+    -e pattern        regex pattern match across line boundary
+    -v pattern        regex pattern not to be matched
+    --le pattern      lexical expression (same as bare pattern)
+    --re pattern      regular expression
+    --fe pattern      fixed expression
+
+B<OPTIONS>
+
+    -i                ignore case
+    -l                list filename only
+    -c                print count of matched block only
+    -o                print only the matching part
+    -n                print line number
+    -h                do not display filenames
+    -H                always display filenames
+    -p                paragraph mode
+    -A[n]             after match context
+    -B[n]             before match context
+    -C[n]             after and before match context
+    -f file           file contains search pattern
+    -Z                do not uncompress automatically
+    -d flags          display info (f:file d:dir c:count m:misc s:stat)
+
+    --man             show manual page
+    --color=when      use termninal color (auto, always, never)
+    --colormode=mode  Red, Green, Blue, Cyan, Magenta, Yellow, White,
+    		      Standout, bolD, Underline
+    --nocolor         Same as --color=never
+    --icode=name      specify file encoding (repeatable)
+    --ocode=name      specify output encoding
+    --block=pattern   specify the block of records
+    --blockend=s      specify the block end mark (Default: "--\n")
+    --inside=pattern  limit matching area
+    --outside=pattern opposite of --inside
+    --join            delete newline in the matched part
+    --joinby string   replace newline in the matched text by string
+    --if=filter       set filter command
+    --of=filter       output filter command
+    --[no]pgp         remember passphrase and use it for PGP processing
+    --pgppass=phrase  pgp passphrase
+    --readlist        get filenames from stdin
+    --glob=glob       glob target files (repeatable)
+    --norc            skip reading startup file
+
+=cut
+
+my @opt_e;
+my @opt_v;
+my @opt_re;
+my @opt_le;
+my @opt_fe;
+my @opt_or;
+
+my @opt_if;
+my @opt_of;
+my @opt_glob;
+my @opt_icode;
+my @opt_inside;
+my @opt_outside;
+my @opt_block;
+my $opt_chdir;
+my $opt_blockend;
+my $opt_color = 'auto';
+my $opt_colormode = 'RD';	# red and bold
+my $opt_icode;
+my $opt_ocode;
+my $opt_man;
+my $opt_pgp;
+my $opt_pgppass;
+my $opt_passphrase_fd;
+my $opt_join;
+my $opt_joinby = "";
+my $opt_clean;
+my $opt_decompress = 1;
+my $opt_readlist;
+my $opt_rc = 1;
+my $opt_cut = 0;
+my $opt_allow = 0;
+
+my $opt_c;
+my @opt_d = ();
+my $opt_f;
+my $opt_h;
+my $opt_i;
+my $opt_n;
+my $opt_o;
+my $opt_p;
+my $opt_l;
+my $opt_A = 0;
+my $opt_B = 0;
+my $opt_C = 0;
+my $opt_H;
+
+my @optargs = (
+    'e|and=s'            => \@opt_e,
+    'v|not=s'            => \@opt_v,
+    'le=s'               => \@opt_le,
+    're=s'               => \@opt_re,
+    'fe=s'               => \@opt_fe,
+    'cut=i'              => \$opt_cut,
+    'allow=i'            => \$opt_allow,
+    'i'                  => \$opt_i,
+    'l'                  => \$opt_l,
+    'c|count'            => \$opt_c,
+    'n'                  => \$opt_n,
+    'h|no-filename'      => \$opt_h,
+    'H'                  => \$opt_H,
+    'o|only-matching!'   => \$opt_o,
+    'p|paragraph!'       => \$opt_p,
+    'A|after-context:2'  => \$opt_A,
+    'B|before-context:2' => \$opt_B,
+    'C|context:2'        => \$opt_C,
+    'f|file=s'           => \$opt_f,
+    'rc!'                => \$opt_rc,
+    'S'                  => \$opt_readlist,
+    'd=s'                => \@opt_d,
+    'man'                => \$opt_man,
+    'icode=s'            => \@opt_icode,
+    'ocode=s'            => \$opt_ocode,
+    'join!'              => \$opt_join,
+    'joinby=s'           => \$opt_joinby,
+    'if=s'               => \@opt_if,
+    'of=s'               => \@opt_of,
+    'pgp!'               => \$opt_pgp,
+    'pgppass=s'          => \$opt_pgppass,
+    'block=s'            => \@opt_block,
+    'blockend:s'         => \$opt_blockend,
+    'inside=s'           => \@opt_inside,
+    'outside=s'          => \@opt_outside,
+    'chdir=s'            => \$opt_chdir,
+    'glob=s'             => \@opt_glob,
+    'clean!'             => \$opt_clean,
+    'decompress!'        => \$opt_decompress,
+    'color|colour=s'               => \$opt_color,
+    'colormode|colourmode|quote=s' => \$opt_colormode,
+    'nocolor|nocolour'             => sub { $opt_color = 'never' },
+);
+
+binmode STDERR, ":encoding(utf8)";
+
+##
+## User customizable option handling in ~/.greplerc
+##
+my %user_option;
+my %user_define;
+my @user_define;
+my %user_help;
+sub set_option {
+    my($arg0, $arg1, $rest) = @_;
+
+    if ($arg0 eq 'define') {
+	$user_define{$arg1} = $rest;
+	unshift(@user_define, qr/\Q$arg1/);
+    }
+    elsif ($arg0 eq 'option') {
+	my @args = shellwords($rest);
+	for (@args) {
+	    for my $re (@user_define) {
+		s/($re)/$user_define{$1}/g;
+	    }
+	}
+	$user_option{$arg1} = [ @args ];
+    }
+    elsif ($arg0 eq 'help') {
+	$user_help{$arg1} = $rest;
+    }
+    else {
+	warn "$arg0: Unknown operator in rc file.\n";
+    }
+}
+
+##
+## RC file have to be read before option handling.
+##
+if (grep { /^--norc$/ } @ARGV) {
+    $opt_rc = 0;
+}
+
+my $code_segment;
+if ($opt_rc &&
+    open(GREPLERC, "<:encoding(utf8)", "$ENV{HOME}/.greplerc")) { # XXX
+    while (<GREPLERC>) {
+	next if /^\s*($|\#)/;
+	if (/^\s*__CODE__\s*$/) {
+	    local($/) = undef;
+	    $code_segment = <GREPLERC>;
+	    last;
+	}
+	if (my($arg0, $arg1, $rest) = /^\s*(\S+)\s+(\S+)\s+(.*)/) {
+	    set_option($arg0, $arg1, $rest);
+	}
+    }
+    close GREPLERC;
+}
+
+for (my $i = 0; $i < @ARGV; $i++) {
+    my $arg = $ARGV[$i];
+    if (defined $user_option{$arg}) {
+	splice(@ARGV, $i, 1, @{$user_option{$arg}});
+	redo;
+    }
+}
+if (defined $user_option{default}) {
+    unshift(@ARGV, @{$user_option{default}});
+}
+if ($ENV{'GREPLEOPTS'}) {
+    unshift(@ARGV, shellwords($ENV{'GREPLEOPTS'}));
+}
+
+##
+## Decode @ARGV
+##
+foreach (@ARGV) {
+    $_ = decode 'utf8', $_ unless utf8::is_utf8($_); # XXX
+}
+
+my @SAVEDARGV = @ARGV;
+Getopt::Long::Configure("bundling");
+GetOptions(@optargs) || pod2usage;
+
+my %opt_d;
+@opt_d = split(//, join('', @opt_d));
+@opt_d{@opt_d} = @opt_d;
+
+##
+## Evaluate __CODE__ segment after option handling.
+##
+if ($opt_rc) {
+    do_eval($code_segment) if defined $code_segment;
+}
+
+if ($opt_d{o}) {
+    warn "\@ARGV = @SAVEDARGV\n";
+}
+
+my $file_code;
+my $default_icode = 'utf8';	# default input encoding
+my @default_icode_list = qw(euc-jp 7bit-jis);
+my $output_code;
+my $default_ocode = 'utf8';	# default output encoding
+
+$output_code = $opt_ocode || $default_ocode;
+binmode STDOUT, ":encoding($output_code)";
+
+## show unused option characters
+if ($opt_d{u}) {
+    my $s = join('','0'..'9',"\n",'a'..'z',"\n",'A'..'Z',"\n");
+    map { /^([0-9a-zA-Z])(?:\|[^=]+)*(?:=[is])?$/ && $s =~ s/$1/./ } @optargs;
+    die $s;
+}
+
+## show man pages
+if ($opt_man) {
+    pod2usage({-verbose => 2});
+    die;
+}
+
+## setup file encoding
+if (@opt_icode) {
+    @opt_icode = map { split /[,\s]+/ } @opt_icode;
+    my $use_add;
+    map { s/^\+// and ++$use_add } @opt_icode;
+    if (@opt_icode == 1) {
+	$file_code = $opt_icode[0];
+	if ($use_add) {
+	    Encode::Guess->add_suspects($file_code);
+	    $file_code = 'Guess';
+	}
+	elsif ($file_code =~ /^guess$/i) {
+	    Encode::Guess->set_suspects(@default_icode_list);
+	}
+    } else {
+	Encode::Guess->set_suspects(@opt_icode);
+	$file_code = 'Guess';
+    }
+}
+else {
+    $file_code = $default_icode;
+}
+
+## make search pattern
+if ($opt_f) {
+    my @patterns;
+    open(my $fh, '<:encoding(utf8)', $opt_f) or die "$opt_f: $!\n";
+    @patterns = grep { !/^\s*(#|$)/ } <$fh>;
+    chomp(@patterns);
+    close($fh);
+    unshift(@opt_re, join('|', map { make_pattern($_) } @patterns));
+} else {
+    if (@opt_le + @opt_re + @opt_fe + @opt_or + @opt_e == 0) {
+	&usage if @ARGV == 0;
+	unshift(@opt_le, shift(@ARGV));
+    }
+}
+
+##
+## --le
+##
+for (@opt_le) {
+    for my $p (split(/(?<!\\) +/, $_)) {
+	next if $p eq "";
+	if ($p =~ s/^-//) {		# -pattern
+	    push(@opt_v, $p);
+	} elsif ($p =~ s/^\?//) {	# ?pattern
+	    push(@opt_or, $p);
+	} elsif ($p =~ s/^\+// or 1) {	# +pattern
+	    push(@opt_e, $p);
+	}
+    }
+}
+
+my @xpattern;
+use constant {
+    MATCH_POSITIVE => 1,
+    MATCH_NEGATIVE => 0,
+};
+
+for my $p (@opt_e) {
+    $p = make_pattern($p);
+    push(@xpattern, [MATCH_POSITIVE, qr/$p/m]);
+}
+for my $p (@opt_v) {
+    $p = make_pattern($p);
+    push(@xpattern, [MATCH_NEGATIVE, qr/$p/m]);
+}
+if (@opt_or) {
+    my $p = join('|', map { &make_pattern($_) } @opt_or);
+    push(@xpattern, [MATCH_POSITIVE, qr/$p/m]);
+}
+
+for my $p (@opt_re) {
+    push(@xpattern, [MATCH_POSITIVE, qr/$p/m]);
+}
+for my $p (@opt_fe) {
+    push(@xpattern, [MATCH_POSITIVE, qr/\Q$p/]);
+}
+
+if ($opt_d{m}) {
+    warn "Search pattern:\n";
+    for (@xpattern) {
+	my($mode, $p) = @$_;
+	warn sprintf("  %s /%s/\n", $mode ? 'and' : 'not', $p);
+    }
+}
+
+##
+## setup input/output filter
+##
+my @filter;
+
+if ($opt_decompress) {
+    push(@filter,
+	 [ sub { s/\.Z$//   }, 'zcat' ],
+	 [ sub { s/\.g?z$// }, 'gunzip -c' ],
+	 [ sub { m/\.pdf$/i }, 'pdftotext -nopgbrk - -' ],
+	);
+}
+for my $if (@opt_if) {
+    my @f = split(/:/, $if);
+    while (@f) {
+	if (@f > 1) {
+	    push(@filter, [ splice(@f, 0, 2) ]);
+	} else {
+	    push(@filter, [ 1, shift(@f) ]);
+	}
+    }
+}
+
+sub filter {
+    my $file = shift;
+    local($_) = $file;
+
+    my @f;
+    for (my $remember = ""; $remember ne $_; ) {
+	$remember = $_;
+	for my $p (@filter) {
+	    my($exp, $command) = @$p;
+	    if (ref $exp eq 'CODE' ? &$exp : eval $exp) {
+		push(@f, $command);
+	    }
+	}
+    }
+
+    my $filter = join(" | ", @f);
+    $filter =~ s/{}/$file/g;
+    $filter;
+}
+
+my $pgp;
+if ($opt_pgp) {
+    $pgp = new PgpFilter;
+    if ($opt_pgppass) {
+	$pgp->initialize({passphrase => $opt_pgppass});
+    } elsif ($opt_passphrase_fd) {
+	$pgp->initialize({passphrase_fd => $opt_passphrase_fd});
+    } else {
+	$pgp->initialize();
+    }
+    push(@filter, [ sub { s/\.(pgp|gpg|asc)// }, $pgp->_decrypt_command ]);
+}
+
+# open output filter
+if (@opt_of) {
+    my $of = join(' | ', @opt_of);
+    open(STDOUT, "| $of") || die "$of: $!\n";
+    $| = 1;
+    if ($opt_d{m}) {
+	warn "Output Filter:\n  \"$of\"\n";
+    }
+}
+
+##
+## Combine @opt_inside and @opt_outside into single list.
+##
+my @opt_region;
+if (@opt_inside or @opt_outside) {
+    for my $region (@opt_inside) {
+	push(@opt_region, [1, $region]);
+    }
+    for my $region (@opt_outside) {
+	push(@opt_region, [0, $region]);
+    }
+}
+
+##
+## chdir before processing $opt_glob
+##
+if (defined $opt_chdir) {
+    chdir $opt_chdir or die "$!: $opt_chdir\n";
+}
+
+##
+## miscellaneous setups
+##
+
+open(SAVESTDIN, '<&STDIN');
+unshift(@ARGV, map(glob, @opt_glob)) if @opt_glob;
+push(@ARGV, '-') unless @ARGV || $opt_readlist;
+
+$opt_join = 1 if $opt_joinby ne "";
+
+my($color_s, $color_e) = colorseq();
+my $need_color = $color_s . $color_e ne "";
+my $current_file;	# global variable for processing file name
+my $showfname = $opt_H || $opt_l || !$opt_h && (@ARGV > 1 || $opt_readlist);
+my $blockend = "--\n";
+if (defined $opt_blockend) {
+    ($blockend = $opt_blockend) =~ s/\\n/\n/g;
+}
+if ($opt_C) {
+    $opt_A ||= $opt_C;
+    $opt_B ||= $opt_C;
+}
+my %stat = (
+    match_effective => 0,
+    match_positive => 0,
+    match_negative => 0,
+    match_block => 0,
+    time_start => [],
+    time_end => [],
+    );
+
+## record start time
+if ($opt_d{s}) {
+    $stat{time_start} = [times];
+}
+
+$SIG{'QUIT'} = 'QUIT';
+sub QUIT { die "Interrupted\n"; }
+MAIN: {
+    eval { &main };
+    if ($@) {
+	if ($@ =~ /Interrupted/) {	# interrupted
+	    ;
+	} else {
+	    warn "$current_file: $@";
+	}
+	close STDIN; # wait;
+	open(STDIN, '<&SAVESTDIN');
+	redo MAIN;
+    }
+}
+
+## show statistic info
+if ($opt_d{s}) {
+    $stat{time_end} = [times];
+    my @s = @{$stat{time_start}};
+    my @e = @{$stat{time_end}};
+    printf(STDERR "cpu %.3fu %.3fs\n", $e[0]-$s[0], $e[1]-$s[1]);
+    for my $k (sort keys %stat) {
+	my $v = $stat{$k};
+	print STDERR "$k: ";
+	if (ref $v eq 'ARRAY') {
+	    local $" = ", ";
+	    print STDERR "(@$v)";
+	} else {
+	    print STDERR $v;
+	}
+	print STDERR "\n";
+    }
+}
+
+close STDOUT;
+
+if ($opt_d{p}) {
+    open(STDOUT, ">&STDERR");
+    system "ps -lww -p $$";
+}
+
+exit($stat{match_effective} == 0);
+
+######################################################################
+
+sub main {
+    while (defined($current_file = open_nextfile())) {
+	my $matched = grep_file();
+	no warnings 'uninitialized'; # why ?
+	$stat{match_effective} += $matched;
+    } continue {
+	close STDIN; # wait;	# wait for 4.019 or earlier?
+	# recover STDIN for opening '-' and some weird command which needs
+	# STDIN opened (like unzip)
+	open(STDIN, '<&SAVESTDIN');
+    }
+}
+
+sub usage {
+    pod2usage(-verbose => 0, -exitval => "NOEXIT");
+
+    if (%user_option) {
+	print "User defined options:\n";
+	foreach my $k (sort keys %user_option) {
+	    printf("        %-17s %s\n", $k,
+		   $user_help{$k} ||
+		   join(' ', map({ /\s/ ? "\"$_\"" : $_ }
+				 @{$user_option{$k}})));
+	}
+	print "\n";
+    }
+
+    print "$rcsid\n" if $rcsid =~ /:/;
+
+    exit 2;
+}
+
+sub make_pattern {
+    my($p) = @_;
+
+    my $wchar_re = qr{ [ \p{East_Asian_Width=Wide}
+			 \p{East_Asian_Width=FullWidth} ] }x;
+
+    if ($p =~ s/^\\Q//) {
+	$p = quotemeta($p);
+    } else {
+	$p =~ s{
+	    (
+	     \[[^\]]*\]		# character-class
+	     |
+	     \(\?\<[=!][^\)]*\)	# look-behind pattern
+	    )
+	    |
+	    ($wchar_re+)
+	    |
+	    (\w+|.)
+	}{
+	    if (defined $1) {
+		$1;
+	    } elsif (defined $2) {
+		join('\s*', split(//, $2));
+	    } elsif (defined $3) {
+		$3;
+	    } else {
+		die;
+	    }
+	}egx;
+
+	# ( [
+	$p =~ s/($wchar_re)([\(\[]+)/$1\\s*$2/g;
+
+	# ) ]
+	$p =~ s/($wchar_re[\)\]]+)(?!\||$)/$1\\s*/g;
+
+	# remove \s* arround space
+	$p =~ s/(?:\\s\*)?\\? +(?:\\s\*)?/\\s+/g;
+    }
+
+    length($p) ? ($opt_i ? "(?i)$p" : $p) : undef;
+}
+
+sub open_nextfile {
+    my $file;
+    while (defined($file = shift(@ARGV)) ||
+	   defined($file = $opt_readlist && <SAVESTDIN>)) {
+	$file =~ s/\n+$//;
+
+	my $file_st = stat($file);
+	if (-p _ || -c _ || -b _) {	# skip FIFO and device files
+	    next;
+	}
+
+	if (0) {}
+	elsif ($file =~ /^http:\/\//) {
+	    open(STDIN, '-|') || exec("w3m -dump $file") || die "w3m: $!\n";
+	}
+	else {
+	    open(STDIN, $file) or do {
+		warn "$file: $!\n" unless -l $file;
+		next;
+	    };
+	}
+
+	my $input_filter;
+	if (defined(&filter) && ($input_filter = &filter($file))) {
+	    open(STDIN, '-|') || exec($input_filter)
+		|| die "$input_filter: $!\n";
+	    if ($opt_d{m}) {
+		printf(STDERR "Input Filter:\n  \"$input_filter\" < %s\n",
+		       $file);
+	    }
+	}
+
+	binmode STDIN, ":encoding($file_code)";
+
+	return $file;
+    }
+    undef;
+}
+
+sub grep_file {
+    my $content;
+
+    { undef $/; $content = <STDIN>; }
+    $pgp->reset if $pgp;
+
+    warn $current_file, ":\n" if $opt_d{f};
+    $current_file = $showfname ? $current_file : '';
+
+    my $matched = do_grep($current_file, \$content);
+
+    if ($opt_clean) {
+	$content =~ s/./\000/gs;
+    }
+
+    $matched;
+}
+
+sub do_grep {
+    my $file = shift;
+    local *_ = shift;
+
+    my @result = grep_pattern(\$_, \@xpattern);
+
+    my $matched_count;
+    map { $matched_count += @{$_} - 1 } @result;
+
+    if ($opt_l) {
+	print "$current_file\n";
+	return $matched_count;
+    }
+
+    if ($opt_c) {
+	printf "%s%d\n", $file ? "$file:" : "", scalar(@result);
+	return $matched_count;
+    }
+
+    my $line = 1;
+    my $need_blockend = $opt_p || $opt_A || $opt_B || @opt_block;
+    my $lastpos = 0;
+    for my $result (@result) {
+
+	my($block_start, $block_end) = @{shift @$result};
+	my $block = substr($_, $block_start, $block_end - $block_start);
+	my $need_newline = not $block =~ /\n\Z/;
+
+	if ($opt_n) {
+	    my $gap = substr($_, $lastpos, $block_start - $lastpos);
+	    $line += $gap =~ tr/\n/\n/;
+	}
+	$lastpos = $block_end;
+
+	my $mark = "\001";
+	for my $matched (reverse @$result) {
+	    my($ms, $me) = @$matched;
+	    $ms = $ms > $block_start ? $ms - $block_start : 0;
+	    $me = $me - $block_start;
+	    my $s = substr($block, $ms, $me - $ms);
+
+	    if ($opt_join) {
+		if ($opt_n) {
+		    $s =~ s/\n/$mark/g;
+		} else {
+		    $s =~ s/\n/$opt_joinby/g;
+		}
+	    } else {
+		$s =~ s/(\n)/$color_e$1$color_s/g if $need_color;
+	    }
+
+	    substr($block, $ms, $me - $ms) = $color_s . $s . $color_e
+		if $need_color;
+	}
+
+	if ($opt_n) {
+	    my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
+	    $block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
+			my $s = $1 ? $opt_joinby : sprintf("%d:", $line);
+			$line += $increment;
+			$s;
+		       }gse;
+	}
+
+	if ($file) {
+	    $block =~ s/^/$file:/mg;
+	}
+
+	print $block;
+	print "\n" if $need_newline;
+	print $blockend if $need_blockend;
+    }
+
+    $matched_count;
+}
+
+sub grep_pattern {
+    local *_ = shift;
+    my @patterns = @{+shift};
+    my @blocks;
+
+    ##
+    ## build match result list
+    ##
+    my @result;
+    my $required_count = 0;
+    my %required = (yes => 0, no => 0);
+    for my $i (0 .. $#patterns) {
+	my($sw, $regex) = @{$patterns[$i]};
+	$required_count++ if $sw eq MATCH_POSITIVE;
+	my $rp = $result[$i] = [];
+	while ($_ =~ /$regex/g) {
+	    push(@$rp, [$-[0], $+[0]]);
+	    if ($sw eq MATCH_POSITIVE) {
+		push(@blocks, [$-[0], $+[0]]);
+		$stat{match_positive}++;
+	    } else {
+		$stat{match_negative}++;
+	    }
+	}
+	if (@$rp) {
+	    $required{$sw eq MATCH_POSITIVE ? 'yes' : 'no'}++;
+	}
+    }
+    $stat{match_block} += @blocks;
+
+    ##
+    ## optimization for zero match
+    ##
+    return () if $required{yes} == 0;
+
+    ##
+    ## --inside, --outside
+    ##
+    for my $region (@opt_region) {
+	my($region_sw, $arg) = @$region;
+	my @select = get_regions(\$_, $arg);
+	if ($region_sw or @select) {
+	    for my $r (@result) {
+		@$r = select_regions($r, \@select, $region_sw);
+	    }
+	}
+    }
+
+    ##
+    ## --block
+    ##
+    if (@opt_block) {
+	@blocks = ();
+	for my $re (@opt_block) {
+	    push(@blocks, get_regions(\$_, $re));
+	}
+    	@blocks = merge_regions({nojoin => 1, sort => 1}, @blocks);
+    }
+    ##
+    ## build block list from matched range
+    ##
+    elsif (@blocks) {
+	my $textp = \$_;
+	my $sub_blocknize = optimized_blocknize();
+    	@blocks =
+	    merge_regions({nojoin => 1, sort => 1},
+			  map({[$sub_blocknize->($textp, $_->[0], $_->[1])]}
+			      @blocks));
+    }
+
+    ##
+    ## build matched count list for all patterns
+    ##
+    my @matched_blocks;
+    for my $i (0 .. $#result) {
+	$matched_blocks[$i] = [ classify_regions($result[$i], \@blocks) ];
+    }
+
+    ##
+    ##
+    ##
+    use constant {
+	POSI_OFFSET => 0, NEGA_OFFSET => 1, LIST_OFFSET => 2,
+	POSI_BASE => 0, POSI_POSI => 0, POSI_NEGA => 1, POSI_LIST => 2,
+	NEGA_BASE => 3, NEGA_POSI => 3, NEGA_NEGA => 4, NEGA_LIST => 5,
+    };
+
+    my @match_table = ([0, 0, [], 0, 0, []]) x scalar(@blocks);
+    print Dumper(\@match_table);
+    for my $i (0 .. $#result) {
+	my $match_sw = $patterns[$i][0];
+	my @b = classify_regions($result[$i], \@blocks);
+	for my $bi (0 .. $#b) {
+	    my $base = $match_sw eq MATCH_POSITIVE ? POSI_BASE : NEGA_BASE;
+	    my $te = $match_table[$bi];
+	    print Dumper(\$te);
+	    if (@{$b[$bi]}) {
+		${$te}[$base + POSI_OFFSET]++;
+		push(@{$te->[$base + POSI_LIST]}, @{$b[$bi]});
+	    } else {
+		${$te}[$base + NEGA_OFFSET]++;
+		push(@{$te->[$base + NEGA_LIST]}, @{$b[$bi]});
+	    }
+	    print Dumper(\$te);
+	}
+    }
+    print Dumper(\@match_table);
+    
+    ##
+    ## calculate hit count for each block
+    ##
+    my @show_block;
+    my @all_result;
+    for my $bi (0 .. $#blocks) {
+	my @matched;
+	my @hit;
+	@hit[MATCH_POSITIVE, MATCH_NEGATIVE] = (0, 0);
+	for my $ri (0 .. $#patterns) {
+	    my $sw = $patterns[$ri][0];
+	    my $bp = $matched_blocks[$ri][$bi];
+	    if (@{$bp}) {
+		++$hit[$sw];
+		push(@matched, @{$bp}) if $sw == MATCH_POSITIVE;
+	    }
+	}
+	$all_result[$bi] = \@matched;
+	if ($hit[MATCH_POSITIVE] + $opt_cut >= $required_count
+	    and
+	    $hit[MATCH_NEGATIVE] - $opt_allow <= 0) {
+	    if (@opt_block) {
+		for my $i (max($bi - $opt_B, 0)..min($bi + $opt_A, $#blocks)) {
+		    $show_block[$i]++;
+		}
+	    } else {
+		$show_block[$bi]++;
+	    }
+	}
+    }
+
+    my @list;
+    for my $bi (grep($show_block[$_], 0 .. $#blocks)) {
+	my @matched = merge_regions({nojoin => $opt_o, sort => 1},
+				    @{$all_result[$bi]});
+	if ($opt_o) {
+	    push(@list, map({ [ $_, $_ ] } @matched));
+	} else {
+	    push(@list, [ $blocks[$bi], @matched ]);
+	}
+    }
+
+    ##
+    ## ( [ [blockstart, blockend], [start, end], [start, end], ... ],
+    ##   [ [blockstart, blockend], [start, end], [start, end], ... ],
+    ##   ...
+    ##
+    return @list;
+}
+
+sub classify_regions {
+    my @list = @{+shift};
+    my @by = @{+shift};
+    my @table;
+    for (my $i = 0; $i < @by; $i++) {
+	my($from, $to) = @{$by[$i]};
+	while (@list and $list[0][0] < $from) {
+	    shift @list;
+	}
+	my $t = $table[$i] = [];
+	while (@list and $list[0][0] < $to and $list[0][1] <= $to) {
+	    push(@$t, shift @list);
+	}
+    }
+    @table;
+}
+
+sub get_regions {
+    local *_ = shift;
+    my $pattern = shift;
+    ##
+    ## when &name
+    ##
+    if ($pattern =~ /^&([^=]*)(?:=(.*))?/) {
+	no strict 'refs';
+	my($func, @arg) = ($1, $2);
+	&$func(@arg);
+    }
+    ##
+    ## when /pattern/
+    ##
+    else {
+	pattern_list({catchgroup => 0}, \$_, $pattern);
+    }
+}
+
+sub merge_regions {
+    my $option = ref $_[0] eq 'HASH' ? shift : {};
+    my $nojoin = $option->{nojoin};
+    my @in = @_;
+    if ($option->{sort}) {
+	@in = sort({$a->[0] <=> $b->[0] || $b->[1] <=> $a->[1]} @in);
+    }
+    my @out;
+    push(@out, shift @in) if @in;
+    while (@in) {
+	my $top = shift @in;
+	if ($out[-1][1] > $top->[0]) {
+	    $out[-1][1] = $top->[1] if $out[-1][1] < $top->[1];
+	} elsif (!$nojoin and $out[-1][1] == $top->[0]) {
+	    $out[-1][1] = $top->[1] if $out[-1][1] < $top->[1];
+	} else {
+	    push(@out, $top);
+	}
+    }
+    @out;
+}
+
+sub optimized_blocknize {
+    my($begin, $end) = (-1, -1);
+    if ($opt_p or $opt_A or $opt_B) {
+	\&blocknize;
+    } else {
+	sub {
+	    if ($begin <= $_[1] and $_[2] < $end) {
+		;
+	    } else {
+		($begin, $end) = &blocknize;
+	    }
+	    ($begin, $end);
+	}
+    }
+}
+
+sub blocknize {
+    local *_ = shift;		# text
+    my($from, $to) = @_;	# range
+
+    my $delim = $opt_p ? "\n\n" : "\n";
+
+    my($begin, $end);
+
+    for (my $c = $opt_B + 1; $c; $c--) {
+	$begin = rindex($_, $delim, $from - 1);
+	last if $begin < 0;
+	$from = $begin - length $delim;
+    }
+    if ($begin < 0) {
+	$begin = 0;
+    } else {
+	$begin += length $delim;
+    }
+
+    for (my $c = $opt_A + 1; $c; $c--) {
+	$end = index($_, $delim, $to);
+	last if $end < 0;
+	$to = $end + length $delim;
+    }
+    if ($end < 0) {
+	$end = length $_;
+    } else {
+	$end += 1;
+    }
+
+    ($begin, $end);
+}
+
+######################################################################
+sub do_eval {
+    my($prog, $debug) = @_;
+    if ($debug || $opt_d{e}) {
+	print STDERR &unctrl($prog), "\n" x ($prog !~ /\n$/);
+    }
+    eval $prog;
+    if ($@) {
+	die sprintf("eval failed in file %s on line %s\n$@",
+		    (caller)[1, 2]);
+    }
+}
+sub unctrl {
+    local($_) = shift;
+    s/([\000-\010\013-\037])/'^' . pack('c', ord($1)|0100)/ge;
+    $_;
+}
+sub colorseq {
+    use Term::ANSIColor qw(:constants);
+    my($start, $end) = ('', '');
+    if (($opt_color eq 'always') or
+	($opt_color eq 'auto' and -t STDOUT)) {
+	if ($opt_colormode =~ /,/) {
+	    ($start, $end) = split(/,/, $opt_colormode, 2);
+	} else {
+	    map {
+		$start .= UNDERLINE if /U/;
+		$start .= REVERSE   if /S/;
+		$start .= BOLD      if /D/;
+		$start .= RED       if /R/; $start .= ON_RED       if /r/;
+		$start .= GREEN     if /G/; $start .= ON_GREEN     if /g/;
+		$start .= BLUE      if /B/; $start .= ON_BLUE      if /b/;
+		$start .= CYAN      if /C/; $start .= ON_CYAN      if /c/;
+		$start .= MAGENTA   if /M/; $start .= ON_MAGENTA   if /m/;
+		$start .= YELLOW    if /Y/; $start .= ON_YELLOW    if /y/;
+		$start .= WHITE     if /W/; $start .= ON_WHITE     if /w/;
+	    } $opt_colormode if $opt_colormode;
+	    $end = RESET if $start;
+	}
+    }
+    ($start, $end);
+}
+
+sub max { $_[ ($_[0] < $_[1]) ]; }
+sub min { $_[ ($_[0] > $_[1]) ]; }
+
+sub pattern_list {
+    my $opt = ref $_[0] eq 'HASH' ? shift : {};
+    local *_ = shift;
+    my($pattern) = @_;
+    my @list;
+
+    my $re = qr/$pattern/m;
+    while (/$re/g) {
+	if ($opt->{catchgroup}) {
+	    push(@list, defined $-[1] ? [$-[1], $+[1]] : [$-[0], $+[0]]);
+	} else {
+	    push(@list, [$-[0], $+[0]]);
+	}
+    }
+    @list;
+}
+
+sub select_regions {
+    my($from, $what, $how) = @_;
+    my @from = @$from;
+    my @what = @$what;
+
+    my(@exclude, @include);
+    while (@from) {
+	while (@what and $what[0][1] <= $from[0][0]) {
+	    shift(@what);
+	}
+	if (@what == 0) {
+	    push(@exclude, splice(@from, 0));
+	    last;
+	}
+	while (@from and $from[0][0] < $what[0][0]) {
+	    push(@exclude, shift(@from));
+	}
+	while (@from and $from[0][1] <= $what[0][1]) {
+	    push(@include, shift(@from));
+	}
+	while (@from and $from[0][0] < $what[0][1]) {
+	    push(@exclude, shift(@from));
+	}
+    }	
+    $how ? @include : @exclude;
+}
+
+package PgpFilter;
+use strict;
+
+sub new {
+    my $obj = bless {
+	FH        => undef,
+    }, shift;
+    $obj;
+}
+
+sub initialize {
+    my $obj = shift;
+    my($opt) = @_;
+    my $passphrase;
+
+    if (my $fd = $opt->{passphrase_fd}) {
+	$obj->fh(_openfh($fd));
+    }
+    else {
+	if (not defined $obj->fh) {
+	    $obj->fh(_openfh());
+	}
+	if (defined $obj->{passphrase}) {
+	    $passphrase = $obj->{passphrase};
+	} else {
+	    _readphrase(\$passphrase);
+	}
+	$obj->setphrase(\$passphrase);
+
+	##
+	## Destroy data as much as possible
+	##
+	$passphrase =~ s/./\0/g;
+	$passphrase = "";
+	undef $passphrase;
+    }
+
+    $obj;
+}
+
+sub setphrase {
+    my $obj = shift;
+    my $fh = $obj->fh;
+    my($passphrase_r) = @_;
+    
+    $obj->reset;
+    $fh->syswrite($$passphrase_r, length($$passphrase_r));
+    $obj->reset;
+}
+
+sub fh {
+    my $obj = shift;
+    @_ ? $obj->{FH} = shift
+       : $obj->{FH};
+}
+
+sub pgppassfd {
+    my $obj = shift;
+    $obj->fh->fileno;
+}
+
+sub _decrypt_command {
+    my $obj = shift;
+    my $command = "gpg";
+    my @option = ();
+    push(@option, qw(--quiet --batch --decrypt));
+    push(@option, qw(--no-tty --no-mdc-warning));
+    sprintf("$command @option --passphrase-fd %d", $obj->pgppassfd);
+}
+
+sub file_viewer {
+    my $obj = shift;
+    sprintf("pgpcat --passphrase-fd %d", $obj->pgppassfd);
+}
+
+sub reset {
+    my $obj = shift;
+    $obj->fh->sysseek(0, 0) or die;
+}
+
+sub _openfh {
+    use Fcntl;
+    use IO::File;
+
+    my($fd) = @_;
+    my $fh;
+
+    if (defined $fd) {
+	$fh = new IO::Handle;
+	$fh->fdopen($fd, "w+");
+    } else {
+	$fh = new_tmpfile IO::File;
+	defined $fh or die "new_tmpefile: $!";
+    }
+
+    $fh->fcntl(F_SETFD, 0) or die "fcntl F_SETFD failed: $!\n";
+
+    return $fh;
+}
+
+sub _readphrase {
+    my($passphrase_r) = @_;
+
+    print STDERR "Enter PGP Passphrase> ";
+    system "stty -echo";
+    $$passphrase_r = <STDIN>;
+    system "stty echo";
+    chomp($$passphrase_r);
+    print STDERR "\n";
+
+    $passphrase_r;
+}
+
+sub decrypt {
+    use IPC::Open2;
+
+    my $obj = shift;
+
+    my($enc_data) = @_;
+
+    $obj->reset;
+
+    my $pid = open2(\*RDRFH, \*WTRFH, $pgp->_decrypt_command);
+
+    if (length($enc_data) <= 1024 * 16) {
+	print WTRFH $enc_data;
+    }
+    else {
+	## NO ERROR CHECK! XXX
+	if (fork == 0) {
+	    print WTRFH $enc_data;
+	    close WTRFH;
+	    close RDRFH;
+	    exit;
+	}
+    }
+    close WTRFH;
+    local $/  = undef;
+    my $dec_data = <RDRFH>;
+    close RDRFH;
+
+    $dec_data;
+}
+
+1;
+
+=head1 DESCRIPTION
+
+B<greple> has almost the same function as Unix command L<egrep(1)> but
+the search is done in the manner similar to search engine.  For
+example, next command print lines those contain all of `foo' and `bar'
+and `baz'.
+
+    greple 'foo bar baz' ...
+
+Each word can be found in any order and/or any place in the string.
+So this command find all of following texts.
+
+    foo bar baz
+    baz bar foo
+    the foo, bar and baz
+
+If you want to use OR syntax, prepend question (`?') mark on each
+token, or use regular expression.
+
+    greple 'foo bar baz ?yabba ?dabba ?doo'
+    greple 'foo bar baz yabba|dabba|doo'
+
+This command will print the line which contains all of `foo', `bar'
+and `baz' and one or more from `yabba', `dabba' or `doo'.
+
+NOT operator can be specified by prefixing the token by minus (`-')
+sign.  Next example will show the line which contain both `foo' and
+bar' but none of `yabba' or `dabba' or `doo'.  It is ok to put `+'
+mark for positive matching pattern.
+
+    greple 'foo bar -yabba -dabba -doo'
+    greple '+foo +bar -yabba|dabba|doo'
+
+This can be written as this using B<-e> and B<-v> option.
+
+    greple -e foo -e bar -v yabba -v dabba -v doo
+    greple -e foo -e bar -v 'yabba|dabba|doo'
+
+B<LINE ACROSS MATCH>
+
+B<greple> also search the pattern across the line boundaries.  This is
+especially useful to handle Asian multi-byte text.  Japanese text can
+be separated by newline almost any place of the text.  So the search
+pattern may spread out on multiple lines.  As for ascii text, space
+character in the pattern matches any kind of space including newline.
+Use B<-e> option to use this capability because space is taken as a
+token separator in the bare pattern.
+
+
+=head1 OPTIONS
+
+B<PATTERNS>
+
+If specific option is not provided, B<greple> takes the first argument
+as a search pattern specified by B<-le> option.  All of these patterns
+can be specified multiple times.
+
+Command itself is written in Perl, and any kind of Perl style regular
+expression can be used in patterns.
+
+=over 7
+
+=item B<--le>=I<pattern>
+
+Treat the string as a collection of tokens separated by spaces.  Each
+token is interpreted by the first character.  Token start with `-'
+means negative pattern, `?' means alternative, optional `+' and
+anything other means positive match.
+
+Next example print lines which contains `foo' and `bar', and one or
+more of `yabba' and 'dabba', and none of `bar' and `doo'.
+
+    greple --le='foo bar -baz ?yabba ?dabba -doo'
+
+Multiple `?' preceded tokens are treated all mixed together.  That
+means `?A|B ?C|D' is equivalent to `?A|B|C|D'.  If you want to mean
+`(A or B) and (C or D)', use AND syntax instead: `A|B C|D'.
+
+=item B<-e> I<pattern>, B<--and>=I<pattern>
+
+Specify positive match token.  Next two commands are equivalent.
+
+    greple 'foo bar baz'
+    greple -e foo -e bar -e baz
+
+First character is not interpreted, so next commands will search the
+pattern `-baz'.
+
+    greple -e -baz
+
+Space characters are treated specially by B<-e> and B<-v> options.
+They are replaced by the pattern which matches any number of
+white spaces including newline.  So the pattern can be expand to
+multiple lines.  Next commands search the series of word `foo', `bar'
+and `baz' even if they are separated by newlines.
+
+    greple -e 'foo bar baz'
+
+=item B<-v> I<pattern>, B<--not>=I<pattern>
+
+Specify negative match token.  Because it does not affect to the bare
+pattern argument, you can narrow down the search result like this.
+
+    greple foo pattern file
+    greple foo pattern file -v bar
+    greple foo pattern file -v bar -v baz
+
+=item B<--re>=I<pattern>
+
+Specify regular expression.  No special treatment for space and wide
+characters.
+
+=item B<--fe>=I<pattern>
+
+Specify fixed string pattern, like fgrep.
+
+=back
+
+
+B<GREP LIKE OPTIONS>
+
+=over 7
+
+=item B<-i>
+
+Ignore case.
+
+=item B<-l>
+
+List filename only.
+
+=item B<-c>, B<--count>
+
+Print count of matched block.
+
+=item B<-n>
+
+Show line number.
+
+=item B<-h>, B<--no-filename>
+
+Do not display filename.
+
+=item B<-H>
+
+Display filename always.
+
+=item B<-o>
+
+Print matched string only.
+
+=item B<-A>[I<n>], B<--after-context>[=I<n>]
+
+=item B<-B>[I<n>], B<--before-context>[=I<n>]
+
+=item B<-C>[I<n>], B<--context>[=I<n>]
+
+Print I<n>-blocks before/after matched string.  The value I<n> can be
+omitted and the default is 2.  When used with paragraph option B<-p>,
+I<n> means number of paragraphs.
+
+Actually, these options expand the area of logical operation.  It
+means
+
+    grep -C1 'foo bar baz'
+
+matches following text.
+
+    foo
+    bar
+    baz
+
+Moreover
+
+    greple -C1 'foo baz'
+
+also matches this text, because matching blocks around `foo' and `bar'
+overlaps each other and makes single block.
+
+=item B<-f> I<file>, B<--file>=I<file>
+
+Specify the file which contains search pattern.  When file contains
+multiple lines, patterns on each lines are search in OR context.  The
+line starting with sharp (#) character is ignored.
+
+=item B<-->[B<no>]B<decompress>
+
+Switch for handling compressed files.  Default is true.
+
+=item B<--color>=I<auto>|I<always>|I<never>, B<--nocolor>
+
+Use terminal color capability to emphasize the matched text.  Default
+is `auto': effective when STDOUT is terminal, not otherwise.  Option
+value `always' and `never' will work as expected.
+
+Option B<--nocolor> is alias for B<--color>=I<never>.
+
+=item B<--colormode>=I<RGBCYMWrgbcymwUBR>, B<--quote>=I<start>,I<end>
+
+Specify color mode.  Use combination string from R(ed), G(reen),
+B(lue), C(yan), M(agenta), Y(ellow), W(hite), U(nderline), (bol)D,
+S(tandout).  Lowercase form of RGBW means background color.  Default
+is RD: RED and BOLD.
+
+If the mode string contains comma `,' character, they are used to
+quote the matched string.  If you want to quote the pattern by angle
+bracket, use like this.
+
+    greple --quote='<,>' pattern
+
+=back
+
+
+B<OTHER OPTIONS>
+
+=over 7
+
+=item B<-p>, B<--paragraph>
+
+Print the paragraph which contains the pattern.  Each paragraph is
+delimited by two or more successive newline characters by default.  Be
+aware that an empty line is not paragraph delimiter if which contains
+space characters.  Example:
+
+    greple -np 'setuid script' /usr/man/catl/perl.l
+
+    greple -pe '^struct sockaddr' /usr/include/sys/socket.h
+
+It changes the unit of context specified by B<-A>, B<-B>, B<-C>
+options.
+
+=item B<--block>=I<pattern>, B<--block>=I<&sub>
+
+Specify the record block to display.
+
+Next command prints entire file because it handles the whole text as a
+single large block.
+
+    greple --block='(?s).*'
+
+Next is almost same as B<--paragraph> option.
+
+    greple --block='(.+\n)+'
+
+Next command treat the data as a series of 10-line blocks.
+
+    greple -n --block='(.*\n){1,10}'
+
+When blocks are not continuous and there are gaps between them, the
+match occurred outside blocks are ignored.
+
+If multiple block options are supplied, overlapping blocks are merged
+into single block.
+
+Please be aware that this option is sometimes quite time consuming,
+because it finds all blocks before processing.
+
+=item B<--blockend>=I<string>
+
+Change the end mark displayed after B<-pABC> or B<--block> options.
+Default value is "--\n".
+
+=item B<--inside>=I<pattern>
+
+=item B<--outside>=I<pattern>
+
+Option B<--inside> and B<--outside> limit the text area to be matched.
+For simple example, if you want to find string `and' not in the word
+`command', it can be done like this.
+
+    greple --outside=command and
+
+The block can be larger and expand to multiple lines.  Next command
+searches from C source, excluding comment part.
+
+    greple --outside '(?s)/\*.*?\*/'
+
+Next command searches only from POD part of the perl script.
+
+    greple --inside='(?s)^=.*?(^=cut|\Z)'
+
+=item B<--inside>=I<&function>
+
+=item B<--outside>=I<&function>
+
+If the pattern name begins by ampersand (&) character, it is treated
+as a name of subroutine which returns a list of blocks to exclude.
+Using this option, user can use arbitrary function to determine from
+what part of the text they want to search.  User defined function is
+written in F<.greplerc> file or explicitly included by B<--require>
+option.
+
+    greple --require mycode.pl --outside `&myfunc' pattern *
+
+Argument can be specified after function name with `=' character.
+Next example is equivalent to the above example.
+
+    sub myfunc {
+        my($pattern) = @_;
+        my @matched;
+        my $re = qr/$pattern/m;
+        while (/$re/g) {
+            push(@matched, [ $-[0], $+[0] ]);
+        }
+        @matched;
+    }
+
+    greple --outside '&myfunc=(?s)/\*.*?\*/' if *.c
+
+B<--outside> and B<--inside> option can be specified mixed together
+and multiple times.
+
+=item B<--join>
+
+=item B<--joinby>=I<string>
+
+Convert newline character found in matched string to empty or specifed
+I<string>.  Using B<--join> with B<-o> (only-matching) option, you can
+collect searching sentence list in one per line form.  This is almost
+useless for English text but sometimes useful for Japanese text.  For
+example next command prints the list of KATAKANA words.
+
+    greple -ho --join '\p{utf8::InKatakana}[\n\p{utf8::InKatakana}]*'
+
+=item B<--icode>=I<code>
+
+Target file is assumed to be encoded in utf8 by default.  Use this
+option to set specific encoding.  When handling Japanese text, you may
+choose from 7bit-jis (jis), euc-jp or shiftjis (sjis).  Multiple code
+can be supplied using multiple option or combined code names with
+space or comma, then file encoding is guessed from those code sets.
+Use encoding name `guess' for automatic recognition from default code
+list which is euc-jp and 7bit-jis.  Following commands are all
+equivalent.
+
+    greple --icode=guess ...
+    greple --icode=euc-jp,7bit-jis ...
+    greple --icode=euc-jp --icode=7bit-jis ...
+
+Default code set are always included suspect code list.  If you have
+just one code adding to suspect list, put + mark before the code name.
+Next example does automatic code detection from euc-kr, ascii, utf8
+and UTF-16/32.
+
+    greple --icode=+euc-kr ...
+
+=item B<--ocode>=I<code>
+
+Specify output code.  Default is utf8.
+
+=item B<--cut>=I<n>, B<--allow>=I<n>
+
+Option to compromize matching condition.  Option B<--cut> specifiy the
+number to cut down positive match count, and B<--allow> is the number
+of negative condition to be overlooked.
+
+    greple --cut=1 --allow=1 'foo bar baz -yabba -dabba -doo'
+
+Above command prints the line which contains two or more from `foo',
+`bar' and `baz', and does not include more than one of `yabba',
+`dabba' or `doo'.
+
+=item B<--if>=I<filter>, B<--if>=I<EXP>:I<filter>:I<EXP>:I<filter>:...
+
+You can specify filter command which is applied to each files before
+search.  If only one filter command is specified, it is applied to all
+files.  If filter information include multiple fields separated by
+colons, first field will be perl expression to check the filename
+saved in variable $_.  If it successes, next filter command is pushed.
+These expression and command list can be repeated.
+
+    greple --if=rev perg
+    greple --if='/\.tar$/:tar tvf -'
+
+If the command doesn't accept standard input as processing data, you
+may be able to use special device:
+
+    greple --if='nm /dev/stdin' crypt /usr/lib/lib*
+
+Filters for compressed and gzipped file is set by default unless
+B<--nodecompress> option is given.  Default action is like this:
+
+    greple --if='s/\.Z$//:zcat:s/\.g?z$//:gunzip -c'
+
+=item B<--of>=I<filter>
+
+Specify output filter commands.
+
+=item B<--require>=I<filename>
+
+Include arbitrary perl program.
+
+=item B<--pgp>
+
+Invoke PGP decrypt command for files end with .pgp, .gpg or .asc.  PGP
+passphrase is asked only once at the beginning of command execution.
+
+=item B<--pgppass>=I<phrase>
+
+You can specify PGP passphrase by this option.  Generally, it is not
+recommended to use.
+
+=item B<--chdir>=I<directory>
+
+Change directory before processing.
+
+=item B<--glob>=I<pattern>
+
+Get files matches to specified pattern and use them as a target
+files.  Using B<--chdir> and B<--glob> makes easy to use B<greple> for
+fixed common job.
+
+=item B<--readlist>
+
+Get filenames from standard input.  Read standard input and use each
+line as a filename for searching.  You can feed the output from other
+command like L<find(1)> for B<greple> with this option.  Next example
+searches string from files modified within 7 days:
+
+    find . -mtime -7 -print | greple -S pattern
+
+=item B<--man>
+
+Show manual page.
+
+=item B<--norc>
+
+Do not read startup file: F<~/.greplerc>.
+
+=begin comment
+
+=item B<-d> I<flags>
+
+Display informations.  Various kind of debug, diagnostic, monitor
+information can be display by giving appropriate flag to -d option.
+
+    f: processing file name
+    s: statistic information
+    m: misc debug information
+    o: option related information
+    p: run `ps' command before termination (on Unix)
+
+=end comment
+
+=back
+
+
+=head1 ENVIRONMENT and STARTUP FILE
+
+Environment variable GREPLEOPTS is used as a default options.  They
+are inserted before command line options.
+
+Before starting execution, I<greple> reads the file named F<.greplerc>
+on user's home directory.  In rc file, user can define own options.
+There are three directives rc file: `option', `define' and `help'.
+First argument of `option' directive is user defined option name.  The
+rest are processed by I<shellwords> routine defined by
+Text::ParseWords module.  Be sure that this module sometimes requires
+escape backslashes.
+
+Any kind of string can be used for option name but it is not combined
+with other options.
+
+    option --fromcode --outside='(?s)\/\*.*?\*\/'
+    option --fromcomment --inside='(?s)\/\*.*?\*\/'
+
+Another directive `define' is almost same as `option', but argument is
+not processed by I<shellwords> and treated just a simple text.
+Metacharacters can be included without escaping.  Defined string
+replacement is done only in definition in option argument.  If you
+want to use the word in command line, use option directive instead.
+If `help' directive is used for same option name, it will be printed
+in usage message.
+
+    define :kana: \p{utf8::InKatakana}
+    option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
+    help   --kanalist List up Katakana string
+
+When I<greple> found `__CODE__' line in F<.greplerc> file, the rest of
+the file is evaluated as a Perl program.  You can define your own
+subroutines which can be used by --inside and --outside options.  For
+those subroutines, file content will be provided by global variable
+$_.  Expected response from the subroutine is the list of numbers,
+which is made up by start and end offset pairs.
+
+For example, suppose that the following function is defined in your
+F<.greplerc> file.
+
+    __CODE__
+    sub odd_line {
+        my @list;
+        my $i;
+        while (/.*\n/g) {
+            push(@list, [ $-[0], $+[0] ]) if ++$i % 2;
+        }
+        @list;
+    }
+
+You can use next command to search pattern included in odd number
+lines.
+
+    % greple --inside &odd_line patten files...
+
+If you do not want to evaluate those programs in all invocation of the
+command, use --require option to include arbitrary perl program files.
+
+
+=head1 HISTORY
+
+Most capability of B<greple> is derived from B<mg> command, which has
+been developing from early 1990's by the same author.  Because modern
+standard B<grep> family command becomes to have similar capabilities,
+it is a time to clean up entire functionarities, totally remodel the
+option interfaces, and change the command name. (2013.11)
+
+=head1 AUTHOR
+
+Kazumasa Utashiro
+
+
+=head1 SEE ALSO
+
+L<grep(1)>, L<perl(1)>
+
+
+=head1 LICENSE
+
+Copyright (c) 1991-2013 Kazumasa Utashiro
+
+Use and redistribution for ANY PURPOSE are granted as long as all
+copyright notices are retained.  Redistribution with modification is
+allowed provided that you make your modified version obviously
+distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
+THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
+DISCLAIMED.

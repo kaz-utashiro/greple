@@ -96,6 +96,7 @@ Greple Examples
 
 	# show preveous and next paragraph together
 	# 前後のパラグラフも表示する	
+	#
 	greple -pC1 'foo bar baz' …
 
 ### show paragraph not including pattern / 何かが含まれないパラグラフを表示する
@@ -105,6 +106,11 @@ Greple Examples
 ### show lines not including pattern / 何かが含まれない行を表示する
 
 	use grep -v !
+
+	# you can do it, in very inefficient way
+	# どうしてもやりたいならできるけど、無駄です。
+	#
+	greple ^ -v PATTERN
 
 ### show pages including pattern / ページ単位で表示する
 
