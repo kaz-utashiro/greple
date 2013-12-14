@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.13 2013/12/08 02:34:09 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.14 2013/12/14 15:00:23 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -18,13 +18,14 @@
 use strict;
 use warnings;
 
-require 5.008;
+require 5.010;
 
 use File::stat;
 use IO::Handle;
-use Getopt::Long;
+use Getopt::Long qw(GetOptionsFromArray GetOptionsFromString);
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
+use List::Util qw(min max);
 use Data::Dumper;
 
 use utf8;
@@ -37,7 +38,7 @@ greple - grep with multiple keywords
 
 =head1 SYNOPSIS
 
-B<greple> [ B<-options> ] pattern [ file... ]
+B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
 
     pattern           'positive -negative ?alternative'
 
@@ -49,52 +50,55 @@ B<greple> [ B<-options> ] pattern [ file... ]
 
 B<OPTIONS>
 
-    -i                ignore case
-    -l                list filename only
-    -c                print count of matched block only
-    -n                print line number
-    -h                do not display filenames
-    -H                always display filenames
-    --inside=pattern  limit matching area
-    --outside=pattern opposite to --inside
-    --strict          strict mode for --inside/outside --block
-    --join            delete newline in the matched part
-    --joinby=string   replace newline in the matched text by string
+    -i                   ignore case
+    -l                   list filename only
+    -c                   print count of matched block only
+    -n                   print line number
+    -h                   do not display filenames
+    -H                   always display filenames
+    --inside=pattern     limit matching area
+    --outside=pattern    opposite to --inside
+    --revinside=pattern  inside reverse pattern
+    --revoutside=pattern outside reverse pattern
+    --strict             strict mode for --inside/outside --block
+    --join               delete newline in the matched part
+    --joinby=string      replace newline in the matched text by string
 
-    --need=n          required positive match count
-    --allow=n         acceptable negative match count
+    --need=n             required positive match count
+    --allow=n            acceptable negative match count
 
-    --color=when      use termninal color (auto, always, never)
-    --nocolor         same as --color=never
-    --colormode=mode  R, G, B, C, M, Y, W, Standout, bolD, Underline
-    --colorful        same as --colormode 'RD GD BD CD MD YD'
-    --random          random color
+    --color=when         use terminal color (auto, always, never)
+    --nocolor            same as --color=never
+    --colormode=mode     R, G, B, C, M, Y, W, Standout, bolD, Underline
+    --colorful           same as --colormode 'RD GD BD CD MD YD'
+    --random             random color
+    --regioncolor        color by region
 
-    -o                print only the matching part
-    -p                paragraph mode
-    -A[n]             after match context
-    -B[n]             before match context
-    -C[n]             after and before match context
-    --all             print whole data
-    --block=pattern   specify the block of records
-    --blockend=s      specify the block end mark (Default: "--\n")
+    -o                   print only the matching part
+    -p                   paragraph mode
+    -A[n]                after match context
+    -B[n]                before match context
+    -C[n]                after and before match context
+    --all                print whole data
+    --block=pattern      specify the block of records
+    --blockend=s         specify the block end mark (Default: "--\n")
 
-    -f file           file contains search pattern
-    -d flags          display info (f:file d:dir c:count m:misc s:stat)
-    --man             show manual page
-    --icode=name      specify file encoding
-    --ocode=name      specify output encoding
-    --if=filter       set filter command
-    --of=filter       output filter command
-    --[no]pgp         decrypt and find PGP file (Default: false)
-    --pgppass=phrase  pgp passphrase
-    --[no]decompress  process compressed data (Default: true)
-    --readlist        get filenames from stdin
-    --chdir           change directory before search
-    --glob=glob       glob target files
-    --print=func      print function
-    --continue        continue after print function
-    --norc            skip reading startup file
+    -f file              file contains search pattern
+    -d flags             display info (f:file d:dir c:count m:misc s:stat)
+    --man                show manual page
+    --icode=name         specify file encoding
+    --ocode=name         specify output encoding
+    --if=filter          set filter command
+    --of=filter          output filter command
+    --[no]pgp            decrypt and find PGP file (Default: false)
+    --pgppass=phrase     pgp passphrase
+    --[no]decompress     process compressed data (Default: true)
+    --readlist           get filenames from stdin
+    --chdir              change directory before search
+    --glob=glob          glob target files
+    --print=func         print function
+    --continue           continue after print function
+    --norc               skip reading startup file
 
 =cut
 
@@ -109,8 +113,6 @@ my @opt_if;
 my @opt_of;
 my @opt_glob;
 my @opt_icode;
-my @opt_inside;
-my @opt_outside;
 my @opt_block;
 my @opt_chdir;
 my $opt_all;
@@ -119,6 +121,7 @@ my $opt_color = 'auto';
 my $opt_colormode = 'RD';
 my $opt_colorfull;
 my $opt_random;
+my $opt_regioncolor;
 my $opt_icode;
 my $opt_ocode;
 my $opt_man;
@@ -150,6 +153,10 @@ my $opt_A = 0;
 my $opt_B = 0;
 my $opt_C = 0;
 my $opt_H;
+#my $opt_M;
+
+my @reg_union = ();
+my @reg_clude = ();
 
 my @optargs = (
     'e|and=s'            => \@opt_e,
@@ -186,94 +193,161 @@ my @optargs = (
     'pgppass=s'          => \$opt_pgppass,
     'block=s'            => \@opt_block,
     'blockend:s'         => \$opt_blockend,
-    'inside=s'           => \@opt_inside,
-    'outside=s'          => \@opt_outside,
+    'inside=s'           => sub { push @reg_union, [ 1, $_[1] ] },
+    'outside=s'          => sub { push @reg_union, [ 0, $_[1] ] },
+    'include=s'          => sub { push @reg_clude, [ 1, $_[1] ] },
+    'exclude=s'          => sub { push @reg_clude, [ 0, $_[1] ] },
     'strict!'            => \$opt_strict,
     'chdir=s'            => \@opt_chdir,
     'glob=s'             => \@opt_glob,
     'clean!'             => \$opt_clean,
     'decompress!'        => \$opt_decompress,
     'quote=s'            => sub {$opt_color='always'; $opt_colormode=$_[1]},
-    'color|colour=s'         => \$opt_color,
-    'colormode|colourmode=s' => \$opt_colormode,
-    'nocolor|nocolour'       => sub {$opt_color = 'never'},
-    'colorful'               => sub {$opt_colormode = 'RD GD BD CD MD YD'},
-    'random!'                => \$opt_random,
-    'print=s'                => \$opt_print,
-    'continue!'              => \$opt_continue,
+    'color|colour=s'     => \$opt_color,
+    'colormode|cm'
+    . '|colourmode=s'    => \$opt_colormode,
+    'nocolor|nocolour'   => sub {$opt_color = 'never'},
+    'colorful'           => sub {$opt_colormode = 'RD GD BD CD MD YD'},
+    'random!'            => \$opt_random,
+    'regioncolor|rc!'    => \$opt_regioncolor,
+    'print=s'            => \$opt_print,
+    'continue!'          => \$opt_continue,
+#   'M|module:s'         => \$opt_M,
 );
 
 binmode STDERR, ":encoding(utf8)";
 
 ##
-## User customizable option handling in ~/.greplerc
+## User customizable option handling
 ##
 my %user_option;
 my %user_define;
 my @user_define;
 my %user_help;
-sub set_option {
+sub rc_init {
+    %user_define = @user_define = ();
+}
+sub rc_command {
     my($arg0, $arg1, $rest) = @_;
 
-    if ($arg0 eq 'define') {
+    if ($arg0 eq "define") {
 	$user_define{$arg1} = $rest;
 	unshift(@user_define, qr/\Q$arg1/);
     }
-    elsif ($arg0 eq 'option') {
-	my @args = shellwords($rest);
-	for (@args) {
-	    for my $re (@user_define) {
-		s/($re)/$user_define{$1}/g;
-	    }
-	}
-	$user_option{$arg1} = [ @args ];
+    elsif ($arg0 eq "option") {
+	define_option_bystring($arg1, $rest);
     }
-    elsif ($arg0 eq 'help') {
+    elsif ($arg0 eq "help") {
 	$user_help{$arg1} = $rest;
+    }
+    elsif ($arg0 eq "set" and $arg1 eq "option") {
+	my @args = shellwords($rest);
+	GetOptionsFromArray(\@args, @optargs) || pod2usage;
     }
     else {
 	warn "$arg0: Unknown operator in rc file.\n";
     }
 }
-
-##
-## RC file have to be read before option handling.
-##
-if (grep { /^--norc$/ } @ARGV) {
-    $opt_rc = 0;
+sub define_option_bystring {
+    define_option(shift, shellwords(shift));
+}
+sub define_option {
+    my $option = shift;
+    for (@_) {
+	for my $re (@user_define) {
+	    s/($re)/$user_define{$1}/g;
+	}
+    }
+    if ($option eq "default" and defined $user_option{$option}) {
+	push(@{$user_option{$option}}, @_);
+    } else {
+	$user_option{$option} = [ @_ ];
+    }
+}
+sub add_option {
+    push(@optargs, @_);
 }
 
-my $code_segment;
+##
+## Process special option --norc
+##
+if ($ARGV[0] eq "--norc") {
+    $opt_rc = 0;
+    shift @ARGV;
+}
+
+##
+## Read .greplerc file
+##
 if ($opt_rc &&
     open(GREPLERC, "<:encoding(utf8)", "$ENV{HOME}/.greplerc")) { # XXX
-    my $buf = '';
-    while (<GREPLERC>) {
-	next if /^\s*($|\#)/;
-	if (/^\s*__CODE__\s*$/) {
-	    local($/) = undef;
-	    $code_segment = <GREPLERC>;
-	    last;
-	}
-	if (s/ \\ \n? \Z //x) {
-	    $buf .= $_;
-	    next;
-	}
-	$_ = $buf . $_;
-	if (my($arg0, $arg1, $rest) = /^\s*(\S+)\s+(\S+)\s+(.*)/) {
-	    set_option($arg0, $arg1, $rest);
-	}
-	$buf = '';
-    }
+    local $/ = undef;
+    my $rc = <GREPLERC>;
+    greplerc($rc);
     close GREPLERC;
 }
 
+sub greplerc {
+    my $arg = ref $_[0] eq 'HASH' ? shift : {};
+    my $rc = join('', @_);
+
+    rc_init();
+
+    for ($rc) {
+	s/^__CODE__\s*\n(.*)//ms and do_eval($1);
+	s/^\s*#.*\n//mg;
+	s/\\\n//g;
+    }
+
+    while ($rc =~ /^\s*(\S+)\s+(\S+)\s+(.+)\n?/mg) {
+	rc_command($1, $2, $3);
+    }
+}
+
+##
+## Process special options before using Getopt.
+##
+while (@ARGV) {
+    if ($ARGV[0] =~ /^-M(.*)/) {
+	shift @ARGV;
+	my $module = $1 || shift or die "Option M requires an argument\n";
+	load_module($module);
+	next;
+    }
+    last;
+}
+sub load_module {
+    my $mod = shift;
+    my $module = $mod;
+    if (-f $module) {
+	require $module;
+    } else {
+	$module = "App::Greple::$module";
+	eval "use $module";
+    }
+    if ($@) {
+	die "$mod: Module error ($@)\n";
+    }
+    local *data = "${module}::DATA";
+    if (not eof *data) {
+	greplerc({Module => $mod}, <data>);
+    }
+}
+
+##
+## Handle default option and ENG{GREPLEOPTS}
+##
 if (defined $user_option{default}) {
     unshift(@ARGV, @{$user_option{default}});
-    undef $user_option{default};
+    delete $user_option{default};
 }
 if ($ENV{'GREPLEOPTS'}) {
     unshift(@ARGV, shellwords($ENV{'GREPLEOPTS'}));
 }
+
+##
+## Process user defined option.
+##
 for (my $i = 0; $i < @ARGV; $i++) {
     my $arg = $ARGV[$i];
     if (defined $user_option{$arg}) {
@@ -293,16 +367,18 @@ my @SAVEDARGV = @ARGV;
 Getopt::Long::Configure("bundling");
 GetOptions(@optargs) || pod2usage;
 
+sub set_options {
+    GetOptionsFromArray(\@_, @optargs) || pod2usage;
+}
+
+sub set_options_fromstring {
+    my $string = shift;
+    GetOptionsFromString($string, @optargs) || pod2usage;
+}
+
 my %opt_d;
 @opt_d = split(//, join('', @opt_d));
 @opt_d{@opt_d} = @opt_d;
-
-##
-## Evaluate __CODE__ segment after option handling.
-##
-if ($opt_rc) {
-    do_eval($code_segment) if defined $code_segment;
-}
 
 if ($opt_d{o}) {
     warn "\@ARGV = @SAVEDARGV\n";
@@ -487,19 +563,6 @@ if (@opt_of) {
     }
 }
 
-##
-## Combine @opt_inside and @opt_outside into single list.
-##
-my @opt_region;
-if (@opt_inside or @opt_outside) {
-    for my $region (@opt_inside) {
-	push @opt_region, [1, $region];
-    }
-    for my $region (@opt_outside) {
-	push @opt_region, [0, $region];
-    }
-}
-
 ##------------------------------------------------------------
 ## miscellaneous setups
 ##
@@ -535,7 +598,7 @@ my $need_color = (($opt_color eq 'always')
 
 my $blockend = "--\n";
 if (defined $opt_blockend) {
-    ($blockend = $opt_blockend) =~ s/\\n/\n/g;
+    $blockend = $opt_blockend . "\n";
 }
 if ($opt_C) {
     $opt_A ||= $opt_C;
@@ -798,8 +861,10 @@ sub do_grep {
 	return $matched_count;
     }
 
+    my $need_blockend =
+	$opt_blockend || $opt_p || $opt_A || $opt_B || @opt_block;
+
     my $line = 1;
-    my $need_blockend = $opt_p || $opt_A || $opt_B || @opt_block;
     my $lastpos = 0;
     for my $result (@result) {
 
@@ -947,10 +1012,33 @@ sub grep_pattern {
     ##
     ## --inside, --outside
     ##
-    for my $region (@opt_region) {
-	my($region_sw, $arg) = @$region;
-	my @select = get_regions(\$_, $arg);
-	if ($region_sw or @select) {
+    if (@reg_union) {
+	my @tmp = map { [] } @result;
+	for my $regi (0 .. $#reg_union) {
+	    my($region_sw, $arg) = @{$reg_union[$regi]};
+	    my @select = get_regions(\$_, $arg);
+	    next unless $region_sw or @select;
+	    for my $resi (0 .. $#result) {
+		my $r = $result[$resi];
+		my @l = select_regions({ strict => $opt_strict },
+				       $r, \@select, $region_sw);
+		if ($opt_regioncolor or @result == 1) {
+		    map { $_->[2] = $regi } @l;
+		}
+		push(@{$tmp[$resi]}, @l);
+	    }
+	}
+	@result = map { [ merge_regions({sort => 1}, @$_) ] } @tmp;
+    }
+
+    ##
+    ## --include, --exclude
+    ##
+    if (@reg_clude) {
+	for my $region (@reg_clude) {
+	    my($region_sw, $arg) = @$region;
+	    my @select = get_regions(\$_, $arg);
+	    next unless $region_sw or @select;
 	    for my $r (@result) {
 		@$r = select_regions({ strict => $opt_strict },
 				     $r, \@select, $region_sw);
@@ -962,7 +1050,7 @@ sub grep_pattern {
     ## --all
     ##
     if ($opt_all) {
-	@blocks = ( [0, length $_] );
+	@blocks = ( [ 0, length $_ ] );
     }
     ##
     ## --block
@@ -1118,53 +1206,53 @@ sub select_regions {
 
     my @list = @{+shift};
     my @by = @{+shift};
-    my $how = shift;
+    my $inside = shift;
 
-    my(@exclude, @include);
+    my(@outside, @inside);
 
     for (my $i = 0; $i < @by; $i++) {
 	my($from, $to) = @{$by[$i]};
 	for (my $j = 0; $j < @list and $list[$j][0] < $from; $j++) {
-	    push @exclude, [ @{$list[$j]} ];
+	    push @outside, [ @{$list[$j]} ];
 	}
 	while (@list and $list[0][1] < $from) {
 	    shift @list;
 	}
 	for (my $j = 0; $j < @list and $list[$j][0] < $to; $j++) {
-	    push @include, [ @{$list[$j]} ];
+	    push @inside, [ @{$list[$j]} ];
 	}
 	while (@list and $list[0][1] <= $to) {
 	    shift @list;
 	}
     }
-    push @exclude, @list;
-    $how ? @include : @exclude;
+    push @outside, @list;
+    $inside ? @inside : @outside;
 }
 
 sub select_regions_strict {
     my @list = @{+shift};
     my @by = @{+shift};
-    my $how = shift;
+    my $inside = shift;
 
-    my(@exclude, @include);
+    my(@outside, @inside);
 
     for (my $i = 0; $i < @by; $i++) {
 	my($from, $to) = @{$by[$i]};
 	while (@list and $list[0][0] < $from and $list[0][1] <= $from) {
-	    push @exclude, shift(@list);
+	    push @outside, shift(@list);
 	}
 	while (@list and $list[0][0] < $from) {
 	    shift @list;
 	}
 	while (@list and $list[0][0] < $to and $list[0][1] <= $to) {
-	    push @include, shift(@list);
+	    push @inside, shift(@list);
 	}
 	while (@list and $list[0][0] < $to) {
 	    shift @list;
 	}
     }
-    push @exclude, @list;
-    $how ? @include : @exclude;
+    push @outside, @list;
+    $inside ? @inside : @outside;
 }
 
 sub get_regions {
@@ -1208,7 +1296,9 @@ sub merge_regions {
     my $nojoin = $option->{nojoin};
     my @in = @_;
     if ($option->{sort}) {
-	@in = sort({$a->[0] <=> $b->[0] || $b->[1] <=> $a->[1]} @in);
+	@in = sort({$a->[0] <=> $b->[0] || $b->[1] <=> $a->[1]
+			||  (@$a > 2 ? $a->[2] <=> $b->[2] : 0)
+		   } @in);
     }
     my @out;
     push(@out, shift @in) if @in;
@@ -1232,6 +1322,16 @@ sub merge_regions {
 	}
     }
     @out;
+}
+
+sub reverse_regions {
+    my $from = shift;
+    my $max = shift;
+    my @flat = (0, map(@$_, @$from), $max);
+
+    grep { $_->[0] != $_->[1] }
+    map  { [ splice(@flat, 0, 2) ] }
+    0 .. @flat / 2 - 1;
 }
 
 sub optimized_blocknize {
@@ -1302,9 +1402,6 @@ sub unctrl {
     s/([\000-\010\013-\037])/'^' . pack('c', ord($1)|0100)/ge;
     $_;
 }
-
-sub max { $_[ ($_[0] < $_[1]) ]; }
-sub min { $_[ ($_[0] > $_[1]) ]; }
 
 ######################################################################
 package PgpFilter;
@@ -1752,36 +1849,47 @@ Next command searches only from POD part of the perl script.
 
     greple --inside='(?s)^=.*?(^=cut|\Z)'
 
+When multiple B<inside> and B<outside> regions are specified, those
+regions are mixed up in union way.
+
+In multiple color environment, and if single keyword is specified,
+matches in each B<--inside>/B<outside> regions are printed in
+different colors.  Forcing this operation with multiple keywords, use
+B<--regioncolor> option.
+
 =item B<--inside>=I<&function>
 
 =item B<--outside>=I<&function>
 
 If the pattern name begins by ampersand (&) character, it is treated
-as a name of subroutine which returns a list of blocks to exclude.
-Using this option, user can use arbitrary function to determine from
-what part of the text they want to search.  User defined function is
-written in F<.greplerc> file or explicitly included by B<--require>
-option.
+as a name of subroutine which returns a list of blocks.  Using this
+option, user can use arbitrary function to determine from what part of
+the text they want to search.  User defined function can be defined in
+F<.greplerc> file or by module option.
 
-    greple --require mycode.pl --outside `&myfunc' pattern *
+=item B<--include>=I<pattern>
 
-Argument can be specified after function name with `=' character.
-Next example is equivalent to the above example.
+=item B<--exclude>=I<pattern>
 
-    sub myfunc {
-        my($pattern) = @_;
-        my @matched;
-        my $re = qr/$pattern/m;
-        while (/$re/g) {
-            push(@matched, [ $-[0], $+[0] ]);
-        }
-        @matched;
-    }
+=item B<--include>=I<&function>
 
-    greple --outside '&myfunc=(?s)/\*.*?\*/' if *.c
+=item B<--exclude>=I<&function>
 
-B<--outside> and B<--inside> option can be specified mixed together
-and multiple times.
+B<--include>/B<exclude> option behave exactly same as
+B<--inside>/B<outside> when used alone.
+
+When used in combination, B<--include>/B<exclude> are mixed in AND
+manner, while B<--inside>/B<outside> are in OR.
+
+Thus, in the next example, first line prints all matches, and second
+does none.
+
+    greple --inside PATTERN --outside PATTERN
+
+    greple --include PATTERN --exclude PATTERN
+
+You can make up desired matches using B<--inside>/B<outside> option,
+then remove unnecessary part by B<--include>/B<exclude>
 
 =item B<--strict>
 
@@ -1984,10 +2092,14 @@ Environment variable GREPLEOPTS is used as a default options.  They
 are inserted before command line options.
 
 Before starting execution, I<greple> reads the file named F<.greplerc>
-on user's home directory.  In rc file, user can define own options.
-There are three directives rc file: `option', `define' and `help'.
-First argument of `option' directive is user defined option name.  The
-rest are processed by I<shellwords> routine defined by
+on user's home directory.  Following directives can be used.
+
+=over 7
+
+=item B<option> I<name> string
+
+Argument I<name> of `option' directive is user defined option name.
+The rest are processed by I<shellwords> routine defined in
 Text::ParseWords module.  Be sure that this module sometimes requires
 escape backslashes.
 
@@ -1997,28 +2109,35 @@ with other options.
     option --fromcode --outside='(?s)\/\*.*?\*\/'
     option --fromcomment --inside='(?s)\/\*.*?\*\/'
 
-Another directive `define' is almost same as `option', but argument is
-not processed by I<shellwords> and treated just a simple text.
+If the option named B<default> is defined, it will be used as a
+default option.
+
+=item B<help> I<name>
+
+If `help' directive is used for same option name, it will be printed
+in usage message.  If the help message is `ignore', corresponding line
+won't show up in the usage.
+
+=item B<define> I<name> string
+
+Directive `define' is almost same as `option', but argument is not
+processed by I<shellwords> and treated just a simple text.
 Metacharacters can be included without escaping.  Defined string
 replacement is done only in definition in option argument.  If you
 want to use the word in command line, use option directive instead.
-If `help' directive is used for same option name, it will be printed
-in usage message.  If the help message is `ignore', corresponding line
-won't show up in the usage,
 
     define :kana: \p{utf8::InKatakana}
     option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
     help   --kanalist List up Katakana string
 
-If the option named B<default> is defined, it will be used as a
-default option.
+=back
 
-When I<greple> found C<__CODE__> line in F<.greplerc> file, the rest of
-the file is evaluated as a Perl program.  You can define your own
-subroutines which can be used by --inside and --outside options.  For
-those subroutines, file content will be provided by global variable
-$_.  Expected response from the subroutine is the list of numbers,
-which is made up by start and end offset pairs.
+When I<greple> found C<__CODE__> line in F<.greplerc> file, the rest
+of the file is evaluated as a Perl program.  You can define your own
+subroutines which can be used by B<--inside> and B<--outside> options.
+For those subroutines, file content will be provided by global
+variable C<$_>.  Expected response from the subroutine is the list of
+array references, which is made up by start and end offset pairs.
 
 For example, suppose that the following function is defined in your
 F<.greplerc> file.
@@ -2036,10 +2155,84 @@ F<.greplerc> file.
 You can use next command to search pattern included in odd number
 lines.
 
-    % greple --inside &odd_line patten files...
+    % greple --inside '&odd_line' patten files...
 
-If you do not want to evaluate those programs in all invocation of the
-command, use --require option to include arbitrary perl program files.
+
+=head1 MODULE
+
+Modules can be specified only at the beginning of command line by
+B<-M>I<module> option.  Name I<module> is prepended by B<App::Greple>,
+so place the module file in F<App/Greple/> directory in Perl library.
+
+If the package name is declared properly, C<__DATA__> section in the
+module file will be interpreted same as F<.greplerc> file content.
+
+See this sample module code.  This sample define options to search
+from pod, comment and other segment in Perl script.  Those capability
+can be implemented both in function and macro.
+
+    package App::Greple::perl;
+    
+    BEGIN {
+        use Exporter   ();
+        our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
+    
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.14 $ =~ /(\d+)/g;
+    
+        @ISA         = qw(Exporter);
+        @EXPORT      = qw(&pod &comment &podcomment);
+        %EXPORT_TAGS = ( );
+        @EXPORT_OK   = qw();
+    }
+    our @EXPORT_OK;
+    
+    END { }
+    
+    my $pod_re = qr{^=\w+(?s:.*?)(?:\Z|^=cut\s*\n)}m;
+    my $comment_re = qr{^(?:[ \t]*#.*\n)+}m;
+    
+    sub pod {
+        my @list;
+        while (/$pod_re/g) {
+            push(@list, [ $-[0], $+[0] ] );
+        }
+        @list;
+    }
+    sub comment {
+        my @list;
+        while (/$comment_re/g) {
+            push(@list, [ $-[0], $+[0] ] );
+        }
+        @list;
+    }
+    sub podcomment {
+        my @list;
+        while (/$pod_re|$comment_re/g) {
+            push(@list, [ $-[0], $+[0] ] );
+        }
+        @list;
+    }
+    
+    1;
+    
+    __DATA__
+    
+    define :comment: ^(\s*#.*\n)+
+    define :pod: ^=(?s:.*?)(?:\Z|^=cut\s*\n)
+    
+    #option --pod --inside :pod:
+    #option --comment --inside :comment:
+    #option --code --outside :pod:|:comment:
+    
+    option --pod --inside '&pod'
+    option --comment --inside '&comment'
+    option --code --outside '&podcomment'
+
+You can use the module like this:
+
+    greple -Mperl --pod ...
+
+    greple -Mperl --code --comment --pod ...
 
 
 =head1 HISTORY
