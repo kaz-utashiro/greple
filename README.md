@@ -4,7 +4,7 @@ greple - grep with multiple keywords
 
 # SYNOPSIS
 
-__greple__ [ __-options__ ] pattern [ file... ]
+__greple__ [__-M___module_] [ __-options__ ] pattern [ file... ]
 
     pattern           'positive -negative ?alternative'
 
@@ -16,52 +16,55 @@ __greple__ [ __-options__ ] pattern [ file... ]
 
 ## __OPTIONS__
 
-    -i                ignore case
-    -l                list filename only
-    -c                print count of matched block only
-    -n                print line number
-    -h                do not display filenames
-    -H                always display filenames
-    --inside=pattern  limit matching area
-    --outside=pattern opposite to --inside
-    --strict          strict mode for --inside/outside --block
-    --join            delete newline in the matched part
-    --joinby=string   replace newline in the matched text by string
+    -i                   ignore case
+    -l                   list filename only
+    -c                   print count of matched block only
+    -n                   print line number
+    -h                   do not display filenames
+    -H                   always display filenames
+    --inside=pattern     limit matching area
+    --outside=pattern    opposite to --inside
+    --revinside=pattern  inside reverse pattern
+    --revoutside=pattern outside reverse pattern
+    --strict             strict mode for --inside/outside --block
+    --join               delete newline in the matched part
+    --joinby=string      replace newline in the matched text by string
 
-    --need=n          required positive match count
-    --allow=n         acceptable negative match count
+    --need=n             required positive match count
+    --allow=n            acceptable negative match count
 
-    --color=when      use termninal color (auto, always, never)
-    --nocolor         same as --color=never
-    --colormode=mode  R, G, B, C, M, Y, W, Standout, bolD, Underline
-    --colorful        same as --colormode 'RD GD BD CD MD YD'
-    --random          random color
+    --color=when         use terminal color (auto, always, never)
+    --nocolor            same as --color=never
+    --colormode=mode     R, G, B, C, M, Y, W, Standout, bolD, Underline
+    --colorful           same as --colormode 'RD GD BD CD MD YD'
+    --random             random color
+    --regioncolor        color by region
 
-    -o                print only the matching part
-    -p                paragraph mode
-    -A[n]             after match context
-    -B[n]             before match context
-    -C[n]             after and before match context
-    --all             print whole data
-    --block=pattern   specify the block of records
-    --blockend=s      specify the block end mark (Default: "--\n")
+    -o                   print only the matching part
+    -p                   paragraph mode
+    -A[n]                after match context
+    -B[n]                before match context
+    -C[n]                after and before match context
+    --all                print whole data
+    --block=pattern      specify the block of records
+    --blockend=s         specify the block end mark (Default: "--\n")
 
-    -f file           file contains search pattern
-    -d flags          display info (f:file d:dir c:count m:misc s:stat)
-    --man             show manual page
-    --icode=name      specify file encoding
-    --ocode=name      specify output encoding
-    --if=filter       set filter command
-    --of=filter       output filter command
-    --[no]pgp         decrypt and find PGP file (Default: false)
-    --pgppass=phrase  pgp passphrase
-    --[no]decompress  process compressed data (Default: true)
-    --readlist        get filenames from stdin
-    --chdir           change directory before search
-    --glob=glob       glob target files
-    --print=func      print function
-    --continue        continue after print function
-    --norc            skip reading startup file
+    -f file              file contains search pattern
+    -d flags             display info (f:file d:dir c:count m:misc s:stat)
+    --man                show manual page
+    --icode=name         specify file encoding
+    --ocode=name         specify output encoding
+    --if=filter          set filter command
+    --of=filter          output filter command
+    --[no]pgp            decrypt and find PGP file (Default: false)
+    --pgppass=phrase     pgp passphrase
+    --[no]decompress     process compressed data (Default: true)
+    --readlist           get filenames from stdin
+    --chdir              change directory before search
+    --glob=glob          glob target files
+    --print=func         print function
+    --continue           continue after print function
+    --norc               skip reading startup file
 
 # DESCRIPTION
 
@@ -261,8 +264,8 @@ Option __--nocolor__ is alias for __--color__=_never_.
 
 Specify color mode.  Use combination string from R(ed), G(reen),
 B(lue), C(yan), M(agenta), Y(ellow), W(hite), U(nderline), (bol)D,
-S(tandout).  Lowercase form of RGBW means background color.  Default
-is RD: RED and BOLD.
+S(tandout).  Lowercase form of RGBCMYW means background color.
+Default is RD: RED and BOLD.
 
 If the mode string contains comma ',' character, they are used to
 quote the matched string.  If you want to quote the pattern by angle
@@ -353,36 +356,47 @@ Next command searches only from POD part of the perl script.
 
     greple --inside='(?s)^=.*?(^=cut|\Z)'
 
+When multiple __inside__ and __outside__ regions are specified, those
+regions are mixed up in union way.
+
+In multiple color environment, and if single keyword is specified,
+matches in each __--inside__/__outside__ regions are printed in
+different colors.  Forcing this operation with multiple keywords, use
+__--regioncolor__ option.
+
 #### __--inside__=_&function_
 
 #### __--outside__=_&function_
 
 If the pattern name begins by ampersand (&) character, it is treated
-as a name of subroutine which returns a list of blocks to exclude.
-Using this option, user can use arbitrary function to determine from
-what part of the text they want to search.  User defined function is
-written in `.greplerc` file or explicitly included by __--require__
-option.
+as a name of subroutine which returns a list of blocks.  Using this
+option, user can use arbitrary function to determine from what part of
+the text they want to search.  User defined function can be defined in
+`.greplerc` file or by module option.
 
-    greple --require mycode.pl --outside '&myfunc' pattern *
+#### __--include__=_pattern_
 
-Argument can be specified after function name with '=' character.
-Next example is equivalent to the above example.
+#### __--exclude__=_pattern_
 
-    sub myfunc {
-        my($pattern) = @_;
-        my @matched;
-        my $re = qr/$pattern/m;
-        while (/$re/g) {
-            push(@matched, [ $-[0], $+[0] ]);
-        }
-        @matched;
-    }
+#### __--include__=_&function_
 
-    greple --outside '&myfunc=(?s)/\*.*?\*/' if *.c
+#### __--exclude__=_&function_
 
-__--outside__ and __--inside__ option can be specified mixed together
-and multiple times.
+__--include__/__exclude__ option behave exactly same as
+__--inside__/__outside__ when used alone.
+
+When used in combination, __--include__/__exclude__ are mixed in AND
+manner, while __--inside__/__outside__ are in OR.
+
+Thus, in the next example, first line prints all matches, and second
+does none.
+
+    greple --inside PATTERN --outside PATTERN
+
+    greple --include PATTERN --exclude PATTERN
+
+You can make up desired matches using __--inside__/__outside__ option,
+then remove unnecessary part by __--include__/__exclude__
 
 #### __--strict__
 
@@ -580,10 +594,12 @@ Environment variable GREPLEOPTS is used as a default options.  They
 are inserted before command line options.
 
 Before starting execution, _greple_ reads the file named `.greplerc`
-on user's home directory.  In rc file, user can define own options.
-There are three directives rc file: 'option', 'define' and 'help'.
-First argument of 'option' directive is user defined option name.  The
-rest are processed by _shellwords_ routine defined by
+on user's home directory.  Following directives can be used.
+
+#### __option__ _name_ string
+
+Argument _name_ of 'option' directive is user defined option name.
+The rest are processed by _shellwords_ routine defined in
 Text::ParseWords module.  Be sure that this module sometimes requires
 escape backslashes.
 
@@ -593,25 +609,33 @@ with other options.
     option --fromcode --outside='(?s)\/\*.*?\*\/'
     option --fromcomment --inside='(?s)\/\*.*?\*\/'
 
-Another directive 'define' is almost same as 'option', but argument is
-not processed by _shellwords_ and treated just a simple text.
+If the option named __default__ is defined, it will be used as a
+default option.
+
+#### __help__ _name_
+
+If 'help' directive is used for same option name, it will be printed
+in usage message.  If the help message is 'ignore', corresponding line
+won't show up in the usage.
+
+#### __define__ _name_ string
+
+Directive 'define' is almost same as 'option', but argument is not
+processed by _shellwords_ and treated just a simple text.
 Metacharacters can be included without escaping.  Defined string
 replacement is done only in definition in option argument.  If you
 want to use the word in command line, use option directive instead.
-If 'help' directive is used for same option name, it will be printed
-in usage message.  If the help message is 'ignore', corresponding line
-won't show up in the usage,
 
     define :kana: \p{utf8::InKatakana}
     option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
     help   --kanalist List up Katakana string
 
-When _greple_ found `__CODE__` line in `.greplerc` file, the rest of
-the file is evaluated as a Perl program.  You can define your own
-subroutines which can be used by --inside and --outside options.  For
-those subroutines, file content will be provided by global variable
-$_.  Expected response from the subroutine is the list of numbers,
-which is made up by start and end offset pairs.
+When _greple_ found `__CODE__` line in `.greplerc` file, the rest
+of the file is evaluated as a Perl program.  You can define your own
+subroutines which can be used by __--inside__ and __--outside__ options.
+For those subroutines, file content will be provided by global
+variable `$_`.  Expected response from the subroutine is the list of
+array references, which is made up by start and end offset pairs.
 
 For example, suppose that the following function is defined in your
 `.greplerc` file.
@@ -629,10 +653,96 @@ For example, suppose that the following function is defined in your
 You can use next command to search pattern included in odd number
 lines.
 
-    % greple --inside &odd_line patten files...
+    % greple --inside '&odd_line' patten files...
 
-If you do not want to evaluate those programs in all invocation of the
-command, use --require option to include arbitrary perl program files.
+
+
+# MODULE
+
+Modules can be specified only at the beginning of command line by
+__-M___module_ option.  Name _module_ is prepended by __App::Greple__,
+so place the module file in `App/Greple/` directory in Perl library.
+
+If the package name is declared properly, `__DATA__` section in the
+module file will be interpreted same as `.greplerc` file content.
+
+See this sample module code.  This sample define options to search
+from pod, comment and other segment in Perl script.  Those capability
+can be implemented both in function and macro.
+
+    package App::Greple::perl;
+    
+
+    BEGIN {
+        use Exporter   ();
+        our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
+    
+
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.14 $ =~ /(\d+)/g;
+    
+
+        @ISA         = qw(Exporter);
+        @EXPORT      = qw(&pod &comment &podcomment);
+        %EXPORT_TAGS = ( );
+        @EXPORT_OK   = qw();
+    }
+    our @EXPORT_OK;
+    
+
+    END { }
+    
+
+    my $pod_re = qr{^=\w+(?s:.*?)(?:\Z|^=cut\s*\n)}m;
+    my $comment_re = qr{^(?:[ \t]*#.*\n)+}m;
+    
+
+    sub pod {
+        my @list;
+        while (/$pod_re/g) {
+            push(@list, [ $-[0], $+[0] ] );
+        }
+        @list;
+    }
+    sub comment {
+        my @list;
+        while (/$comment_re/g) {
+            push(@list, [ $-[0], $+[0] ] );
+        }
+        @list;
+    }
+    sub podcomment {
+        my @list;
+        while (/$pod_re|$comment_re/g) {
+            push(@list, [ $-[0], $+[0] ] );
+        }
+        @list;
+    }
+    
+
+    1;
+    
+
+    __DATA__
+    
+
+    define :comment: ^(\s*#.*\n)+
+    define :pod: ^=(?s:.*?)(?:\Z|^=cut\s*\n)
+    
+
+    #option --pod --inside :pod:
+    #option --comment --inside :comment:
+    #option --code --outside :pod:|:comment:
+    
+
+    option --pod --inside '&pod'
+    option --comment --inside '&comment'
+    option --code --outside '&podcomment'
+
+You can use the module like this:
+
+    greple -Mperl --pod ...
+
+    greple -Mperl --code --comment --pod ...
 
 
 
