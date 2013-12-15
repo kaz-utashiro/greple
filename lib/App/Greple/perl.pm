@@ -44,7 +44,7 @@ our @EXPORT_OK;
 
 END { }
 
-my $pod_re = qr{^=\w+(?s:.*?)(?:\Z|^=cut\s*\n)}m;
+my $pod_re = qr{^=\w+(?s:.*?)(?:\Z|^=cut[ \t]*\n)}m;
 my $comment_re = qr{^(?:[ \t]*#.*\n)+}m;
 
 sub pod {
@@ -74,13 +74,17 @@ sub podcomment {
 
 __DATA__
 
-define :comment: ^(\s*#.*\n)+
-define :pod: ^=(?s:.*?)(?:\Z|^=cut\s*\n)
+define :comment: ^([ \t]*#.*\n)+
+#define :comment: #.*
+define :pod: ^=(?s:.*?)(?:\Z|^=cut[ \t]*\n)
+define :podcomment: :pod:|:comment:
 
-#option --pod --inside :pod:
-#option --comment --inside :comment:
-#option --code --outside :pod:|:comment:
+option --allsection --pod --comment --code
 
-option --pod --inside '&pod'
-option --comment --inside '&comment'
-option --code --outside '&podcomment'
+option --pod --inside :pod:
+option --comment --inside :comment:
+option --code --outside :podcomment:
+
+#option --pod --inside '&pod'
+#option --comment --inside '&comment'
+#option --code --outside '&podcomment'

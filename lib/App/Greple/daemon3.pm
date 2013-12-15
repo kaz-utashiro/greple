@@ -140,10 +140,16 @@ sub jp_part {
 
 __DATA__
 
-define :comment: (?m)^※.*\n(?:(?!\.(?:EG|JP|EJ)).+\n)*
-set option --icode=guess
+define :comment: ^※.*\n(?:(?!\.(?:EG|JP|EJ)).+\n)*
+define :roffcomment: ^\.\\\".*
+define :roffindex:   ^\.(IX|CO).*
+
+option default --icode=guess
+
 option --jp --inside '&jp_part'
 option --jpblock --block '&jp_part'
 option --comment --inside :comment:
-option --nocomment --outside :comment:
+option --nocomment --exclude :comment:
 option --commentblock --block :comment:
+
+option --clean --exclude :roffcomment: --exclude :roffindex:
