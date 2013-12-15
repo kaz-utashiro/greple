@@ -22,10 +22,10 @@ __greple__ [__-M___module_] [ __-options__ ] pattern [ file... ]
     -n                   print line number
     -h                   do not display filenames
     -H                   always display filenames
-    --inside=pattern     limit matching area
-    --outside=pattern    opposite to --inside
-    --revinside=pattern  inside reverse pattern
-    --revoutside=pattern outside reverse pattern
+    --inside=pattern     select matches inside of pattern
+    --outside=pattern    select matches outside of pattern
+    --include=pattern    reduce matches
+    --exclude=pattern    reduce matches
     --strict             strict mode for --inside/outside --block
     --join               delete newline in the matched part
     --joinby=string      replace newline in the matched text by string
@@ -678,7 +678,7 @@ can be implemented both in function and macro.
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
 
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.14 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.15 $ =~ /(\d+)/g;
     
 
         @ISA         = qw(Exporter);
@@ -740,9 +740,9 @@ can be implemented both in function and macro.
 
 You can use the module like this:
 
-    greple -Mperl --pod ...
+    greple -Mperl --pod default greple
 
-    greple -Mperl --code --comment --pod ...
+    greple -Mperl --colorful --code --comment --pod default greple
 
 
 
