@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.15 2013/12/15 07:37:32 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.16 2013/12/15 14:38:36 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -58,8 +58,8 @@ B<OPTIONS>
     -H                   always display filenames
     --inside=pattern     select matches inside of pattern
     --outside=pattern    select matches outside of pattern
-    --include=pattern    reduce matches
-    --exclude=pattern    reduce matches
+    --include=pattern    reduce matches to the area
+    --exclude=pattern    reduce matches to outside of the area
     --strict             strict mode for --inside/outside --block
     --join               delete newline in the matched part
     --joinby=string      replace newline in the matched text by string
@@ -180,7 +180,7 @@ my @optargs = (
     'all'                => \$opt_all,
     'f|file=s'           => \$opt_f,
     'rc!'                => \$opt_rc,
-    'S'                  => \$opt_readlist,
+    'readlist'           => \$opt_readlist,
     'd=s'                => \@opt_d,
     'man'                => \$opt_man,
     'icode=s'            => \@opt_icode,
@@ -790,7 +790,7 @@ sub open_nextfile {
 sub grep_file {
     my $content;
 
-    { undef $/; $content = <STDIN>; }
+    { local $/ = undef; $content = <STDIN>; }
     $pgp->reset if $pgp;
 
     warn $current_file, ":\n" if $opt_d{f};
@@ -2264,7 +2264,7 @@ can be implemented both in function and macro.
         use Exporter   ();
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.15 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.16 $ =~ /(\d+)/g;
     
         @ISA         = qw(Exporter);
         @EXPORT      = qw(&pod &comment &podcomment);
