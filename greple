@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.14 2013/12/14 15:00:23 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.15 2013/12/15 07:37:32 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -56,10 +56,10 @@ B<OPTIONS>
     -n                   print line number
     -h                   do not display filenames
     -H                   always display filenames
-    --inside=pattern     limit matching area
-    --outside=pattern    opposite to --inside
-    --revinside=pattern  inside reverse pattern
-    --revoutside=pattern outside reverse pattern
+    --inside=pattern     select matches inside of pattern
+    --outside=pattern    select matches outside of pattern
+    --include=pattern    reduce matches
+    --exclude=pattern    reduce matches
     --strict             strict mode for --inside/outside --block
     --join               delete newline in the matched part
     --joinby=string      replace newline in the matched text by string
@@ -204,8 +204,8 @@ my @optargs = (
     'decompress!'        => \$opt_decompress,
     'quote=s'            => sub {$opt_color='always'; $opt_colormode=$_[1]},
     'color|colour=s'     => \$opt_color,
-    'colormode|cm'
-    . '|colourmode=s'    => \$opt_colormode,
+    'colormode|cm|colourmode=s'
+                         => \$opt_colormode,
     'nocolor|nocolour'   => sub {$opt_color = 'never'},
     'colorful'           => sub {$opt_colormode = 'RD GD BD CD MD YD'},
     'random!'            => \$opt_random,
@@ -217,53 +217,6 @@ my @optargs = (
 
 binmode STDERR, ":encoding(utf8)";
 
-##
-## User customizable option handling
-##
-my %user_option;
-my %user_define;
-my @user_define;
-my %user_help;
-sub rc_init {
-    %user_define = @user_define = ();
-}
-sub rc_command {
-    my($arg0, $arg1, $rest) = @_;
-
-    if ($arg0 eq "define") {
-	$user_define{$arg1} = $rest;
-	unshift(@user_define, qr/\Q$arg1/);
-    }
-    elsif ($arg0 eq "option") {
-	define_option_bystring($arg1, $rest);
-    }
-    elsif ($arg0 eq "help") {
-	$user_help{$arg1} = $rest;
-    }
-    elsif ($arg0 eq "set" and $arg1 eq "option") {
-	my @args = shellwords($rest);
-	GetOptionsFromArray(\@args, @optargs) || pod2usage;
-    }
-    else {
-	warn "$arg0: Unknown operator in rc file.\n";
-    }
-}
-sub define_option_bystring {
-    define_option(shift, shellwords(shift));
-}
-sub define_option {
-    my $option = shift;
-    for (@_) {
-	for my $re (@user_define) {
-	    s/($re)/$user_define{$1}/g;
-	}
-    }
-    if ($option eq "default" and defined $user_option{$option}) {
-	push(@{$user_option{$option}}, @_);
-    } else {
-	$user_option{$option} = [ @_ ];
-    }
-}
 sub add_option {
     push(@optargs, @_);
 }
@@ -271,10 +224,15 @@ sub add_option {
 ##
 ## Process special option --norc
 ##
-if ($ARGV[0] eq "--norc") {
+if (@ARGV and $ARGV[0] eq "--norc") {
     $opt_rc = 0;
     shift @ARGV;
 }
+
+##
+## User customizable option handling
+##
+my @rcdata;
 
 ##
 ## Read .greplerc file
@@ -283,25 +241,19 @@ if ($opt_rc &&
     open(GREPLERC, "<:encoding(utf8)", "$ENV{HOME}/.greplerc")) { # XXX
     local $/ = undef;
     my $rc = <GREPLERC>;
-    greplerc($rc);
+    greplerc({Title => "main"}, $rc);
     close GREPLERC;
 }
 
 sub greplerc {
     my $arg = ref $_[0] eq 'HASH' ? shift : {};
-    my $rc = join('', @_);
-
-    rc_init();
-
+    my $rc = join('', grep(/\S/, @_));
     for ($rc) {
 	s/^__CODE__\s*\n(.*)//ms and do_eval($1);
-	s/^\s*#.*\n//mg;
+	s/^\s*(?:#.*)?\n//mg;
 	s/\\\n//g;
     }
-
-    while ($rc =~ /^\s*(\S+)\s+(\S+)\s+(.+)\n?/mg) {
-	rc_command($1, $2, $3);
-    }
+    push(@rcdata, new RcData($arg->{Title})->parsetext($rc));
 }
 
 ##
@@ -330,17 +282,14 @@ sub load_module {
     }
     local *data = "${module}::DATA";
     if (not eof *data) {
-	greplerc({Module => $mod}, <data>);
+	greplerc({Title => $mod}, <data>);
     }
 }
 
 ##
 ## Handle default option and ENG{GREPLEOPTS}
 ##
-if (defined $user_option{default}) {
-    unshift(@ARGV, @{$user_option{default}});
-    delete $user_option{default};
-}
+unshift @ARGV, map { $_->option('default') } @rcdata;
 if ($ENV{'GREPLEOPTS'}) {
     unshift(@ARGV, shellwords($ENV{'GREPLEOPTS'}));
 }
@@ -348,11 +297,15 @@ if ($ENV{'GREPLEOPTS'}) {
 ##
 ## Process user defined option.
 ##
-for (my $i = 0; $i < @ARGV; $i++) {
+ARGV: for (my $i = 0; $i < @ARGV; $i++) {
     my $arg = $ARGV[$i];
-    if (defined $user_option{$arg}) {
-	splice(@ARGV, $i, 1, @{$user_option{$arg}});
-	redo;
+    next if $arg eq 'default';
+    for my $rcdata (@rcdata) {
+	my @s = $rcdata->option($arg);
+	if (@s) {
+	    splice(@ARGV, $i, 1, @s);
+	    redo ARGV;
+	}
     }
 }
 
@@ -598,7 +551,7 @@ my $need_color = (($opt_color eq 'always')
 
 my $blockend = "--\n";
 if (defined $opt_blockend) {
-    $blockend = $opt_blockend . "\n";
+    ($blockend = $opt_blockend) =~ s/(?<=.)$/\n/;
 }
 if ($opt_C) {
     $opt_A ||= $opt_C;
@@ -709,15 +662,25 @@ sub main {
 sub usage {
     pod2usage(-verbose => 0, -exitval => "NOEXIT");
 
-    if (%user_option) {
-	print "User defined options:\n";
-	foreach my $k (sort keys %user_option) {
-	    my $help = $user_help{$k} || '';
+    my $quote = qr/[\\(){}\|\*?]/;
+    for my $rcdata (@rcdata) {
+	my $title = $rcdata->title;
+	if ($title eq "main") {
+	    print "    User defined options:\n";
+	} else {
+	    print "    Module $title options:\n";
+	}
+	for my $name ($rcdata->options) {
+	    my $help = $rcdata->help($name) || "";
 	    next if $help eq 'ignore';
-	    printf("        %-17s %s\n", $k,
+	    printf("        %-20s %s\n", $name,
 		   $help ||
-		   join(' ', map({ /\s/ ? "\"$_\"" : $_ }
-				 @{$user_option{$k}})));
+		   join(' ', map({ /^(-+\w+=)(.*$quote.*)$/
+				       ? "$1\'$2\'"
+				       :  /^(.*$quote.*)$/
+				       ? "\'$1\'"
+				       : $_ }
+				 $rcdata->option($name))));
 	}
 	print "\n";
     }
@@ -1221,7 +1184,10 @@ sub select_regions {
 	for (my $j = 0; $j < @list and $list[$j][0] < $to; $j++) {
 	    push @inside, [ @{$list[$j]} ];
 	}
-	while (@list and $list[0][1] <= $to) {
+	while (@list and $list[0][1] < $to) {
+	    shift @list;
+	}
+	while (@list and $list[0][0] < $to and $list[0][1] <= $to) {
 	    shift @list;
 	}
     }
@@ -1402,6 +1368,127 @@ sub unctrl {
     s/([\000-\010\013-\037])/'^' . pack('c', ord($1)|0100)/ge;
     $_;
 }
+
+######################################################################
+package RcData;
+
+use strict;
+use warnings;
+
+use Text::ParseWords qw(shellwords);
+use List::Util qw(first);
+use Data::Dumper;
+
+sub new {
+    my $class = shift;
+    my $title = shift || 'main';
+    bless {
+	Title => $title,
+	Define => [],
+	Option => [],
+	Help => [],
+    }, $class;
+}
+
+sub title {
+    my $obj = shift;
+    @_  ? $obj->{Title} = shift
+	: $obj->{Title};
+}
+
+sub define {
+    my $obj = shift;
+    my $name = shift;
+    my $list = $obj->{Define};
+    if (@_) {
+	my $re = qr/\Q$name/;
+	unshift(@$list, [ $name, $re, shift ]);
+    } else {
+	first { $_->[0] eq $name } @$list;
+    }
+}
+
+sub expand {
+    my $obj = shift;
+    local *_ = shift;
+    for my $defent (@{$obj->{Define}}) {
+	my($name, $re, $string) = @$defent;
+	s/$re/$string/g;
+    }
+}
+
+sub option {
+    my $obj = shift;
+    my $name = shift;
+    my $list = $obj->{Option};
+    if (@_) {
+	my $s = shift;
+	my @args = shellwords($s);
+	for (@args) {
+	    $obj->expand(\$_);
+	}
+	unshift @$list, [ $name, @args ];
+    } else {
+	my $e = first { $_->[0] eq $name } @$list;
+	my @e = $e ? @$e : ();
+	shift @e;
+	@e;
+    }
+}
+
+sub options {
+    my $obj = shift;
+    reverse map { $_->[0] } @{$obj->{Option}};
+}
+
+sub help {
+    my $obj = shift;
+    my $name = shift;
+    my $list = $obj->{Help};
+    if (@_) {
+	unshift(@$list, [ $name, shift ]);
+    } else {
+	my $e = first { $_->[0] eq $name } @$list;
+	$e ? $e->[1] : undef;
+    }
+}
+
+sub parsetext {
+    my $obj = shift;
+    my $text = shift;
+    while ($text =~ /(.+)\n?/g) {
+	$obj->parseline($1);
+    }
+    $obj;
+}
+
+sub parseline {
+    my $obj = shift;
+    my $line = shift;
+    my($arg0, $arg1, $rest) = split(' ', $line, 3);
+
+    if ($arg0 eq "define") {
+	$obj->define($arg1, $rest);
+    }
+    elsif ($arg0 eq "option") {
+	$obj->option($arg1, $rest);
+    }
+    elsif ($arg0 eq "help") {
+	$obj->help($arg1, $rest);
+    }
+#    elsif ($arg0 eq "set" and $arg1 eq "option") {
+#	package main;
+#	my @args = shellwords($rest);
+#	GetOptionsFromArray(\@args, @optargs) || pod2usage;
+#    }
+    else {
+	warn "$arg0: Unknown operator in rc file.\n";
+    }
+
+    $obj;
+}
+
+1;
 
 ######################################################################
 package PgpFilter;
@@ -2177,7 +2264,7 @@ can be implemented both in function and macro.
         use Exporter   ();
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.14 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.15 $ =~ /(\d+)/g;
     
         @ISA         = qw(Exporter);
         @EXPORT      = qw(&pod &comment &podcomment);
@@ -2230,9 +2317,9 @@ can be implemented both in function and macro.
 
 You can use the module like this:
 
-    greple -Mperl --pod ...
+    greple -Mperl --pod default greple
 
-    greple -Mperl --code --comment --pod ...
+    greple -Mperl --colorful --code --comment --pod default greple
 
 
 =head1 HISTORY
