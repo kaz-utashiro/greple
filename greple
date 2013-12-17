@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.16 2013/12/15 14:38:36 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.17 2013/12/17 06:27:28 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -362,6 +362,9 @@ if ($opt_man) {
 ## setup file encoding
 if (@opt_icode) {
     @opt_icode = map { split /[,\s]+/ } @opt_icode;
+    if (my %seen, 1) {
+	@opt_icode = grep { not $seen{$_}++ } @opt_icode;
+    }
     my $use_add;
     map { s/^\+// and ++$use_add } @opt_icode;
     if (@opt_icode == 1) {
@@ -534,6 +537,9 @@ if (@opt_chdir) {
 	    (@opt_chdir == 1 and @argv_files == 1 and @opt_glob == 0)) {
 	$need_filename++;
     }
+}
+elsif (@opt_glob) {
+    push(@ARGV, map(glob, @opt_glob));
 }
 
 open(SAVESTDIN, '<&STDIN');
@@ -953,9 +959,9 @@ sub grep_pattern {
 	my($sw, $regex) = @{$patterns[$i]};
 	my $rp = $result[$i] = [];
 	while ($_ =~ /$regex/g) {
-	    push @$rp, [$-[0], $+[0], $i];
+	    push @$rp, [ int $-[0], int $+[0], $i ];
 	    if ($sw eq MATCH_POSITIVE) {
-		push @blocks, [$-[0], $+[0]];
+		push @blocks, [ int $-[0], int $+[0] ];
 		$stat{match_positive}++;
 	    } else {
 		$stat{match_negative}++;
@@ -1079,7 +1085,7 @@ sub grep_pattern {
 	    map($mark{$_} = 1,
 		max($i - $opt_B, 0) .. min($i + $opt_A, $#blocks));
 	}
-	@effective_index = sort keys %mark;
+	@effective_index = sort { $a <=> $b } map { int $_ } keys %mark;
     }
 
     ##
@@ -1227,9 +1233,22 @@ sub get_regions {
     ##
     ## when &name
     ##
-    if ($pattern =~ /^&([^=]*)(?:=(.*))?/) {
+    if ($pattern =~ /^&(\w+) (?: \( (.*) \) )?/x) {
+	my $func = $1;
+	my @arg = (file => $current_file);
+	if (defined $2) {
+	    ##
+	    ## &name(key1,key2,key3=val3)
+	    ##
+	    for my $arg (split(/, */, $2)) {
+		if ($arg =~ /=/) {
+		    push(@arg, split(/=/, $arg, 2));
+		} else {
+		    push(@arg, $arg, 1);
+		}
+	    }
+	}
 	no strict 'refs';
-	my($func, @arg) = ($1, $2);
 	&$func(@arg);
     }
     ##
@@ -2264,7 +2283,7 @@ can be implemented both in function and macro.
         use Exporter   ();
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.16 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.17 $ =~ /(\d+)/g;
     
         @ISA         = qw(Exporter);
         @EXPORT      = qw(&pod &comment &podcomment);
