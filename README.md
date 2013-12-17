@@ -24,8 +24,8 @@ __greple__ [__-M___module_] [ __-options__ ] pattern [ file... ]
     -H                   always display filenames
     --inside=pattern     select matches inside of pattern
     --outside=pattern    select matches outside of pattern
-    --include=pattern    reduce matches
-    --exclude=pattern    reduce matches
+    --include=pattern    reduce matches to the area
+    --exclude=pattern    reduce matches to outside of the area
     --strict             strict mode for --inside/outside --block
     --join               delete newline in the matched part
     --joinby=string      replace newline in the matched text by string
@@ -678,7 +678,7 @@ can be implemented both in function and macro.
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
 
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.15 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.17 $ =~ /(\d+)/g;
     
 
         @ISA         = qw(Exporter);
