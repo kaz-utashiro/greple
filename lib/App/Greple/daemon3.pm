@@ -6,11 +6,18 @@ daemon3 - Module for translation of the book "The Design and Implementation of t
 
 greple -Mdaemon3 [ options ]
 
-    --jp            search from japanese part
-    --jpblock       japanese part as blocks
-    --comment       search from comment part
-    --nocomment     search excluding comment part
-    --commentblock  comment part as blocks
+    --clean        cleanup roff comment and index macro
+    --jp           search from japanese/macro part
+    --jponly       search from japanese text part
+    --jpblock      japanese part as blocks
+    --jptext       search from japanese text without roff macros
+    --eg           search from english/macro part
+    --egonly       search from english text part
+    --egblock      english part as blocks
+    --egtext       search from english text without roff macros
+    --comment      search from comment part
+    --nocomment    search excluding comment part
+    --commentblock comment part as blocks
 
 =head1 TEXT FORMAT
 
@@ -19,8 +26,8 @@ greple -Mdaemon3 [ options ]
 Simple Translation
 
     .\" Copyright 2004 M. K. McKusick
-    .Dt $Date: 2005/09/06 14:28:17 $
-    .Vs $Revision: 1.5 $
+    .Dt $Date: 2013/12/17 06:29:36 $
+    .Vs $Revision: 1.2 $
     .EG \"---------------------------------------- ENGLISH
     .H 2 "\*(Fb Facilities and the Kernel"
     .JP \"---------------------------------------- JAPANESE
@@ -96,10 +103,10 @@ BEGIN {
     use Exporter   ();
     our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
-    $VERSION = sprintf "%d.%03d", q$Revision: 1.6 $ =~ /(\d+)/g;
+    $VERSION = sprintf "%d.%03d", q$Revision: 1.2 $ =~ /(\d+)/g;
 
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(&jp_part);
+    @EXPORT      = qw(&part);
     %EXPORT_TAGS = ( );
     @EXPORT_OK   = qw();
 }
@@ -107,33 +114,60 @@ our @EXPORT_OK;
 
 END { }
 
-sub jp_part {
-    my @result;
+my $target = -1;
+my(@macro, @eg, @jp);
+
+sub part {
+    my %arg = @_;
+
+    if ($target != \$_) {
+	&setdata;
+	$target = \$_;
+    }
+
+    sort({ $a->[0] <=> $b->[0] }
+	 $arg{macro} ? @macro : (),
+	 $arg{eg} ? @eg : (),
+	 $arg{jp} ? @jp : (),
+	);
+}
+
+sub setdata {
     my @block;
-    while (m{	\G            (?<macro> .*?\n)
+    my $pos = 0;
+
+    @macro = @eg = @jp = ();
+
+    while (m{	\G            (?<macro> (?s:.*?))
 		^\.EG[^\n]*\n (?<eg>    .*?\n)
 		^\.JP[^\n]*\n (?<jp>    .*?\n)
-		^\.EJ[^\n]*\n
+		^\.EJ[^\n]*   (?:\n|\Z)
 	}msgx) {
-	push(@result, [ $-[1], $+[1] ]) if $1;
+	push(@macro, [ $-[1], $+[1] ]) if $1;
+	push(@eg,    [ $-[2], $+[2] ]) if $2;
 	push(@block, [ $-[3], $+[3] ]);
+	$pos = pos();
     }
-    for my $block (@block) {
-	my($s, $e) = @$block;
+
+    if ($pos > 0 and $pos != length) {
+	push(@macro, [ $pos, length ]);
+    }
+
+    for my $range (@block) {
+	my($s, $e) = @$range;
 	my $txt = substr($_, $s, $e - $s);
 	if ($txt !~ /\n\n/) {
-	    push(@result, $block);
+	    push(@jp, [ $s, $e ]);
 	    next;
 	}
 	my $i = 0;
 	while ($txt =~ /^((?<firstchar>.).*?\n)(?:\n+|\Z)/smg) {
 	    my($ss, $ee) = ($-[1], $+[1]);
 	    if ($+{firstchar} eq '※' or $i++ % 2) {
-		push(@result, [ $s + $ss, $s + $ee ]);
+		push(@jp, [ $s + $ss, $s + $ee ]);
 	    }
 	}
     }
-    sort { $a->[0] <=> $b->[0] } @result;
 }
 
 1;
@@ -146,10 +180,31 @@ define :roffindex:   ^\.(IX|CO).*
 
 option default --icode=guess
 
-option --jp --inside '&jp_part'
-option --jpblock --block '&jp_part'
+option --clean --exclude :roffcomment: --exclude :roffindex:
+
+option --jp --inside '&part(jp,macro)'
+option --jponly --inside '&part(jp)'
+option --jpblock --block '&part(jp)'
+option --jptext --jponly --clean --nocomment
+
+option --eg --inside '&part(eg,macro)'
+option --egonly --inside '&part(eg)'
+option --egblock --block '&part(eg)'
+option --egtext --egonly --clean --nocomment
+
 option --comment --inside :comment:
 option --nocomment --exclude :comment:
 option --commentblock --block :comment:
 
-option --clean --exclude :roffcomment: --exclude :roffindex:
+help --clean        cleanup roff comment and index macro
+help --jp           search from japanese/macro part
+help --jponly       search from japanese text part
+help --jpblock      japanese part as blocks
+help --jptext       search from japanese text without roff macros
+help --eg           search from english/macro part
+help --egonly       search from english text part
+help --egblock      english part as blocks
+help --egtext       search from english text without roff macros
+help --comment      search from comment part
+help --nocomment    search excluding comment part
+help --commentblock comment part as blocks

@@ -9,12 +9,10 @@ greple -Mperl [ options ]
 =head1 SAMPLES
 
 greple -Mperl option pattern
-
-    --code     search from perl code outisde of pod document
-
-    --pod      search from pod document
-
-    --comment  search from comment part
+    --code        search from perl code outisde of pod document
+    --pod         search from pod document
+    --comment     search from comment part
+    --allsection  search from all sections
 
 =head1 DESCRIPTION
 
@@ -33,7 +31,7 @@ BEGIN {
     use Exporter   ();
     our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
-    $VERSION = sprintf "%d.%03d", q$Revision: 1.6 $ =~ /(\d+)/g;
+    $VERSION = sprintf "%d.%03d", q$Revision: 1.2 $ =~ /(\d+)/g;
 
     @ISA         = qw(Exporter);
     @EXPORT      = qw(&pod &comment &podcomment);
