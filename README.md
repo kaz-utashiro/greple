@@ -29,6 +29,8 @@ __greple__ [__-M___module_] [ __-options__ ] pattern [ file... ]
     --strict             strict mode for --inside/outside --block
     --join               delete newline in the matched part
     --joinby=string      replace newline in the matched text by string
+    --filestyle=style    how filename printed (once, separate, line)
+    --linestyle=style    how line number printed (separate, line)
 
     --need=n             required positive match count
     --allow=n            acceptable negative match count
@@ -285,6 +287,19 @@ show word 'foo' in red, 'bar' in green and 'baz' in blue.
 #### __--colorful__
 
 Shortcut for __--colormode__='_RD GD BD CD MD YD_'
+
+#### __--filestyle__=_style_, -__--fs__
+
+Default style is _line_, and __greple__ prints filename at the
+beginning of each line.  Style _once_ prints the filename only once
+at the first time.  Style _separate_ prints filename in the separate
+line before each line or block.
+
+#### __--linestyle__=_style_, __--ls__
+
+Default style is _line_, and __greple__ prints line numbers at the
+beginning of each line.  Style _separate_ prints line number in the
+separate line before each line or block.
 
 
 
@@ -678,7 +693,7 @@ can be implemented both in function and macro.
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
 
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.17 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.18 $ =~ /(\d+)/g;
     
 
         @ISA         = qw(Exporter);
