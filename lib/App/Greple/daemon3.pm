@@ -26,8 +26,8 @@ greple -Mdaemon3 [ options ]
 Simple Translation
 
     .\" Copyright 2004 M. K. McKusick
-    .Dt $Date: 2013/12/17 06:29:36 $
-    .Vs $Revision: 1.2 $
+    .Dt $Date: 2013/12/23 09:04:26 $
+    .Vs $Revision: 1.3 $
     .EG \"---------------------------------------- ENGLISH
     .H 2 "\*(Fb Facilities and the Kernel"
     .JP \"---------------------------------------- JAPANESE
@@ -103,7 +103,7 @@ BEGIN {
     use Exporter   ();
     our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
-    $VERSION = sprintf "%d.%03d", q$Revision: 1.2 $ =~ /(\d+)/g;
+    $VERSION = sprintf "%d.%03d", q$Revision: 1.3 $ =~ /(\d+)/g;
 
     @ISA         = qw(Exporter);
     @EXPORT      = qw(&part);
@@ -115,7 +115,7 @@ our @EXPORT_OK;
 END { }
 
 my $target = -1;
-my(@macro, @eg, @jp);
+my(@macro, @eg, @jp, @egjp);
 
 sub part {
     my %arg = @_;
@@ -127,46 +127,52 @@ sub part {
 
     sort({ $a->[0] <=> $b->[0] }
 	 $arg{macro} ? @macro : (),
+	 $arg{egjp} ? @egjp : (),
 	 $arg{eg} ? @eg : (),
 	 $arg{jp} ? @jp : (),
 	);
 }
 
 sub setdata {
-    my @block;
     my $pos = 0;
 
-    @macro = @eg = @jp = ();
+    @macro = @eg = @jp = @egjp = ();
 
     while (m{	\G            (?<macro> (?s:.*?))
 		^\.EG[^\n]*\n (?<eg>    .*?\n)
 		^\.JP[^\n]*\n (?<jp>    .*?\n)
 		^\.EJ[^\n]*   (?:\n|\Z)
 	}msgx) {
-	push(@macro, [ $-[1], $+[1] ]) if $1;
-	push(@eg,    [ $-[2], $+[2] ]) if $2;
-	push(@block, [ $-[3], $+[3] ]);
+
 	$pos = pos();
+	push @macro, [ $-[1], $+[1] ];
+	my $eg = [ $-[2], $+[2] ];
+	my $jp = [ $-[3], $+[3] ];
+	my $jptxt = $+{jp};
+
+	if ($jptxt !~ /\n\n/) {
+	    push @egjp, [ $eg->[0], $jp->[1] ];
+	    push @eg, $eg;
+	    push @jp, $jp;
+	    next;
+	}
+
+	my($s, $e) = @$jp;
+	my $i = 0;
+	while ($jptxt =~ /^((?<firstchar>.).*?\n)(?:\n+|\Z)/smg) {
+	    my($ss, $ee) = ($s + $-[1], $s + $+[1]);
+	    if ($+{firstchar} eq '※' or $i++ % 2) {
+		push @jp, [ $ss, $ee ];
+		@egjp ? $egjp[-1][1] = $ee : push @egjp, [ $ss, $ee ];
+	    } else {
+		push @eg, [ $ss, $ee ];
+		push @egjp, [ $ss, $ee ];
+	    }
+	}
     }
 
     if ($pos > 0 and $pos != length) {
-	push(@macro, [ $pos, length ]);
-    }
-
-    for my $range (@block) {
-	my($s, $e) = @$range;
-	my $txt = substr($_, $s, $e - $s);
-	if ($txt !~ /\n\n/) {
-	    push(@jp, [ $s, $e ]);
-	    next;
-	}
-	my $i = 0;
-	while ($txt =~ /^((?<firstchar>.).*?\n)(?:\n+|\Z)/smg) {
-	    my($ss, $ee) = ($-[1], $+[1]);
-	    if ($+{firstchar} eq '※' or $i++ % 2) {
-		push(@jp, [ $s + $ss, $s + $ee ]);
-	    }
-	}
+	push @macro, [ $pos, length ];
     }
 }
 
@@ -195,6 +201,9 @@ option --egtext --egonly --clean --nocomment
 option --comment --inside :comment:
 option --nocomment --exclude :comment:
 option --commentblock --block :comment:
+
+option --macro --inside '&part(macro)'
+option --allblock --block '&part(macro,eg,jp)'
 
 help --clean        cleanup roff comment and index macro
 help --jp           search from japanese/macro part

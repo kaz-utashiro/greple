@@ -65,7 +65,7 @@ BEGIN {
     use Exporter   ();
     our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 
-    $VERSION = sprintf "%d.%03d", q$Revision: 1.1 $ =~ /(\d+)/g;
+    $VERSION = sprintf "%d.%03d", q$Revision: 1.2 $ =~ /(\d+)/g;
 
     @ISA         = qw(Exporter);
     @EXPORT      = qw(&print_simple &print_detail &print_desc);
@@ -101,6 +101,7 @@ sub print_simple {
     }
     $s .= " ";
     /^SUMMARY:(.*)/m and $s .= $1;
+    /^DESCRIPTION:/m and $s .= "*";
     /^LOCATION:(.*)/m and $s .= " \@[$1]";
     $s .= "\n";
     $s;
