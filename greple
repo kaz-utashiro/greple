@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.17 2013/12/17 06:27:28 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.18 2013/12/23 09:01:11 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -63,6 +63,8 @@ B<OPTIONS>
     --strict             strict mode for --inside/outside --block
     --join               delete newline in the matched part
     --joinby=string      replace newline in the matched text by string
+    --filestyle=style    how filename printed (once, separate, line)
+    --linestyle=style    how line number printed (separate, line)
 
     --need=n             required positive match count
     --allow=n            acceptable negative match count
@@ -139,6 +141,8 @@ my $opt_allow = 0;
 my $opt_strict = 0;
 my $opt_print;
 my $opt_continue;
+my $opt_filestyle = 'line';
+my $opt_linestyle = 'line';
 
 my $opt_c;
 my @opt_d = ();
@@ -172,6 +176,8 @@ my @optargs = (
     'n'                  => \$opt_n,
     'h|no-filename'      => \$opt_h,
     'H'                  => \$opt_H,
+    'filestyle|fs=s'     => \$opt_filestyle,
+    'linestyle|ls=s'     => \$opt_linestyle,
     'o|only-matching!'   => \$opt_o,
     'p|paragraph!'       => \$opt_p,
     'A|after-context:2'  => \$opt_A,
@@ -262,7 +268,14 @@ sub greplerc {
 while (@ARGV) {
     if ($ARGV[0] =~ /^-M(.*)/) {
 	shift @ARGV;
-	my $module = $1 || shift or die "Option M requires an argument\n";
+	my $module = $1 || shift or do {
+	    warn "Option M requires an argument.\n";
+	    if (my @modules = module_list()) {
+		warn "\nAvailable modules:\n";
+		warn "\t", join("\n\t", @modules), "\n";
+	    }
+	    exit -1;
+	};
 	load_module($module);
 	next;
     }
@@ -284,6 +297,11 @@ sub load_module {
     if (not eof *data) {
 	greplerc({Title => $mod}, <data>);
     }
+}
+sub module_list {
+    map { /(\w+)\.pm$/ }
+    map { glob "$_/App/Greple/*.pm" }
+    @INC;
 }
 
 ##
@@ -334,7 +352,7 @@ my %opt_d;
 @opt_d{@opt_d} = @opt_d;
 
 if ($opt_d{o}) {
-    warn "\@ARGV = @SAVEDARGV\n";
+    warn "\@ARGV = ", join(' ', shellquote(@SAVEDARGV)), "\n";
 }
 
 my $file_code;
@@ -681,12 +699,7 @@ sub usage {
 	    next if $help eq 'ignore';
 	    printf("        %-20s %s\n", $name,
 		   $help ||
-		   join(' ', map({ /^(-+\w+=)(.*$quote.*)$/
-				       ? "$1\'$2\'"
-				       :  /^(.*$quote.*)$/
-				       ? "\'$1\'"
-				       : $_ }
-				 $rcdata->option($name))));
+		   join(' ', shellquote($rcdata->option($name))));
 	}
 	print "\n";
     }
@@ -694,6 +707,17 @@ sub usage {
     print "$rcsid\n" if $rcsid =~ /:/;
 
     exit 2;
+}
+
+# easy implementation. don't be serious.
+sub shellquote {
+    my $quote = qr/[\s\\(){}\|\*?]/;
+    map { /^(-+\w+=)(.*$quote.*)$/
+	      ? "$1\'$2\'"
+	      :  /^(.*$quote.*)$/
+	      ? "\'$1\'"
+	      : $_ }
+    @_;
 }
 
 sub make_pattern {
@@ -817,7 +841,7 @@ sub do_grep {
     local *_ = shift;
     my @result = grep_pattern(\$_, \@xpattern);
 
-    my $matched_count;
+    my $matched_count = 0;
     map { $matched_count += @{$_} - 1 } @result;
 
     if ($opt_l) {
@@ -828,6 +852,14 @@ sub do_grep {
     if ($opt_c) {
 	printf "%s%d\n", $need_filename ? "$file:" : "", scalar(@result);
 	return $matched_count;
+    }
+
+    if ($matched_count == 0) {
+	return $matched_count;
+    }
+
+    if ($need_filename and $opt_filestyle eq 'once') {
+	print $current_file, ":\n";
     }
 
     my $need_blockend =
@@ -862,6 +894,18 @@ sub do_grep {
 	}
 	$lastpos = $block_end;
 
+	if (my $nl = 0, 1) {
+	    if ($need_filename and $opt_filestyle eq 'separate') {
+		print $current_file, ":";
+		$nl++;
+	    }
+	    if ($opt_n and $opt_linestyle eq 'separate') {
+		print $line, ":";
+		$nl++;
+	    }
+	    print "\n" if $nl;
+	}
+
 	my $mark = "\001";
 	for my $matched (reverse @$result) {
 	    my($ms, $me, $pi) = @$matched;
@@ -870,7 +914,7 @@ sub do_grep {
 	    $pi = rand(@colors) if $opt_random;
 
 	    if ($opt_join) {
-		if ($opt_n) {
+		if ($opt_n and $opt_linestyle eq 'line') {
 		    $s =~ s/\n/$mark/g;
 		} else {
 		    $s =~ s/\n/$opt_joinby/g;
@@ -884,7 +928,7 @@ sub do_grep {
 		    if $need_color;
 	    }
 	}
-	if ($opt_n) {
+	if ($opt_n and $opt_linestyle eq 'line') {
 	    my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
 	    $block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
 			my $s = $1 ? $opt_joinby : sprintf("%d:", $line);
@@ -893,7 +937,7 @@ sub do_grep {
 		       }gse;
 	}
 
-	if ($need_filename) {
+	if ($need_filename and $opt_filestyle eq 'line') {
 	    $block =~ s/^/$file:/mg;
 	}
 
@@ -1003,15 +1047,13 @@ sub grep_pattern {
     ##
     ## --include, --exclude
     ##
-    if (@reg_clude) {
-	for my $region (@reg_clude) {
-	    my($region_sw, $arg) = @$region;
-	    my @select = get_regions(\$_, $arg);
-	    next unless $region_sw or @select;
-	    for my $r (@result) {
-		@$r = select_regions({ strict => $opt_strict },
-				     $r, \@select, $region_sw);
-	    }
+    for my $region (@reg_clude) {
+	my($region_sw, $arg) = @$region;
+	my @select = get_regions(\$_, $arg);
+	next unless $region_sw or @select;
+	for my $r (@result) {
+	    @$r = select_regions({ strict => $opt_strict },
+				 $r, \@select, $region_sw);
 	}
     }
 
@@ -1882,6 +1924,19 @@ show word `foo' in red, `bar' in green and `baz' in blue.
 
 Shortcut for B<--colormode>='I<RD GD BD CD MD YD>'
 
+=item B<--filestyle>=I<style>, -B<--fs>
+
+Default style is I<line>, and B<greple> prints filename at the
+beginning of each line.  Style I<once> prints the filename only once
+at the first time.  Style I<separate> prints filename in the separate
+line before each line or block.
+
+=item B<--linestyle>=I<style>, B<--ls>
+
+Default style is I<line>, and B<greple> prints line numbers at the
+beginning of each line.  Style I<separate> prints line number in the
+separate line before each line or block.
+
 =back
 
 
@@ -2283,7 +2338,7 @@ can be implemented both in function and macro.
         use Exporter   ();
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.17 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.18 $ =~ /(\d+)/g;
     
         @ISA         = qw(Exporter);
         @EXPORT      = qw(&pod &comment &podcomment);
