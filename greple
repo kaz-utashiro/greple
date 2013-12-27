@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2013 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.18 2013/12/23 09:01:11 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 6.19 2013/12/27 07:38:03 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -121,6 +121,7 @@ my $opt_all;
 my $opt_blockend;
 my $opt_color = 'auto';
 my $opt_colormode = 'RD';
+my @opt_addcolor;
 my $opt_colorfull;
 my $opt_random;
 my $opt_regioncolor;
@@ -210,8 +211,9 @@ my @optargs = (
     'decompress!'        => \$opt_decompress,
     'quote=s'            => sub {$opt_color='always'; $opt_colormode=$_[1]},
     'color|colour=s'     => \$opt_color,
-    'colormode|cm|colourmode=s'
+    'colormode|cm|colourmode:s'
                          => \$opt_colormode,
+    'addcolor=s'         => \@opt_addcolor,
     'nocolor|nocolour'   => sub {$opt_color = 'never'},
     'colorful'           => sub {$opt_colormode = 'RD GD BD CD MD YD'},
     'random!'            => \$opt_random,
@@ -373,6 +375,10 @@ if ($opt_d{u}) {
 
 ## show man pages
 if ($opt_man) {
+    if (@rcdata > 1 and (my $mod = $rcdata[-1]->title) ne "main") {
+	exec "perldocjp App::Greple::$mod" or
+	    exec "perldoc App::Greple::$mod";
+    }
     pod2usage({-verbose => 2});
     die;
 }
@@ -568,6 +574,9 @@ if ((@ARGV > 1 or $opt_readlist) and not $opt_h) {
 
 $opt_join = 1 if $opt_joinby ne "";
 
+if (@opt_addcolor) {
+    $opt_colormode = "@opt_addcolor";
+}
 my @colors = map { [ colorseq($_), $_ ] } split(' ', $opt_colormode);
 
 my $need_color = (($opt_color eq 'always')
@@ -919,13 +928,10 @@ sub do_grep {
 		} else {
 		    $s =~ s/\n/$opt_joinby/g;
 		}
-	    } else {
-		$s =~ s/(\n+)(?!\Z)/decolor($1, $pi)/ge if $need_color;
 	    }
 
-	    if ($s ne '') {
-		substr($block, $ms, $me - $ms) = color($s, $pi)
-		    if $need_color;
+	    if ($s ne '' and $need_color) {
+		substr($block, $ms, $me - $ms) = color($s, $pi);
 	    }
 	}
 	if ($opt_n and $opt_linestyle eq 'line') {
@@ -951,15 +957,11 @@ sub do_grep {
 
 sub color {
     my $text = shift;
-    my $index = @_ ? shift(@_) % @colors : 0;
-    my $newline = ($text =~ s/(\n+)\Z//s) ? $1 : '';
-    $colors[$index][0] . $text . $colors[$index][1] . $newline;
-}
-
-sub decolor {
-    my $text = shift;
-    my $index = @_ ? shift(@_) % @colors : 0;
-    $colors[$index][1] . $text . $colors[$index][0];
+    if (@colors) {
+	my $index = @_ ? shift(@_) % @colors : 0;
+	$text =~ s/([^\r\n]+)/$colors[$index][0]$1$colors[$index][1]/g;
+    }
+    $text;
 }
 
 use Term::ANSIColor qw(:constants);
@@ -1380,13 +1382,14 @@ sub optimized_blocknize {
 sub blocknize {
     local *_ = shift;		# text
     my($from, $to) = @_;	# range
+    my $matched = substr($_, $from, $to - $from);
 
     my $delim = $opt_p ? "\n\n" : "\n";
 
     my($begin, $end);
 
     for (my $c = $opt_B + 1; $c; $c--) {
-	$begin = rindex($_, $delim, $from - 1);
+	$begin = rindex($_, $delim, $from);
 	last if $begin < 0;
 	$from = $begin - length $delim;
     }
@@ -1396,6 +1399,9 @@ sub blocknize {
 	$begin += length $delim;
     }
 
+    if ($matched =~ /$delim\Z/) {
+	$to -= length($delim);
+    }
     for (my $c = $opt_A + 1; $c; $c--) {
 	$end = index($_, $delim, $to);
 	last if $end < 0;
@@ -1404,7 +1410,7 @@ sub blocknize {
     if ($end < 0) {
 	$end = length $_;
     } else {
-	$end += 1;
+	$end += length $delim;
     }
 
     ($begin, $end);
@@ -1533,6 +1539,10 @@ sub parseline {
     }
     elsif ($arg0 eq "option") {
 	$obj->option($arg1, $rest);
+    }
+    elsif ($arg0 eq "defopt") {
+	$obj->define($arg1, $rest);
+	$obj->option($arg1, $arg1);
     }
     elsif ($arg0 eq "help") {
 	$obj->help($arg1, $rest);
@@ -1924,7 +1934,7 @@ show word `foo' in red, `bar' in green and `baz' in blue.
 
 Shortcut for B<--colormode>='I<RD GD BD CD MD YD>'
 
-=item B<--filestyle>=I<style>, -B<--fs>
+=item B<--filestyle>=I<style>, B<--fs>
 
 Default style is I<line>, and B<greple> prints filename at the
 beginning of each line.  Style I<once> prints the filename only once
@@ -2338,7 +2348,7 @@ can be implemented both in function and macro.
         use Exporter   ();
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.18 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.19 $ =~ /(\d+)/g;
     
         @ISA         = qw(Exporter);
         @EXPORT      = qw(&pod &comment &podcomment);
