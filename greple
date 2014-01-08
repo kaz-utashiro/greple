@@ -386,26 +386,22 @@ if ($opt_man) {
 ## setup file encoding
 if (@opt_icode) {
     @opt_icode = map { split /[,\s]+/ } @opt_icode;
+    if (grep { s/^\+// } @opt_icode) {
+	unshift @opt_icode, @default_icode_list;
+    }
     if (my %seen, 1) {
 	@opt_icode = grep { not $seen{$_}++ } @opt_icode;
     }
-    my $use_add;
-    map { s/^\+// and ++$use_add } @opt_icode;
-    if (@opt_icode == 1) {
-	$file_code = $opt_icode[0];
-	if ($use_add) {
-	    Encode::Guess->add_suspects($file_code);
-	    $file_code = 'Guess';
-	}
-	elsif ($file_code =~ /^(?:guess|auto)$/i) {
-	    Encode::Guess->set_suspects(@default_icode_list);
-	    $file_code = 'Guess';
-	} else {
-	    ;
-	}
-    } else {
+    if (@opt_icode > 1) {
+	@opt_icode = grep { !/(?:auto|guess)$/i } @opt_icode;
 	Encode::Guess->set_suspects(@opt_icode);
 	$file_code = 'Guess';
+    }
+    elsif ($opt_icode[0] =~ /^(?:guess|auto)$/i) {
+	Encode::Guess->set_suspects(@default_icode_list);
+	$file_code = 'Guess';
+    } else {
+	$file_code = $opt_icode[0];
     }
 }
 else {
