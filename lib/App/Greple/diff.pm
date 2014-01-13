@@ -29,13 +29,10 @@ sub print_wdiff {
     for (my $i = $#matched; $i >= 0; $i--) {
 	my($s, $e) = @{$matched[$i]};
 	my $t = substr($_, $s, $e - $s);
-	if ($t =~ s/\A (?:\{\+|\[\-) (.*) (?:\+\}|\-\]) \Z/$1/sx) {
-	    substr($_, $s, $e - $s) = $t;
-	    $matched[$i][0] = $s - $i * 4;
-	    $matched[$i][1] = $e - $i * 4 - 4;
-	} else {
-	    die;
-	}
+	die if length $t < 4;
+	substr($_, $s, $e - $s) = substr($t, 2, -2);
+	$matched[$i][0] = $s - $i * 4;
+	$matched[$i][1] = $e - $i * 4 - 4;
     }
     $_;
 }
