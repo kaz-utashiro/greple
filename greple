@@ -972,12 +972,14 @@ sub colorseq {
 	    $start .= UNDERLINE if /U/;
 	    $start .= REVERSE   if /S/;
 	    $start .= BOLD      if /D/;
+	    $start .= BLINK     if /F/;
 	    $start .= RED       if /R/; $start .= ON_RED       if /r/;
 	    $start .= GREEN     if /G/; $start .= ON_GREEN     if /g/;
 	    $start .= BLUE      if /B/; $start .= ON_BLUE      if /b/;
 	    $start .= CYAN      if /C/; $start .= ON_CYAN      if /c/;
 	    $start .= MAGENTA   if /M/; $start .= ON_MAGENTA   if /m/;
 	    $start .= YELLOW    if /Y/; $start .= ON_YELLOW    if /y/;
+	    $start .= BLACK     if /K/; $start .= ON_BLACK     if /k/;
 	    $start .= WHITE     if /W/; $start .= ON_WHITE     if /w/;
 	} $colormode if $colormode;
 	$end = RESET if $start;
@@ -1904,12 +1906,32 @@ expected.
 
 Option B<--nocolor> is alias for B<--color>=I<never>.
 
-=item B<--colormode>=I<RGBCYMWrgbcymwUBR>, B<--quote>=I<start>,I<end>
+=item B<--colormode>=I<RGBCYMKWrgbcymkwSUDF>, B<--quote>=I<start>,I<end>
 
-Specify color mode.  Use combination string from R(ed), G(reen),
-B(lue), C(yan), M(agenta), Y(ellow), W(hite), U(nderline), (bol)D,
-S(tandout).  Lowercase form of RGBCMYW means background color.
-Default is RD: RED and BOLD.
+Specify color mode.  Default is RD: RED and BOLD.
+
+COLOR is combination of single character representing uppercase
+foreground color :
+
+    R  Red
+    G  Green
+    B  Blue
+    C  Cyan
+    M  Magenta
+    Y  Yellow
+    K  Black
+    W  White
+
+and corresponding lowercase background color :
+
+    r, g, b, c, m, y, k, w
+
+and other effects :
+
+    S  Standout (reverse video)
+    U  Underline
+    D  Double-struck (boldface)
+    F  Flash (blink)
 
 If the mode string contains comma `,' character, they are used to
 quote the matched string.  If you want to quote the pattern by angle
