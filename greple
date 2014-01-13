@@ -2,7 +2,7 @@
 ##
 ## greple: grep with multiple keywords
 ##
-## Copyright (c) 1991-2013 Kazumasa Utashiro
+## Copyright (c) 1991-2014 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
 ;; my $rcsid = q$Id: greple,v 6.20 2014/01/13 05:55:59 utashiro Exp $;
