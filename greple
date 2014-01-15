@@ -92,9 +92,9 @@ B<OPTIONS>
     --ocode=name         specify output encoding
     --if=filter          set filter command
     --of=filter          output filter command
+    --noif               disable default input filter
     --[no]pgp            decrypt and find PGP file (Default: false)
     --pgppass=phrase     pgp passphrase
-    --[no]decompress     process compressed data (Default: true)
     --readlist           get filenames from stdin
     --chdir              change directory before search
     --glob=glob          glob target files
@@ -117,6 +117,7 @@ my @opt_glob;
 my @opt_icode;
 my @opt_block;
 my @opt_chdir;
+my $opt_noif;
 my $opt_all;
 my $opt_blockend;
 my $opt_color = 'auto';
@@ -134,7 +135,6 @@ my $opt_passphrase_fd;
 my $opt_join;
 my $opt_joinby = "";
 my $opt_clean;
-my $opt_decompress = 1;
 my $opt_readlist;
 my $opt_rc = 1;
 my $opt_need = 0;
@@ -196,6 +196,7 @@ my @optargs = (
     'joinby=s'           => \$opt_joinby,
     'if=s'               => \@opt_if,
     'of=s'               => \@opt_of,
+    'noif'               => \$opt_noif,
     'pgp!'               => \$opt_pgp,
     'pgppass=s'          => \$opt_pgppass,
     'block=s'            => \@opt_block,
@@ -208,7 +209,6 @@ my @optargs = (
     'chdir=s'            => \@opt_chdir,
     'glob=s'             => \@opt_glob,
     'clean!'             => \$opt_clean,
-    'decompress!'        => \$opt_decompress,
     'quote=s'            => sub {$opt_color='always'; $opt_colormode=$_[1]},
     'color|colour=s'     => \$opt_color,
     'colormode|cm|colourmode:s'
@@ -478,7 +478,7 @@ $opt_allow += $negative_pattern if $opt_allow < 0;
 ##
 my @filter;
 
-if ($opt_decompress) {
+unless ($opt_noif) {
     push(@filter,
 	 [ sub { s/\.Z$//   }, 'zcat' ],
 	 [ sub { s/\.g?z$// }, 'gunzip -c' ],
@@ -1893,10 +1893,6 @@ Specify the file which contains search pattern.  When file contains
 multiple lines, patterns on each lines are search in OR context.  The
 line starting with sharp (#) character is ignored.
 
-=item B<-->[B<no>]B<decompress>
-
-Switch for handling compressed files.  Default is true.
-
 =item B<--color>=I<auto>|I<always>|I<never>, B<--nocolor>
 
 Use terminal color capability to emphasize the matched text.  Default
@@ -2173,9 +2169,14 @@ may be able to use special device:
     greple --if='nm /dev/stdin' crypt /usr/lib/lib*
 
 Filters for compressed and gzipped file is set by default unless
-B<--nodecompress> option is given.  Default action is like this:
+B<--noif> option is given.  Default action is like this:
 
     greple --if='s/\.Z$//:zcat:s/\.g?z$//:gunzip -c'
+
+=item B<--noif>
+
+Disable default input filter.  Which means compressed files will not
+be decompressed automatically.
 
 =item B<--of>=I<filter>
 
