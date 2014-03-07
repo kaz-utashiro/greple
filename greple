@@ -1168,9 +1168,7 @@ sub show_match_table {
 sub classify_regions {
     my $opt = ref $_[0] eq 'HASH' ? shift : {};
 
-    if ($opt->{strict}) {
-	return classify_regions_strict(@_);
-    }
+    $opt->{strict} and goto &classify_regions_strict;
 
     my @list = @{+shift};
     my @by = @{+shift};
@@ -1211,9 +1209,7 @@ sub classify_regions_strict {
 sub select_regions {
     my $opt = ref $_[0] eq 'HASH' ? shift : {};
 
-    if ($opt->{strict}) {
-	return select_regions_strict(@_);
-    }
+    $opt->{strict} and goto &select_regions_strict;
 
     my @list = @{+shift};
     my @by = @{+shift};
