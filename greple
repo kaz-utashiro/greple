@@ -220,7 +220,7 @@ my @optargs = (
     'regioncolor|rc!'    => \$opt_regioncolor,
     'print=s'            => \$opt_print,
     'continue!'          => \$opt_continue,
-#   'M|module:s'         => \$opt_M,
+    'M|module:s'         => sub { warn "Use -M option before other options.\n"; exit 2 },
 );
 
 binmode STDERR, ":encoding(utf8)";
