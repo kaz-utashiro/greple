@@ -728,8 +728,9 @@ sub shellquote {
 sub make_pattern {
     my($p) = @_;
 
-    my $wchar_re = qr{ [ \p{East_Asian_Width=Wide}
-			 \p{East_Asian_Width=FullWidth} ] }x;
+    my $wchar_re = qr{
+	[\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]
+    }x;
 
     if ($p =~ s/^\\Q//) {
 	$p = quotemeta($p);
