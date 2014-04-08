@@ -62,8 +62,13 @@ END { }
 my $target = -1 ;
 my %part ;
 
+#
+# [\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]
+# 第一版中、英文の中に句読点や「・」が出てくることがある。
+# 「う」に濁点がフォントによっては表示できない。
+#
 my $wchar_re = qr{
-    [\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]
+    [\p{Han}ぁ-んゔァ-ンヴ]
 }x;
 
 sub part {
