@@ -226,7 +226,7 @@ my @optargs = (
 binmode STDERR, ":encoding(utf8)";
 
 sub add_option {
-    push(@optargs, @_);
+    push @optargs, @_;
 }
 
 ##
@@ -247,21 +247,20 @@ my @rcdata;
 ##
 if ($opt_rc &&
     open(GREPLERC, "<:encoding(utf8)", "$ENV{HOME}/.greplerc")) { # XXX
-    local $/ = undef;
-    my $rc = <GREPLERC>;
+    my $rc = do { local $/; <GREPLERC> };
     greplerc({Title => "main"}, $rc);
     close GREPLERC;
 }
 
 sub greplerc {
     my $arg = ref $_[0] eq 'HASH' ? shift : {};
-    my $rc = join('', grep(/\S/, @_));
+    my $rc = join '', grep(/\S/, @_);
     for ($rc) {
 	s/^__CODE__\s*\n(.*)//ms and do_eval($1);
 	s/^\s*(?:#.*)?\n//mg;
 	s/\\\n//g;
     }
-    push(@rcdata, new RcData($arg->{Title})->parsetext($rc));
+    push @rcdata, new RcData($arg->{Title})->parsetext($rc);
 }
 
 ##
@@ -311,7 +310,7 @@ sub module_list {
 ##
 unshift @ARGV, map { $_->option('default') } @rcdata;
 if ($ENV{'GREPLEOPTS'}) {
-    unshift(@ARGV, shellwords($ENV{'GREPLEOPTS'}));
+    unshift @ARGV, shellwords($ENV{'GREPLEOPTS'});
 }
 
 ##
@@ -411,15 +410,15 @@ else {
 ## make search pattern
 if ($opt_f) {
     my @patterns;
-    open(my $fh, '<:encoding(utf8)', $opt_f) or die "$opt_f: $!\n";
+    open my $fh, '<:encoding(utf8)', $opt_f or die "$opt_f: $!\n";
     @patterns = grep { !/^\s*(#|$)/ } <$fh>;
-    chomp(@patterns);
-    close($fh);
-    unshift(@opt_re, join('|', map { make_pattern($_) } @patterns));
+    chomp @patterns;
+    close $fh;
+    unshift @opt_re, join('|', map { make_pattern($_) } @patterns);
 } else {
     if (@opt_le + @opt_re + @opt_fe + @opt_or + @opt_e == 0) {
 	&usage if @ARGV == 0;
-	unshift(@opt_le, shift(@ARGV));
+	unshift @opt_le, shift(@ARGV);
     }
 }
 
@@ -427,14 +426,14 @@ if ($opt_f) {
 ## --le
 ##
 for (@opt_le) {
-    for my $p (split(/(?<!\\) +/, $_)) {
+    for my $p (split /(?<!\\) +/, $_) {
 	next if $p eq "";
 	if ($p =~ s/^-//) {		# -pattern
-	    push(@opt_v, $p);
+	    push @opt_v, $p;
 	} elsif ($p =~ s/^\?//) {	# ?pattern
-	    push(@opt_or, $p);
+	    push @opt_or, $p;
 	} elsif ($p =~ s/^\+// or 1) {	# +pattern
-	    push(@opt_e, $p);
+	    push @opt_e, $p;
 	}
     }
 }
@@ -447,22 +446,22 @@ use constant {
 
 for my $p (@opt_e) {
     $p = make_pattern($p);
-    push(@xpattern, [MATCH_POSITIVE, qr/$p/m]);
+    push @xpattern, [MATCH_POSITIVE, qr/$p/m];
 }
 for my $p (@opt_v) {
     $p = make_pattern($p);
-    push(@xpattern, [MATCH_NEGATIVE, qr/$p/m]);
+    push @xpattern, [MATCH_NEGATIVE, qr/$p/m];
 }
 if (@opt_or) {
     my $p = join('|', map { &make_pattern($_) } @opt_or);
-    push(@xpattern, [MATCH_POSITIVE, qr/$p/m]);
+    push @xpattern, [MATCH_POSITIVE, qr/$p/m];
 }
 
 for my $p (@opt_re) {
-    push(@xpattern, [MATCH_POSITIVE, qr/$p/m]);
+    push @xpattern, [MATCH_POSITIVE, qr/$p/m];
 }
 for my $p (@opt_fe) {
-    push(@xpattern, [MATCH_POSITIVE, qr/\Q$p/]);
+    push @xpattern, [MATCH_POSITIVE, qr/\Q$p/];
 }
 
 my($positive_pattern, $negative_pattern);
@@ -486,12 +485,12 @@ unless ($opt_noif) {
 	);
 }
 for my $if (@opt_if) {
-    my @f = split(/:/, $if);
+    my @f = split /:/, $if;
     while (@f) {
 	if (@f > 1) {
-	    push(@filter, [ splice(@f, 0, 2) ]);
+	    push @filter, [ splice(@f, 0, 2) ];
 	} else {
-	    push(@filter, [ 1, shift(@f) ]);
+	    push @filter, [ 1, shift(@f) ];
 	}
     }
 }
@@ -506,12 +505,12 @@ sub filter {
 	for my $p (@filter) {
 	    my($exp, $command) = @$p;
 	    if (ref $exp eq 'CODE' ? &$exp : eval $exp) {
-		push(@f, $command);
+		push @f, $command;
 	    }
 	}
     }
 
-    my $filter = join(" | ", @f);
+    my $filter = join " | ", @f;
     $filter =~ s/{}/$file/g;
     $filter;
 }
@@ -526,12 +525,12 @@ if ($opt_pgp) {
     } else {
 	$pgp->initialize();
     }
-    push(@filter, [ sub { s/\.(pgp|gpg|asc)// }, $pgp->_decrypt_command ]);
+    push @filter, [ sub { s/\.(pgp|gpg|asc)// }, $pgp->_decrypt_command ];
 }
 
 # open output filter
 if (@opt_of) {
-    my $of = join(' | ', @opt_of);
+    my $of = join ' | ', @opt_of;
     open(STDOUT, "| $of") || die "$of: $!\n";
     $| = 1;
     if ($opt_d{m}) {
@@ -552,14 +551,14 @@ use Cwd;
 if (@opt_chdir) {
     $start_directory = getcwd;
     @opt_chdir = map { glob $_ } @opt_chdir;
-    push(@argv_files, splice(@ARGV));
+    push @argv_files, splice(@ARGV);
     unless ($opt_h or
 	    (@opt_chdir == 1 and @argv_files == 1 and @opt_glob == 0)) {
 	$need_filename++;
     }
 }
 elsif (@opt_glob) {
-    push(@ARGV, map(glob, @opt_glob));
+    push @ARGV, map(glob, @opt_glob);
 }
 
 open(SAVESTDIN, '<&STDIN');
@@ -639,7 +638,7 @@ MAIN: {
 	    warn "$current_file: $@";
 	}
 	close STDIN; # wait;
-	open(STDIN, '<&SAVESTDIN');
+	open STDIN, '<&SAVESTDIN';
 	redo MAIN;
     }
 }
@@ -666,7 +665,7 @@ if ($opt_d{s}) {
 close STDOUT;
 
 if ($opt_d{p}) {
-    open(STDOUT, ">&STDERR");
+    open STDOUT, ">&STDERR";
     system "ps -lww -p $$";
 }
 
@@ -684,7 +683,7 @@ sub main {
 	close STDIN; # wait;	# wait for 4.019 or earlier?
 	# recover STDIN for opening '-' and some weird command which needs
 	# STDIN opened (like unzip)
-	open(STDIN, '<&SAVESTDIN');
+	open STDIN, '<&SAVESTDIN';
     }
 }
 
@@ -824,9 +823,7 @@ sub open_nextfile {
 ######################################################################
 
 sub grep_file {
-    my $content;
-
-    { local $/ = undef; $content = <STDIN>; }
+    my $content = do { local $/; <STDIN> };
     $pgp->reset if $pgp;
 
     warn $current_file, ":\n" if $opt_d{f};
@@ -1039,7 +1036,7 @@ sub grep_pattern {
 		if ($opt_regioncolor or @result == 1) {
 		    map { $_->[2] = $regi } @l;
 		}
-		push(@{$tmp[$resi]}, @l);
+		push @{$tmp[$resi]}, @l;
 	    }
 	}
 	@result = map { [ merge_regions({sort => 1}, @$_) ] } @tmp;
@@ -1694,8 +1691,7 @@ sub decrypt {
 	}
     }
     close WTRFH;
-    local $/  = undef;
-    my $dec_data = <RDRFH>;
+    my $dec_data = do { local $/ ; <RDRFH> };
     close RDRFH;
 
     $dec_data;
