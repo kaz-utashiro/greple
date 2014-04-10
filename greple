@@ -25,7 +25,7 @@ use IO::Handle;
 use Getopt::Long qw(GetOptionsFromArray GetOptionsFromString);
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(min max);
+use List::Util qw(min max first);
 use Data::Dumper;
 
 use utf8;
@@ -129,6 +129,7 @@ my $opt_regioncolor;
 my $opt_icode;
 my $opt_ocode;
 my $opt_man;
+my $opt_show;
 my $opt_pgp;
 my $opt_pgppass;
 my $opt_passphrase_fd;
@@ -190,6 +191,7 @@ my @optargs = (
     'readlist'           => \$opt_readlist,
     'd=s'                => \@opt_d,
     'man'                => \$opt_man,
+    'show'               => \$opt_show,
     'icode=s'            => \@opt_icode,
     'ocode=s'            => \$opt_ocode,
     'join!'              => \$opt_join,
@@ -373,10 +375,12 @@ if ($opt_d{u}) {
 }
 
 ## show man pages
-if ($opt_man) {
+if ($opt_man or $opt_show) {
     if (@rcdata > 1 and (my $mod = $rcdata[-1]->title) ne "main") {
-	exec "perldocjp App::Greple::$mod" or
-	    exec "perldoc App::Greple::$mod";
+	my @perldocopt = $opt_show ? '-m' : () ;
+	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
+	my $perldoc = $jp ? "perldocjp" : "perldoc";
+	exec "$perldoc @perldocopt App::Greple::$mod";
     }
     pod2usage({-verbose => 2});
     die;
@@ -388,9 +392,10 @@ if (@opt_icode) {
     if (grep { s/^\+// } @opt_icode) {
 	unshift @opt_icode, @default_icode_list;
     }
-    if (my %seen, 1) {
-	@opt_icode = grep { not $seen{$_}++ } @opt_icode;
-    }
+    @opt_icode = do {
+	my %seen;
+	grep { not $seen{$_}++ } @opt_icode;
+    };
     if (@opt_icode > 1) {
 	@opt_icode = grep { !/(?:auto|guess)$/i } @opt_icode;
 	Encode::Guess->set_suspects(@opt_icode);
@@ -2246,6 +2251,11 @@ searches string from files modified within 7 days:
 =item B<--man>
 
 Show manual page.
+Display module's manual page when used with B<-M> option.
+
+=item B<--show>
+
+Show module file contents.  Use with B<-M> option.
 
 =item B<--norc>
 
@@ -2349,6 +2359,9 @@ so place the module file in F<App/Greple/> directory in Perl library.
 
 If the package name is declared properly, C<__DATA__> section in the
 module file will be interpreted same as F<.greplerc> file content.
+
+Option B<--man> will display module document when used with B<-M>
+option.  Use B<--show> option to see the module itself.
 
 See this sample module code.  This sample define options to search
 from pod, comment and other segment in Perl script.  Those capability

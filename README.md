@@ -590,6 +590,11 @@ __OTHER OPTIONS__
 - __--man__
 
     Show manual page.
+    Display module's manual page when used with __-M__ option.
+
+- __--show__
+
+    Show module file contents.  Use with __-M__ option.
 
 - __--norc__
 
@@ -670,6 +675,9 @@ so place the module file in `App/Greple/` directory in Perl library.
 
 If the package name is declared properly, `__DATA__` section in the
 module file will be interpreted same as `.greplerc` file content.
+
+Option __--man__ will display module document when used with __-M__
+option.  Use __--show__ option to see the module itself.
 
 See this sample module code.  This sample define options to search
 from pod, comment and other segment in Perl script.  Those capability
