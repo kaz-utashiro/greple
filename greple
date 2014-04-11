@@ -2362,6 +2362,7 @@ so place the module file in F<App/Greple/> directory in Perl library.
 If the package name is declared properly, C<__DATA__> section in the
 module file will be interpreted same as F<.greplerc> file content.
 
+Using B<-M> without module argument will print available module list.
 Option B<--man> will display module document when used with B<-M>
 option.  Use B<--show> option to see the module itself.
 
