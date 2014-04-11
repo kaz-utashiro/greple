@@ -53,7 +53,8 @@ __OPTIONS__
 
     -f file              file contains search pattern
     -d flags             display info (f:file d:dir c:count m:misc s:stat)
-    --man                show manual page
+    --man                display command or module manual page
+    --show               display module file
     --icode=name         specify file encoding
     --ocode=name         specify output encoding
     --if=filter          set filter command
@@ -69,6 +70,8 @@ __OPTIONS__
     --norc               skip reading startup file
 
 # DESCRIPTION
+
+## MULTIPLE KEYWORDS
 
 __greple__ has almost the same function as Unix command [egrep(1)](http://man.he.net/man1/egrep) but
 the search is done in the manner similar to search engine.  For
@@ -106,19 +109,25 @@ This can be written as this using __-e__ and __-v__ option.
     greple -e foo -e bar -v yabba -v dabba -v doo
     greple -e foo -e bar -v 'yabba|dabba|doo'
 
-__LINE ACROSS MATCH__
+## LINE ACROSS MATCH
 
 __greple__ also search the pattern across the line boundaries.  This is
 especially useful to handle Asian multi-byte text.  Japanese text can
 be separated by newline almost any place of the text.  So the search
-pattern may spread out on multiple lines.  As for ascii text, space
-character in the pattern matches any kind of space including newline.
-Use __-e__ option to use this capability because space is taken as a
-token separator in the bare pattern.
+pattern may spread out on multiple lines.
+
+As for ascii text, space character in the pattern matches any kind of
+space including newline.  Next example will search the word sequence
+of \`foo', \`bar' and 'baz', even they spread out to multiple lines.
+
+    greple -e 'foo bar baz'
+
+Option __-e__ is necessary because space is taken as a token separator
+in the bare or __--le__ pattern.
 
 # OPTIONS
 
-__PATTERNS__
+## PATTERNS
 
 If specific option is not provided, __greple__ takes the first argument
 as a search pattern specified by __-le__ option.  All of these patterns
@@ -181,7 +190,7 @@ expression can be used in patterns.
 
     Specify fixed string pattern, like fgrep.
 
-__GREP LIKE OPTIONS__
+## GREP LIKE OPTIONS
 
 - __-i__
 
@@ -216,8 +225,8 @@ __GREP LIKE OPTIONS__
 - __-C__\[_n_\], __--context__\[=_n_\]
 
     Print _n_-blocks before/after matched string.  The value _n_ can be
-    omitted and the default is 2.  When used with paragraph option __-p__,
-    _n_ means number of paragraphs.
+    omitted and the default is 2.  When used with __--paragraph__ or
+    __--block__ option, _n_ means number of paragraph or block.
 
     Actually, these options expand the area of logical operation.  It
     means
@@ -311,7 +320,7 @@ __GREP LIKE OPTIONS__
     beginning of each line.  Style _separate_ prints line number in the
     separate line before each line or block.
 
-__OTHER OPTIONS__
+## OTHER OPTIONS
 
 - __-p__, __--paragraph__
 
@@ -338,7 +347,8 @@ __OTHER OPTIONS__
 
     Specify the record block to display.  Default block is a single line.
 
-    Next is almost same as __--paragraph__ option.
+    Next example behave almost same as __--paragraph__ option, but is less
+    efficient.
 
         greple --block='(.+\n)+'
 

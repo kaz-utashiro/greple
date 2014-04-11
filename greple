@@ -87,7 +87,8 @@ B<OPTIONS>
 
     -f file              file contains search pattern
     -d flags             display info (f:file d:dir c:count m:misc s:stat)
-    --man                show manual page
+    --man                display command or module manual page
+    --show               display module file
     --icode=name         specify file encoding
     --ocode=name         specify output encoding
     --if=filter          set filter command
@@ -1711,6 +1712,8 @@ sub decrypt {
 
 =head1 DESCRIPTION
 
+=head2 MULTIPLE KEYWORDS
+
 B<greple> has almost the same function as Unix command L<egrep(1)> but
 the search is done in the manner similar to search engine.  For
 example, next command print lines those contain all of `foo' and `bar'
@@ -1747,20 +1750,26 @@ This can be written as this using B<-e> and B<-v> option.
     greple -e foo -e bar -v yabba -v dabba -v doo
     greple -e foo -e bar -v 'yabba|dabba|doo'
 
-B<LINE ACROSS MATCH>
+=head2 LINE ACROSS MATCH
 
 B<greple> also search the pattern across the line boundaries.  This is
 especially useful to handle Asian multi-byte text.  Japanese text can
 be separated by newline almost any place of the text.  So the search
-pattern may spread out on multiple lines.  As for ascii text, space
-character in the pattern matches any kind of space including newline.
-Use B<-e> option to use this capability because space is taken as a
-token separator in the bare pattern.
+pattern may spread out on multiple lines.
+
+As for ascii text, space character in the pattern matches any kind of
+space including newline.  Next example will search the word sequence
+of `foo', `bar' and 'baz', even they spread out to multiple lines.
+
+    greple -e 'foo bar baz'
+
+Option B<-e> is necessary because space is taken as a token separator
+in the bare or B<--le> pattern.
 
 
 =head1 OPTIONS
 
-B<PATTERNS>
+=head2 PATTERNS
 
 If specific option is not provided, B<greple> takes the first argument
 as a search pattern specified by B<-le> option.  All of these patterns
@@ -1828,7 +1837,7 @@ Specify fixed string pattern, like fgrep.
 =back
 
 
-B<GREP LIKE OPTIONS>
+=head2 GREP LIKE OPTIONS
 
 =over 7
 
@@ -1867,8 +1876,8 @@ Print matched string only.
 =item B<-C>[I<n>], B<--context>[=I<n>]
 
 Print I<n>-blocks before/after matched string.  The value I<n> can be
-omitted and the default is 2.  When used with paragraph option B<-p>,
-I<n> means number of paragraphs.
+omitted and the default is 2.  When used with B<--paragraph> or
+B<--block> option, I<n> means number of paragraph or block.
 
 Actually, these options expand the area of logical operation.  It
 means
@@ -1965,7 +1974,7 @@ separate line before each line or block.
 =back
 
 
-B<OTHER OPTIONS>
+=head2 OTHER OPTIONS
 
 =over 7
 
@@ -1994,7 +2003,8 @@ identical to following command.
 
 Specify the record block to display.  Default block is a single line.
 
-Next is almost same as B<--paragraph> option.
+Next example behave almost same as B<--paragraph> option, but is less
+efficient.
 
     greple --block='(.+\n)+'
 
