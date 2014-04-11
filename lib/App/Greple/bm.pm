@@ -82,6 +82,7 @@ sub part {
     my @part;
     push @part, @{$part{eg}} if $arg{eg};
     push @part, @{$part{jp}} if $arg{jp};
+    push @part, @{$part{both}} if $arg{both};
     push @part, @{$part{comment}} if $arg{comment};
 
     sort { $a->[0] <=> $b->[0] } @part;
@@ -89,7 +90,7 @@ sub part {
 
 sub setdata {
 
-    %part = ( eg => [], jp => [], comment => [] ) ;
+    %part = ( eg => [], jp => [], comment => [], both => [] ) ;
 
     my $lang = 'null' ;
 
@@ -102,9 +103,16 @@ sub setdata {
 	if ($para =~ /\A※/) {
 	    push @{$part{comment}}, [ $from, $to ] ;
 	    $part{$lang}->[-1][1] = $to;
+	    $part{both}->[-1][1] = $to;
 	    next;
 	}
-	$lang = $lang eq 'eg' ? 'jp' : 'eg' ;
+	if ($lang eq 'eg') {
+	    $lang = 'jp';
+	    $part{both}->[-1][1] = $to;
+	} else {
+	    $lang = 'eg';
+	    push @{$part{both}}, [ $from, $to ] ;
+	}
 	push @{$part{$lang}}, [ $from, $to ] ;
 
 	if ($lang eq 'eg' and $para =~ /$wchar_re/) {
@@ -116,6 +124,10 @@ sub setdata {
 1;
 
 __DATA__
+
+option --cdedit --chdir $ENV{SCCC2DIR}/Edit
+option --ed1 --cdedit --glob ../SCCC1/*.bm1
+option --ed2 --cdedit --glob *.bm1
 
 option --com  --nocolor -nH --re '^※+'
 option --com1 --nocolor -nH --re '^※(?!※)'
@@ -129,7 +141,7 @@ option --jp --block '&part(jp)'
 option --ineg --inside '&part(eg)'
 option --eg --block '&part(eg)'
 
-option --both --block '&part(eg,jp)'
+option --both --block '&part(both)'
 
 option --comment --block '&part(comment)'
 
@@ -139,8 +151,8 @@ help --com2     find comment level 2
 help --com3     find comment level 3
 help --com2+    find comment level 2 and more
 help --injp     match text in Japanese part
-help --jp       search only Japanese block only
 help --ineg     match text in English part
-help --eg       search only English block only
-help --both     search Japanese/English block
-help --comment  search comment block
+help --jp       display Japanese block
+help --eg       display English block
+help --both     display Japanese/English combined block
+help --comment  display comment block
