@@ -642,6 +642,10 @@ on user's home directory.  Following directives can be used.
         option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
         help   --kanalist List up Katakana string
 
+Environment variable substitution is done for string specified by
+\`option' and \`define' directivies.  Use Perl syntax __$ENV{NAME}__ for
+this purpose.  You can use this to make a portable module.
+
 When _greple_ found `__CODE__` line in `.greplerc` file, the rest
 of the file is evaluated as a Perl program.  You can define your own
 subroutines which can be used by __--inside__ and __--outside__ options.
@@ -676,6 +680,7 @@ so place the module file in `App/Greple/` directory in Perl library.
 If the package name is declared properly, `__DATA__` section in the
 module file will be interpreted same as `.greplerc` file content.
 
+Using __-M__ without module argument will print available module list.
 Option __--man__ will display module document when used with __-M__
 option.  Use __--show__ option to see the module itself.
 
