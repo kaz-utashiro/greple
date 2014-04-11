@@ -273,7 +273,7 @@ while (@ARGV) {
 	shift @ARGV;
 	my $module = $1 || shift or do {
 	    warn "Option M requires an argument.\n";
-	    if (my @modules = module_list()) {
+	    if (my @modules = uniq(module_list())) {
 		warn "\nAvailable modules:\n";
 		warn "\t", join("\n\t", @modules), "\n";
 	    }
@@ -392,10 +392,7 @@ if (@opt_icode) {
     if (grep { s/^\+// } @opt_icode) {
 	unshift @opt_icode, @default_icode_list;
     }
-    @opt_icode = do {
-	my %seen;
-	grep { not $seen{$_}++ } @opt_icode;
-    };
+    @opt_icode = uniq(@opt_icode);
     if (@opt_icode > 1) {
 	@opt_icode = grep { !/(?:auto|guess)$/i } @opt_icode;
 	Encode::Guess->set_suspects(@opt_icode);
@@ -1431,6 +1428,11 @@ sub unctrl {
     local($_) = shift;
     s/([\000-\010\013-\037])/'^' . pack('c', ord($1)|0100)/ge;
     $_;
+}
+
+sub uniq {
+    my %seen;
+    grep { not $seen{$_}++ } @_;
 }
 
 ######################################################################
