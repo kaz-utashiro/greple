@@ -1481,6 +1481,7 @@ sub expand {
 	my($name, $re, $string) = @$defent;
 	s/$re/$string/g;
     }
+    s/(\$ENV\{[^}]+\})/$1/gee;
 }
 
 sub option {
@@ -2326,6 +2327,10 @@ want to use the word in command line, use option directive instead.
     help   --kanalist List up Katakana string
 
 =back
+
+Environment variable substitution is done for string specified by
+`option' and `define' directivies.  Use Perl syntax B<$ENV{NAME}> for
+this purpose.  You can use this to make a portable module.
 
 When I<greple> found C<__CODE__> line in F<.greplerc> file, the rest
 of the file is evaluated as a Perl program.  You can define your own
