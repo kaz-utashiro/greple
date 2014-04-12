@@ -311,7 +311,7 @@ sub module_list {
 ##
 ## Handle default option and ENG{GREPLEOPTS}
 ##
-unshift @ARGV, map { $_->option('default') } @rcdata;
+unshift @ARGV, map { $_->default() } @rcdata;
 if ($ENV{'GREPLEOPTS'}) {
     unshift @ARGV, shellwords($ENV{'GREPLEOPTS'});
 }
@@ -321,11 +321,9 @@ if ($ENV{'GREPLEOPTS'}) {
 ##
 ARGV: for (my $i = 0; $i < @ARGV; $i++) {
     my $arg = $ARGV[$i];
-    next if $arg eq 'default';
     for my $rcdata (@rcdata) {
-	my @s = $rcdata->option($arg);
-	if (@s) {
-	    splice(@ARGV, $i, 1, @s);
+	if (my @s = $rcdata->getopt($arg)) {
+	    splice @ARGV, $i, 1, @s;
 	    redo ARGV;
 	}
     }
@@ -704,9 +702,9 @@ sub usage {
 	for my $name ($rcdata->options) {
 	    my $help = $rcdata->help($name) || "";
 	    next if $help eq 'ignore';
+	    my @option = $rcdata->getopt($name, DEFAULT => 1);
 	    printf("        %-20s %s\n", $name,
-		   $help ||
-		   join(' ', shellquote($rcdata->option($name))));
+		   $help || join(' ', shellquote(@option)));
 	}
 	print "\n";
     }
@@ -1485,23 +1483,32 @@ sub expand {
     s/(\$ENV\{ (['"]?) \w+ \g{-1} \})/$1/xgee;
 }
 
-sub option {
+sub setopt {
     my $obj = shift;
     my $name = shift;
     my $list = $obj->{Option};
-    if (@_) {
-	my $s = shift;
-	my @args = shellwords($s);
-	for (@args) {
-	    $obj->expand(\$_);
-	}
-	unshift @$list, [ $name, @args ];
-    } else {
-	my $e = first { $_->[0] eq $name } @$list;
-	my @e = $e ? @$e : ();
-	shift @e;
-	@e;
+    my @args = shellwords(shift);
+    for (@args) {
+	$obj->expand(\$_);
     }
+    unshift @$list, [ $name, @args ];
+}
+
+sub getopt {
+    my $obj = shift;
+    my($name, %opt) = @_;
+    return () if $name eq 'default' and not $opt{DEFAULT};
+
+    my $list = $obj->{Option};
+    my $e = first { $_->[0] eq $name } @$list;
+    my @e = $e ? @$e : ();
+    shift @e;
+    @e;
+}
+
+sub default {
+    my $obj = shift;
+    $obj->getopt('default', DEFAULT => 1);
 }
 
 sub options {
@@ -1539,11 +1546,11 @@ sub parseline {
 	$obj->define($arg1, $rest);
     }
     elsif ($arg0 eq "option") {
-	$obj->option($arg1, $rest);
+	$obj->setopt($arg1, $rest);
     }
     elsif ($arg0 eq "defopt") {
 	$obj->define($arg1, $rest);
-	$obj->option($arg1, $arg1);
+	$obj->setopt($arg1, $arg1);
     }
     elsif ($arg0 eq "help") {
 	$obj->help($arg1, $rest);
