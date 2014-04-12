@@ -1482,7 +1482,7 @@ sub expand {
 	my($name, $re, $string) = @$defent;
 	s/$re/$string/g;
     }
-    s/(\$ENV\{[^}]+\})/$1/gee;
+    s/(\$ENV\{ (['"]?) \w+ \g{-1} \})/$1/xgee;
 }
 
 sub option {
