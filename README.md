@@ -190,11 +190,39 @@ expression can be used in patterns.
 
     Specify fixed string pattern, like fgrep.
 
-## GREP LIKE OPTIONS
-
-- __-i__
+- __-i__, __--ignore-case__
 
     Ignore case.
+
+- __--need__=_n_
+- __--allow__=_n_
+
+    Option to compromize matching condition.  Option __--need__ specifies
+    the required match count, and __--allow__ the number of negative
+    condition to be overlooked.
+
+        greple --need=2 --allow=1 'foo bar baz -yabba -dabba -doo'
+
+    Above command prints the line which contains two or more from \`foo',
+    \`bar' and \`baz', and does not include more than one of \`yabba',
+    \`dabba' or \`doo'.
+
+    Using option __--need__=_1_, __greple__ produces same result as __grep__
+    command.
+
+        grep -e foo -e bar -e baz
+        greple --need=1 -e foo -e bar -e baz
+
+    When the count _n_ is negative value, it is subtracted from maximum
+    value.
+
+- __-f__ _file_, __--file__=_file_
+
+    Specify the file which contains search pattern.  When file contains
+    multiple lines, patterns on each lines are search in OR context.  The
+    line starting with sharp (#) character is ignored.
+
+## STYLES
 
 - __-l__
 
@@ -204,7 +232,7 @@ expression can be used in patterns.
 
     Print count of matched block.
 
-- __-n__
+- __-n__, __--line-number__
 
     Show line number.
 
@@ -246,11 +274,57 @@ expression can be used in patterns.
     also matches this text, because matching blocks around \`foo' and \`bar'
     overlaps each other and makes single block.
 
-- __-f__ _file_, __--file__=_file_
+- __--join__
+- __--joinby__=_string_
 
-    Specify the file which contains search pattern.  When file contains
-    multiple lines, patterns on each lines are search in OR context.  The
-    line starting with sharp (#) character is ignored.
+    Convert newline character found in matched string to empty or specifed
+    _string_.  Using __--join__ with __-o__ (only-matching) option, you can
+    collect searching sentence list in one per line form.  This is almost
+    useless for English text but sometimes useful for Japanese text.  For
+    example, next command prints the list of KATAKANA words.
+
+        greple -ho --join '\p{utf8::InKatakana}[\n\p{utf8::InKatakana}]*'
+
+- __--filestyle__=_line_|_once_|_separate_, __--fs__
+
+    Default style is _line_, and __greple__ prints filename at the
+    beginning of each line.  Style _once_ prints the filename only once
+    at the first time.  Style _separate_ prints filename in the separate
+    line before each line or block.
+
+- __--linestyle__=_line_|_separate_, __--ls__
+
+    Default style is _line_, and __greple__ prints line numbers at the
+    beginning of each line.  Style _separate_ prints line number in the
+    separate line before each line or block.
+
+## FILES
+
+- __--glob__=_pattern_
+
+    Get files matches to specified pattern and use them as a target files.
+    Using __--chdir__ and __--glob__ makes easy to use __greple__ for fixed
+    common job.
+
+- __--chdir__=_directory_
+
+    Change directory before processing files.  When multiple directories
+    are specified in __--chdir__ option, by using wildcard form or
+    repeating option, __--glob__ file expantion will be done for every
+    directories.
+
+        greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
+
+- __--readlist__
+
+    Get filenames from standard input.  Read standard input and use each
+    line as a filename for searching.  You can feed the output from other
+    command like [find(1)](http://man.he.net/man1/find) for __greple__ with this option.  Next example
+    searches string from files modified within 7 days:
+
+        find . -mtime -7 -print | greple --readlist pattern
+
+## COLORS
 
 - __--color__=_auto_|_always_|_never_, __--nocolor__
 
@@ -307,20 +381,11 @@ expression can be used in patterns.
 
     Shortcut for __--colormode__='_RD GD BD CD MD YD_'
 
-- __--filestyle__=_style_, __--fs__
+- __--regioncolor__
 
-    Default style is _line_, and __greple__ prints filename at the
-    beginning of each line.  Style _once_ prints the filename only once
-    at the first time.  Style _separate_ prints filename in the separate
-    line before each line or block.
+    Use different colors for each __--inside__/__outside__ regions.
 
-- __--linestyle__=_style_, __--ls__
-
-    Default style is _line_, and __greple__ prints line numbers at the
-    beginning of each line.  Style _separate_ prints line number in the
-    separate line before each line or block.
-
-## OTHER OPTIONS
+## BLOCKS
 
 - __-p__, __--paragraph__
 
@@ -369,6 +434,8 @@ expression can be used in patterns.
 
     Change the end mark displayed after __-pABC__ or __--block__ options.
     Default value is "--\\n".
+
+## REGIONS
 
 - __--inside__=_pattern_
 - __--outside__=_pattern_
@@ -430,8 +497,9 @@ expression can be used in patterns.
 
     Limit the match area strictly.
 
-    By default, __--block__, __--inside__, __--outside__ option allows
-    partial match within the specified area.  For instance,
+    By default, __--block__, __--inside__/__outside__,
+    __--include__/__exclude__ option allows partial match within the
+    specified area.  For instance,
 
         greple --inside and command
 
@@ -440,16 +508,7 @@ expression can be used in patterns.
     __--strict__ provided, and longer string never matches within shorter
     area.
 
-- __--join__
-- __--joinby__=_string_
-
-    Convert newline character found in matched string to empty or specifed
-    _string_.  Using __--join__ with __-o__ (only-matching) option, you can
-    collect searching sentence list in one per line form.  This is almost
-    useless for English text but sometimes useful for Japanese text.  For
-    example, next command prints the list of KATAKANA words.
-
-        greple -ho --join '\p{utf8::InKatakana}[\n\p{utf8::InKatakana}]*'
+## CHARACTER CODE
 
 - __--icode__=_code_
 
@@ -477,27 +536,7 @@ expression can be used in patterns.
 
     Specify output code.  Default is utf8.
 
-- __--need__=_n_
-- __--allow__=_n_
-
-    Option to compromize matching condition.  Option __--need__ specifies
-    the required match count, and __--allow__ the number of negative
-    condition to be overlooked.
-
-        greple --need=2 --allow=1 'foo bar baz -yabba -dabba -doo'
-
-    Above command prints the line which contains two or more from \`foo',
-    \`bar' and \`baz', and does not include more than one of \`yabba',
-    \`dabba' or \`doo'.
-
-    Using option __--need__=_1_, __greple__ produces same result as __grep__
-    command.
-
-        grep -e foo -e bar -e baz
-        greple --need=1 -e foo -e bar -e baz
-
-    When the count _n_ is negative value, it is subtracted from maximum
-    value.
+## FILTER
 
 - __--if__=_filter_, __--if__=_EXP_:_filter_:_EXP_:_filter_:...
 
@@ -530,37 +569,9 @@ expression can be used in patterns.
 
     Specify output filter commands.
 
-- __--require__=_filename_
-
-    Include arbitrary perl program.
-
-- __--pgp__
-
-    Invoke PGP decrypt command for files end with .pgp, .gpg or .asc.  PGP
-    passphrase is asked only once at the beginning of command execution.
-
-- __--pgppass__=_phrase_
-
-    You can specify PGP passphrase by this option.  Generally, it is not
-    recommended to use.
-
-- __--glob__=_pattern_
-
-    Get files matches to specified pattern and use them as a target files.
-    Using __--chdir__ and __--glob__ makes easy to use __greple__ for fixed
-    common job.
-
-- __--chdir__=_directory_
-
-    Change directory before processing files.  When multiple directories
-    are specified in __--chdir__ option, by using wildcard form or
-    repeating option, __--glob__ file expantion will be done for every
-    directories.
-
-        greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
+## PRINT
 
 - __--print__=_function_, __--print__=_sub{...}_
-- __--continue__
 
     Specify user defined function executed before data print.  Text to be
     printed is replaced by the result of the funcion.  Arbitrary function
@@ -588,14 +599,31 @@ expression can be used in patterns.
 
         greple --print=print_simple ...
 
-- __--readlist__
+- __--continue__
 
-    Get filenames from standard input.  Read standard input and use each
-    line as a filename for searching.  You can feed the output from other
-    command like [find(1)](http://man.he.net/man1/find) for __greple__ with this option.  Next example
-    searches string from files modified within 7 days:
+    When __--print__ option is given, __greple__ will immediately print the
+    result returned from print function and finish the cycle.  Option
+    __--continue__ forces to continue normal printing process after print
+    function called.  So please be sure that all data being consistent.
 
-        find . -mtime -7 -print | greple --readlist pattern
+## PGP
+
+- __--pgp__
+
+    Invoke PGP decrypt command for files end with _.pgp_, _.gpg_ or
+    _.asc_.  PGP passphrase is asked only once at the beginning of
+    command execution.
+
+- __--pgppass__=_phrase_
+
+    You can specify PGP passphrase by this option.  Generally, it is not
+    recommended to use.
+
+## OTHERS
+
+- __--norc__
+
+    Do not read startup file: `~/.greplerc`.
 
 - __--man__
 
@@ -606,9 +634,9 @@ expression can be used in patterns.
 
     Show module file contents.  Use with __-M__ option.
 
-- __--norc__
+- __--require__=_filename_
 
-    Do not read startup file: `~/.greplerc`.
+    Include arbitrary perl program.
 
 # ENVIRONMENT and STARTUP FILE
 
@@ -658,13 +686,16 @@ this purpose.  You can use this to make a portable module.
 
 When _greple_ found `__CODE__` line in `.greplerc` file, the rest
 of the file is evaluated as a Perl program.  You can define your own
-subroutines which can be used by __--inside__ and __--outside__ options.
+subroutines which can be used by __--inside__/__outside__,
+__--include__/__exclude__, __--block__ options.
+
 For those subroutines, file content will be provided by global
 variable `$_`.  Expected response from the subroutine is the list of
 array references, which is made up by start and end offset pairs.
 
 For example, suppose that the following function is defined in your
-`.greplerc` file.
+`.greplerc` file.  Start and end offset for each pattern match can be
+taken as array element `$-[0]` and `$+[0]`.
 
     __CODE__
     sub odd_line {
