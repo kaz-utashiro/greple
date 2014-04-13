@@ -219,8 +219,10 @@ expression can be used in patterns.
 - __-f__ _file_, __--file__=_file_
 
     Specify the file which contains search pattern.  When file contains
-    multiple lines, patterns on each lines are search in OR context.  The
-    line starting with sharp (#) character is ignored.
+    multiple lines, patterns on each lines are search in OR context.
+    Blank line and the line starting with sharp (#) character is ignored.
+    Two slashes (//) and following string are taken as a comment and
+    removed with preceding spaces.
 
 ## STYLES
 

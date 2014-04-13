@@ -414,10 +414,12 @@ else {
 
 ## make search pattern
 if ($opt_f) {
-    my @patterns;
     open my $fh, '<:encoding(utf8)', $opt_f or die "$opt_f: $!\n";
-    @patterns = grep { !/^\s*(#|$)/ } <$fh>;
-    chomp @patterns;
+    my @patterns = do {
+	map  { chomp ; s{\s*//.*}{} ; $_ }
+	grep { not m{^\s*(?:#|//|$)} }
+	<$fh>
+    } ;
     close $fh;
     unshift @opt_re, join('|', map { make_pattern($_) } @patterns);
 } else {
@@ -1882,8 +1884,10 @@ value.
 =item B<-f> I<file>, B<--file>=I<file>
 
 Specify the file which contains search pattern.  When file contains
-multiple lines, patterns on each lines are search in OR context.  The
-line starting with sharp (#) character is ignored.
+multiple lines, patterns on each lines are search in OR context.
+Blank line and the line starting with sharp (#) character is ignored.
+Two slashes (//) and following string are taken as a comment and
+removed with preceding spaces.
 
 =back
 
