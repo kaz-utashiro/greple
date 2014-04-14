@@ -220,9 +220,13 @@ expression can be used in patterns.
 
     Specify the file which contains search pattern.  When file contains
     multiple lines, patterns on each lines are search in OR context.
+
     Blank line and the line starting with sharp (#) character is ignored.
     Two slashes (//) and following string are taken as a comment and
     removed with preceding spaces.
+
+    Multiple file can be specified, but they will be mixed into single
+    pattern.
 
 ## STYLES
 

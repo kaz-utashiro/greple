@@ -153,7 +153,7 @@ my $opt_linestyle = 'line';
 
 my $opt_c;
 my @opt_d = ();
-my $opt_f;
+my @opt_f;
 my $opt_h;
 my $opt_i;
 my $opt_n;
@@ -191,7 +191,7 @@ my @optargs = (
     'B|before-context:2' => \$opt_B,
     'C|context:2'        => \$opt_C,
     'all'                => \$opt_all,
-    'f|file=s'           => \$opt_f,
+    'f|file=s'           => \@opt_f,
     'rc!'                => \$opt_rc,
     'readlist'           => \$opt_readlist,
     'd=s'                => \@opt_d,
@@ -413,14 +413,17 @@ else {
 }
 
 ## make search pattern
-if ($opt_f) {
-    open my $fh, '<:encoding(utf8)', $opt_f or die "$opt_f: $!\n";
-    my @patterns = do {
-	map  { chomp ; s{\s*//.*}{} ; $_ }
-	grep { not m{^\s*(?:#|//|$)} }
-	<$fh>
-    } ;
-    close $fh;
+if (@opt_f) {
+    my @patterns;
+    for my $opt_f (@opt_f) {
+	open my $fh, '<:encoding(utf8)', $opt_f or die "$opt_f: $!\n";
+	push @patterns, do {
+	    map  { chomp ; s{\s*//.*}{} ; $_ }
+	    grep { not m{^\s*(?:#|//|$)} }
+	    <$fh>
+	} ;
+	close $fh;
+    }
     unshift @opt_re, join('|', map { make_pattern($_) } @patterns);
 } else {
     if (@opt_le + @opt_re + @opt_fe + @opt_or + @opt_e == 0) {
@@ -1885,9 +1888,13 @@ value.
 
 Specify the file which contains search pattern.  When file contains
 multiple lines, patterns on each lines are search in OR context.
+
 Blank line and the line starting with sharp (#) character is ignored.
 Two slashes (//) and following string are taken as a comment and
 removed with preceding spaces.
+
+Multiple file can be specified, but they will be mixed into single
+pattern.
 
 =back
 
