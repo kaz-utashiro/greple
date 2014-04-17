@@ -51,7 +51,7 @@ BEGIN {
     $VERSION = sprintf "%d.%03d", q$Revision: 1.1 $ =~ /(\d+)/g ;
 
     @ISA         = qw(Exporter) ;
-    @EXPORT      = qw(&part) ;
+    @EXPORT      = qw(&part &bmcache) ;
     %EXPORT_TAGS = ( ) ;
     @EXPORT_OK   = qw() ;
 }
@@ -75,7 +75,7 @@ sub part {
     my %arg = @_ ;
 
     if ($target != \$_) {
-	setdata() ;
+	setdata($arg{file}) ;
 	$target = \$_ ;
     }
 
@@ -89,6 +89,14 @@ sub part {
 }
 
 sub setdata {
+    my $file = shift;
+
+    my $cache_file = cachename($file);
+    if (-r $cache_file) {
+	my $obj = get_json($cache_file);
+	%part = %{ $obj };
+	return;
+    }
 
     %part = ( eg => [], jp => [], comment => [], both => [] ) ;
 
@@ -119,6 +127,62 @@ sub setdata {
 	    die "Unexpected wide char in english part:\n", $para;
 	}
     }
+}
+
+sub bmcache {
+    my %arg = @_ ;
+
+    my $cache_file = cachename($arg{file}) ;
+
+    if ($arg{list}) {
+	printf "%s: %s\n", $cache_file, -f $cache_file ? "yes" : "no" ;
+    }
+
+    if ($arg{clean}) {
+	if (-f $cache_file) {
+	    warn "remove $cache_file\n" ;
+	    unlink $cache_file or warn "$cache_file: $!\n" ;
+	}
+    }
+
+    if ($arg{update}) {
+	setdata($arg{file}) ;
+	use JSON ;
+	my $json_text = to_json(\%part,
+				{ pretty => 0,
+				  indent_length => 2,
+				  allow_blessed => 0,
+				  convert_blessed => 1,
+				  allow_nonref => 0,
+				});
+	if (open CACHE, ">$cache_file") {
+	    warn "updating $cache_file\n" ;
+	    print CACHE $json_text ;
+	    close CACHE ;
+	} else {
+	    warn "$cache_file: $!" ;
+	}
+    }
+}
+
+sub cachename {
+    my $file = shift ;
+    my($path, $name) = $file =~ m/((?:.*\/)?)(.*)/ ;
+    my $suffix = ".greple.bm.json" ;
+    $path . "." . $name . $suffix ;
+}
+
+sub get_json {
+    use JSON ;
+    my $file = shift ;
+
+    open(JSON, $file) or die;
+    my $json_text = do { local $/; <JSON> } ;
+    close JSON ;
+
+    my $obj = from_json($json_text, {utf8 => 1}) ;
+
+    $obj ;
 }
 
 1;
