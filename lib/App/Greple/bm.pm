@@ -18,6 +18,11 @@ greple -Mbm [ options ]
     --both     search Japanese/English block
     --comment  search comment block
 
+    --call=bmcache(list)
+    --call=bmcache(udpate)
+    --call=bmcache(clean)
+    --call=bmcache(nocache)
+
 =head1 TEXT FORMAT
 
     Society’s increased dependency on networked software systems has been
@@ -43,6 +48,10 @@ use warnings ;
 
 use Data::Dumper ;
 use Carp ;
+use File::stat ;
+
+eval "use JSON" ;
+my $mod_json = not $@ ;
 
 BEGIN {
     use Exporter   () ;
@@ -61,6 +70,7 @@ END { }
 
 my $target = -1 ;
 my %part ;
+my $use_cache = 1 ;
 
 #
 # [\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]
@@ -79,23 +89,23 @@ sub part {
 	$target = \$_ ;
     }
 
-    my @part;
-    push @part, @{$part{eg}} if $arg{eg};
-    push @part, @{$part{jp}} if $arg{jp};
-    push @part, @{$part{both}} if $arg{both};
-    push @part, @{$part{comment}} if $arg{comment};
+    my @part ;
+    push @part, @{$part{eg}} if $arg{eg} ;
+    push @part, @{$part{jp}} if $arg{jp} ;
+    push @part, @{$part{both}} if $arg{both} ;
+    push @part, @{$part{comment}} if $arg{comment} ;
 
-    sort { $a->[0] <=> $b->[0] } @part;
+    sort { $a->[0] <=> $b->[0] } @part ;
 }
 
 sub setdata {
     my $file = shift;
 
-    my $cache_file = cachename($file);
-    if (-r $cache_file) {
-	my $obj = get_json($cache_file);
-	%part = %{ $obj };
-	return;
+    if ($use_cache and cache_valid($file)) {
+	if (my $obj = get_json(cachename($file))) {
+	    %part = %{ $obj } ;
+	    return ;
+	}
     }
 
     %part = ( eg => [], jp => [], comment => [], both => [] ) ;
@@ -115,16 +125,16 @@ sub setdata {
 	    next;
 	}
 	if ($lang eq 'eg') {
-	    $lang = 'jp';
-	    $part{both}->[-1][1] = $to;
+	    $lang = 'jp' ;
+	    $part{both}->[-1][1] = $to ;
 	} else {
-	    $lang = 'eg';
+	    $lang = 'eg' ;
 	    push @{$part{both}}, [ $from, $to ] ;
 	}
 	push @{$part{$lang}}, [ $from, $to ] ;
 
 	if ($lang eq 'eg' and $para =~ /$wchar_re/) {
-	    die "Unexpected wide char in english part:\n", $para;
+	    die "Unexpected wide char in english part:\n", $para ;
 	}
     }
 }
@@ -138,6 +148,10 @@ sub bmcache {
 	printf "%s: %s\n", $cache_file, -f $cache_file ? "yes" : "no" ;
     }
 
+    $arg{nocache} and $use_cache = 0 ;
+
+    $arg{nojson} and $mod_json = 0 ;
+
     if ($arg{clean}) {
 	if (-f $cache_file) {
 	    warn "remove $cache_file\n" ;
@@ -145,24 +159,43 @@ sub bmcache {
 	}
     }
 
-    if ($arg{update}) {
+    if ($arg{update} and not cache_valid($arg{file})) {
+	warn "updating $cache_file\n" ;
 	setdata($arg{file}) ;
-	use JSON ;
-	my $json_text = to_json(\%part,
-				{ pretty => 0,
-				  indent_length => 2,
-				  allow_blessed => 0,
-				  convert_blessed => 1,
-				  allow_nonref => 0,
-				});
+	my $json_text = do {
+	    if (not $mod_json) {
+		local $_ = Dumper \%part;
+		s/\s+//g;
+		s/'([a-zA-Z_]+)'/"$1"/g;
+		s/'(\d+)'/$1/g;
+		s/=>/:/g;
+		$_;
+	    }
+	    else {
+		to_json(\%part,
+			{ pretty => 0,
+			  indent_length => 2,
+			  allow_blessed => 0,
+			  convert_blessed => 1,
+			  allow_nonref => 0,
+			});
+	    }
+	} ;
 	if (open CACHE, ">$cache_file") {
-	    warn "updating $cache_file\n" ;
 	    print CACHE $json_text ;
 	    close CACHE ;
 	} else {
 	    warn "$cache_file: $!" ;
 	}
     }
+}
+
+sub cache_valid {
+    my $file = shift ;
+    my $cache_file = cachename($file) ;
+    my $sc = stat $cache_file ;
+    my $sf = stat $file ;
+    $sc and $sf and $sc->mtime > $sf->mtime ;
 }
 
 sub cachename {
@@ -173,16 +206,18 @@ sub cachename {
 }
 
 sub get_json {
-    use JSON ;
     my $file = shift ;
 
-    open(JSON, $file) or die;
-    my $json_text = do { local $/; <JSON> } ;
-    close JSON ;
+    open(FH, $file) or die;
+    my $json_text = do { local $/; <FH> } ;
+    close FH ;
 
-    my $obj = from_json($json_text, {utf8 => 1}) ;
-
-    $obj ;
+    if ($mod_json) {
+	from_json($json_text, {utf8 => 1}) ;
+    } else {
+	$json_text =~ s/:/=>/g ;
+	eval $json_text ;
+    }
 }
 
 1;

@@ -294,10 +294,16 @@ while (@ARGV) {
 sub load_module {
     my $mod = shift;
     my $module = $mod;
+    my $base = "App::Greple";
+    my $call;
+
+    if ($module =~ s/^(.*) :: ( \w+\(.*\) ) $/$1/x) {
+	$call = $2;
+    }
     if (-f $module) {
 	require $module;
     } else {
-	$module = "App::Greple::$module";
+	$module = "${base}::${module}";
 	eval "use $module";
     }
     if ($@) {
@@ -306,6 +312,9 @@ sub load_module {
     local *data = "${module}::DATA";
     if (not eof *data) {
 	greplerc({Title => $mod}, <data>);
+    }
+    if ($call) {
+	push @opt_call, "${module}::${call}";
     }
 }
 sub module_list {
@@ -846,7 +855,7 @@ sub grep_file {
     ## --call 'funcname(arg1,arg2,arg3=val3)'
     ##
     for my $func (@opt_call) {
-	if ($func =~ /^ &? (\w+) (?: \( ([^)]*) \) )? $/x) {
+	if ($func =~ /^ &? ([\w:]+) (?: \( ([^)]*) \) )? $/x) {
 	    my $name = $1;
 	    my @arg = $2 ? arg2kvlist($2) : () ;
 	    for ($content) {
