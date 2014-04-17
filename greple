@@ -122,6 +122,7 @@ my @opt_glob;
 my @opt_icode;
 my @opt_block;
 my @opt_chdir;
+my @opt_call;
 my $opt_noif;
 my $opt_all;
 my $opt_blockend;
@@ -215,6 +216,7 @@ my @optargs = (
     'strict!'            => \$opt_strict,
     'chdir=s'            => \@opt_chdir,
     'glob=s'             => \@opt_glob,
+    'call=s'             => \@opt_call,
     'clean!'             => \$opt_clean,
     'quote=s'            => sub {$opt_color='always'; $opt_colormode=$_[1]},
     'color|colour=s'     => \$opt_color,
@@ -838,12 +840,26 @@ sub grep_file {
 
     warn $current_file, ":\n" if $opt_d{f};
 
-    my $matched = 0;
-    if (defined $content) {
-	$matched = do_grep($current_file, \$content);
-	if ($opt_clean) {
-	    $content =~ s/./\000/gs;
+    defined $content or return 0;
+
+    ##
+    ## --call 'funcname(arg1,arg2,arg3=val3)'
+    ##
+    for my $func (@opt_call) {
+	if ($func =~ /^ &? (\w+) (?: \( ([^)]*) \) )? $/x) {
+	    my $name = $1;
+	    my @arg = $2 ? arg2kvlist($2) : () ;
+	    for ($content) {
+		callfunc($name, file => $current_file, @arg);
+	    }
+	} else {
+	    warn "Unknown call format: $func\n";
 	}
+    }
+
+    my $matched = do_grep($current_file, \$content);
+    if ($opt_clean) {
+	$content =~ s/./\000/gs;
     }
 
     $matched;
@@ -1283,19 +1299,9 @@ sub get_regions {
 	my $func = $1;
 	my @arg = (file => $current_file);
 	if (defined $2) {
-	    ##
-	    ## &name(key1,key2,key3=val3)
-	    ##
-	    for my $arg (split(/, */, $2)) {
-		if ($arg =~ /=/) {
-		    push(@arg, split(/=/, $arg, 2));
-		} else {
-		    push(@arg, $arg, 1);
-		}
-	    }
+	    push @arg, arg2kvlist($2);
 	}
-	no strict 'refs';
-	&$func(@arg);
+	callfunc($func, @arg);
     }
     ##
     ## when /pattern/
@@ -1419,6 +1425,28 @@ sub blocknize {
 }
 
 ######################################################################
+
+sub callfunc {
+    my($name, @arg) = @_;
+    no strict 'refs';
+    &$name(@arg);
+}
+
+##
+## convert "key1,key2,key3=val3" to (key1=>1, key2=>1, key3=>"val3")
+##
+sub arg2kvlist {
+    my $string = shift;
+    my @arg;
+    for my $arg (split(/, */, $string)) {
+	if ($arg =~ /=/) {
+	    push @arg, split(/=/, $arg, 2);
+	} else {
+	    push @arg, $arg, 1;
+	}
+    }
+    @arg;
+}
 
 sub do_eval {
     my($prog, $debug) = @_;
