@@ -170,14 +170,24 @@ sub setdata {
 	    $lang = 'jp' ;
 	    $part{both}->[-1][1] = $to ;
 	} else {
-	    $lang = 'eg' ;
-	    push @{$part{both}}, [ $from, $to ] ;
+	    if ($para =~ /$wchar_re/) {
+		warn("Unexpected wide char in english part:\n",
+		     $para,
+		     "***\n") ;
+		$part{$lang}->[-1][1] = $to ;
+		$part{both}->[-1][1] = $to ;
+		next ;
+	    }
+	    else {
+		$lang = 'eg' ;
+		push @{$part{both}}, [ $from, $to ] ;
+	    }
 	}
 	push @{$part{$lang}}, [ $from, $to ] ;
 
-	if ($lang eq 'eg' and $para =~ /$wchar_re/) {
-	    die "Unexpected wide char in english part:\n", $para ;
-	}
+	#if ($lang eq 'eg' and $para =~ /$wchar_re/) {
+	#    die "Unexpected wide char in english part:\n", $para ;
+	#}
     }
 
     ##
