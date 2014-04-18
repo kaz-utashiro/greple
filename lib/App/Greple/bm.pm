@@ -20,7 +20,8 @@ greple -Mbm [ options ]
 
     --call=bmcache(list)     Print cache filename
     --call=bmcache(clean)    Clean up cache file
-    --call=bmcache(udpate)   Update cache file if necessary
+    --call=bmcache(create)   Create cache file
+    --call=bmcache(udpate)   Update cache file if it exists and necessary
     --call=bmcache(nojson)   Do not use JSON module
     --call=bmcache(nocache)  Do not use cache file
 
@@ -48,10 +49,14 @@ Module will read region cache file if it is available and newer than
 target file.  Cache file for file F<FOO> is F<.FOO.greple.bm.json>.
 
 To keep cache files always updated, use option B<-Mbm::cache()>.  It
-will create new cache file if necessary.
+will update cache file if it exits and necessary.
+
+Use B<-Mbm::create()> to create cache file for the first time.
 
 Option B<--call=bmcache(command)> is more generic interface.  Use
-B<--call=bmcache(clean)> to clean up cache files, for instance.
+B<--call=bmcache(clean)> to clean up cache files, for instance.  Use
+B<--call=bmcache(force,update)> to force update cache even if the
+valid cache file exits.
 
 =cut
 
@@ -138,9 +143,10 @@ sub regions {
 }
 
 sub setdata {
-    my $file = shift;
+    my $file = shift ;
+    my $nocache = @_ ? shift : 0 ;
 
-    if ($use_cache and cache_valid($file)) {
+    if (!$nocache and $use_cache and cache_valid($file)) {
 	if (my $obj = get_json(cachename($file))) {
 	    %part = %{ $obj } ;
 	    return ;
@@ -218,9 +224,13 @@ sub bmcache {
 	}
     }
 
-    if ($arg{update} and not cache_valid($arg{file})) {
+    if (($arg{file} ne '-' and -f $arg{file})
+	and
+	($arg{force} or not cache_valid($arg{file}))
+	and
+	($arg{create} or ($arg{update} and -f $cache_file))) {
 	warn "updating $cache_file\n" ;
-	setdata($arg{file}) ;
+	setdata($arg{file}, $arg{force}) ;
 	my $json_text =
 	    to_json(\%part,
 		    { pretty => 0,
@@ -240,6 +250,7 @@ sub bmcache {
 
 sub nocache { bmcache @_, nocache => 1 }
 sub nojson  { bmcache @_, nojson => 1 }
+sub create  { bmcache @_, create => 1  }
 sub update  { bmcache @_, update => 1  }
 sub cache   { bmcache @_, update => 1  }
 sub clean   { bmcache @_, clean => 1   }
