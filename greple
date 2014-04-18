@@ -25,7 +25,7 @@ use IO::Handle;
 use Getopt::Long qw(GetOptionsFromArray GetOptionsFromString);
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(min max first);
+use List::Util qw(min max first sum);
 use Data::Dumper;
 
 use utf8;
@@ -855,9 +855,7 @@ sub do_grep {
     my $file = shift;
     local *_ = shift;
     my @result = grep_pattern(\$_, \@xpattern);
-
-    my $matched_count = 0;
-    map { $matched_count += @{$_} - 1 } @result;
+    my $matched_count = sum 0, map { @{$_} - 1 } @result;
 
     if ($opt_l) {
 	print "$current_file\n" if $matched_count;
