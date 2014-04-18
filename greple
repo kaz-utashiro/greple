@@ -69,6 +69,7 @@ B<OPTIONS>
     --joinby=string      replace newline in the matched text by string
     --filestyle=style    how filename printed (once, separate, line)
     --linestyle=style    how line number printed (separate, line)
+    --separate           set filestyle and linestyle both "separate"
 
     --need=n             required positive match count
     --allow=n            acceptable negative match count
@@ -185,6 +186,7 @@ my @optargs = (
     'H'                  => \$opt_H,
     'filestyle|fs=s'     => \$opt_filestyle,
     'linestyle|ls=s'     => \$opt_linestyle,
+    'separate',          => sub { $opt_filestyle = $opt_linestyle = $_[0] },
     'o|only-matching!'   => \$opt_o,
     'p|paragraph!'       => \$opt_p,
     'A|after-context:2'  => \$opt_A,
@@ -1980,6 +1982,12 @@ line before each line or block.
 Default style is I<line>, and B<greple> prints line numbers at the
 beginning of each line.  Style I<separate> prints line number in the
 separate line before each line or block.
+
+=item B<--separate>
+
+Shortcut for B<--filestyle>=I<separate> B<--linestyle>=I<separate>.
+This is convenient to use block mode search and visiting each location
+from supporting tool, such as Emacs.
 
 =back
 
