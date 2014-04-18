@@ -18,10 +18,14 @@ greple -Mbm [ options ]
     --both     search Japanese/English block
     --comment  search comment block
 
-    --call=bmcache(list)
-    --call=bmcache(udpate)
-    --call=bmcache(clean)
-    --call=bmcache(nocache)
+    --call=bmcache(list)     Print cache filename
+    --call=bmcache(clean)    Clean up cache file
+    --call=bmcache(udpate)   Update cache file if necessary
+    --call=bmcache(nojson)   Do not use JSON module
+    --call=bmcache(nocache)  Do not use cache file
+
+    -Mbm::cache()    Keep cache file always updated
+    -Mbm::nocache()  Do not use cache
 
 =head1 TEXT FORMAT
 
@@ -38,6 +42,17 @@ greple -Mbm [ options ]
 
     ※※※ comment level 3
 
+=head1 CACHE
+
+Module will read region cache file if it is available and newer than
+target file.  Cache file for file F<FOO> is F<.FOO.greple.bm.json>.
+
+To keep cache files always updated, use option B<-Mbm::cache()>.  It
+will create new cache file if necessary.
+
+Option B<--call=bmcache(command)> is more generic interface.  Use
+B<--call=bmcache(clean)> to clean up cache files, for instance.
+
 =cut
 
 package App::Greple::bm ;
@@ -50,8 +65,31 @@ use Data::Dumper ;
 use Carp ;
 use File::stat ;
 
-eval "use JSON" ;
-my $mod_json = not $@ ;
+my $use_json = 0 ;
+my $mod_json ;
+if ($use_json) {
+    eval "use JSON" ;
+    $mod_json = not $@ ;
+} else {
+    $mod_json = 0 ;
+}
+
+$mod_json or eval q{
+    sub to_json {
+	my $obj = shift ;
+	local $_ = Dumper $obj ;
+	s/\s+//g ;
+	s/'([a-zA-Z_]+)'/"$1"/g ;
+	s/'(\d+)'/$1/g ;
+	s/=>/:/g ;
+	$_ ;
+    }
+    sub from_json {
+	local $_ = shift ;
+	s/:/=>/g ;
+	eval $_ ;
+    }
+} ;
 
 BEGIN {
     use Exporter   () ;
@@ -89,13 +127,14 @@ sub part {
 	$target = \$_ ;
     }
 
-    my @part ;
-    push @part, @{$part{eg}} if $arg{eg} ;
-    push @part, @{$part{jp}} if $arg{jp} ;
-    push @part, @{$part{both}} if $arg{both} ;
-    push @part, @{$part{comment}} if $arg{comment} ;
+    regions(grep { $_ ne 'file' and $arg{$_} } keys %arg);
+}
 
-    sort { $a->[0] <=> $b->[0] } @part ;
+sub regions {
+    sort { $a->[0] <=> $b->[0] }
+    map  { @{ $part{$_} } }
+    grep { $part{$_} }
+    @_;
 }
 
 sub setdata {
@@ -112,6 +151,9 @@ sub setdata {
 
     my $lang = 'null' ;
 
+    ##
+    ## comment, eg, jp, both
+    ##
     while (m{ \G ( (?:^.+\n)+ ) \n+ }mgx) {
 	my $para = $1 ;
 	my($from, $to) = ( $-[1], $+[1] ) ;
@@ -120,8 +162,8 @@ sub setdata {
 
 	if ($para =~ /\A※/) {
 	    push @{$part{comment}}, [ $from, $to ] ;
-	    $part{$lang}->[-1][1] = $to;
-	    $part{both}->[-1][1] = $to;
+	    $part{$lang}->[-1][1] = $to ;
+	    $part{both}->[-1][1] = $to ;
 	    next;
 	}
 	if ($lang eq 'eg') {
@@ -136,6 +178,13 @@ sub setdata {
 	if ($lang eq 'eg' and $para =~ /$wchar_re/) {
 	    die "Unexpected wide char in english part:\n", $para ;
 	}
+    }
+
+    ##
+    ## table, figure, example
+    ##
+    while (m{^<blockquote\s+class=(\w+)>(?s:.*?)</\1>}mg) {
+	push @{$part{$1}}, [ $-[0], $+[0] ];
     }
 }
 
@@ -162,25 +211,14 @@ sub bmcache {
     if ($arg{update} and not cache_valid($arg{file})) {
 	warn "updating $cache_file\n" ;
 	setdata($arg{file}) ;
-	my $json_text = do {
-	    if (not $mod_json) {
-		local $_ = Dumper \%part;
-		s/\s+//g;
-		s/'([a-zA-Z_]+)'/"$1"/g;
-		s/'(\d+)'/$1/g;
-		s/=>/:/g;
-		$_;
-	    }
-	    else {
-		to_json(\%part,
-			{ pretty => 0,
-			  indent_length => 2,
-			  allow_blessed => 0,
-			  convert_blessed => 1,
-			  allow_nonref => 0,
-			});
-	    }
-	} ;
+	my $json_text =
+	    to_json(\%part,
+		    { pretty => 0,
+		      indent_length => 2,
+		      allow_blessed => 0,
+		      convert_blessed => 1,
+		      allow_nonref => 0,
+		    });
 	if (open CACHE, ">$cache_file") {
 	    print CACHE $json_text ;
 	    close CACHE ;
@@ -189,6 +227,13 @@ sub bmcache {
 	}
     }
 }
+
+sub nocache { bmcache @_, nocache => 1 }
+sub nojson  { bmcache @_, nojson => 1 }
+sub update  { bmcache @_, update => 1  }
+sub cache   { bmcache @_, update => 1  }
+sub clean   { bmcache @_, clean => 1   }
+sub list    { bmcache @_, list => 1    }
 
 sub cache_valid {
     my $file = shift ;
@@ -207,17 +252,10 @@ sub cachename {
 
 sub get_json {
     my $file = shift ;
-
     open(FH, $file) or die;
     my $json_text = do { local $/; <FH> } ;
     close FH ;
-
-    if ($mod_json) {
-	from_json($json_text, {utf8 => 1}) ;
-    } else {
-	$json_text =~ s/:/=>/g ;
-	eval $json_text ;
-    }
+    from_json($json_text, {utf8 => 1}) ;
 }
 
 1;
@@ -243,6 +281,14 @@ option --eg --block '&part(eg)'
 option --both --block '&part(both)'
 
 option --comment --block '&part(comment)'
+
+option --table   --inside '&part(table)'
+option --figure  --inside '&part(figure)'
+option --example --inside '&part(example)'
+
+option --notable   --exclude '&part(table)'
+option --nofigure  --exclude '&part(figure)'
+option --noexample --exclude '&part(example)'
 
 help --com      find all comments
 help --com1     find comment level 1
