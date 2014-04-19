@@ -243,13 +243,13 @@ sub bmcache {
 	    print CACHE $json_text ;
 	    close CACHE ;
 	} else {
-	    warn "$cache_file: $!" ;
+	    warn "$cache_file: $!\n" ;
 	}
     }
 }
 
 sub nocache { bmcache @_, nocache => 1 }
-sub nojson  { bmcache @_, nojson => 1 }
+sub nojson  { bmcache @_, nojson => 1  }
 sub create  { bmcache @_, create => 1  }
 sub update  { bmcache @_, update => 1  }
 sub cache   { bmcache @_, update => 1  }

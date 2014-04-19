@@ -68,6 +68,7 @@ __OPTIONS__
     --glob=glob          glob target files
     --print=func         print function
     --continue           continue after print function
+    --call=func          call function before search
     --norc               skip reading startup file
 
 # DESCRIPTION

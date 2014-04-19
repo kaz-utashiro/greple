@@ -106,6 +106,7 @@ B<OPTIONS>
     --glob=glob          glob target files
     --print=func         print function
     --continue           continue after print function
+    --call=func          call function before search
     --norc               skip reading startup file
 
 =cut
@@ -303,14 +304,14 @@ sub load_module {
     ## Check -Mmod::func(arg) or -Mmod::func=arg
     ##
     if ($module =~ s{
-	^ (.*) ::
-	(?<call>
+	^ (?<name> .* ) ::
+	  (?<call>
 		\w+
 		(?: (?<P>[(]) | = )  ## start with '(' or '='
 		(?<arg> [^)]* )      ## optional arg list
 		(?(<P>) [)] | )      ## close ')' or none
-	) $
-    }{$1}x) {
+	  ) $
+    }{$+{name}}x) {
 	$call = $+{call};
     }
 
@@ -630,9 +631,9 @@ my %stat = (
     time_end => [],
     );
 
-#
-# user defined print function
-#
+##
+## user defined print function
+##
 local *printfunc;
 if ($opt_print) {
     if ($opt_print =~ /^sub\s*{/) {
@@ -642,6 +643,27 @@ if ($opt_print) {
     }
     unless (defined &printfunc) {
 	die "&$opt_print is not defined\n";
+    }
+}
+
+##
+## --call funcname(arg1,arg2,arg3=val3)
+## --call funcname=arg1,arg2,arg3=val3
+##
+my @callfuncs;
+for (@opt_call) {
+    if (m{
+	^ (?<name>[\w:]+)
+	  (?:
+	    (?: (?<P>[(]) | = )  ## start with '(' or '='
+	    (?<arg> [^)]* )      ## optional arg list
+	    (?(<P>) [)] | )      ## close ')' or none
+	  )?
+	$
+    }x) {
+	push @callfuncs, [ $+{name}, arg2kvlist($+{arg}) ];
+    } else {
+	warn "Unknown call format: $_\n";
     }
 }
 
@@ -865,27 +887,9 @@ sub grep_file {
 
     defined $content or return 0;
 
-    ##
-    ## --call funcname(arg1,arg2,arg3=val3)
-    ## --call funcname=arg1,arg2,arg3=val3
-    ##
-    for my $func (@opt_call) {
-	if ($func =~ m{
-		^ (?<name>[\w:]+)
-		(?:
-		    (?: (?<P>[(]) | = )  ## start with '(' or '='
-		    (?<arg> [^)]* )      ## optional arg list
-		    (?(<P>) [)] | )      ## close ')' or none
-		)?
-		$
-	}x) {
-	    my $name = $+{name};
-	    my @arg = $+{arg} ? arg2kvlist($+{arg}) : () ;
-	    for ($content) {
-		callfunc($name, file => $current_file, @arg);
-	    }
-	} else {
-	    warn "Unknown call format: $func\n";
+    for my $f (@callfuncs) {
+	for ($content) {
+	    callfunc(@$f, file => $current_file);
 	}
     }
 
