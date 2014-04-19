@@ -31,6 +31,7 @@ __OPTIONS__
     --joinby=string      replace newline in the matched text by string
     --filestyle=style    how filename printed (once, separate, line)
     --linestyle=style    how line number printed (separate, line)
+    --separate           set filestyle and linestyle both "separate"
 
     --need=n             required positive match count
     --allow=n            acceptable negative match count
@@ -304,6 +305,12 @@ expression can be used in patterns.
     beginning of each line.  Style _separate_ prints line number in the
     separate line before each line or block.
 
+- __--separate__
+
+    Shortcut for __--filestyle__=_separate_ __--linestyle__=_separate_.
+    This is convenient to use block mode search and visiting each location
+    from supporting tool, such as Emacs.
+
 ## FILES
 
 - __--glob__=_pattern_
@@ -575,7 +582,7 @@ expression can be used in patterns.
 
     Specify output filter commands.
 
-## PRINT
+## RUNTIME FUNCTIONS
 
 - __--print__=_function_, __--print__=_sub{...}_
 
@@ -611,6 +618,46 @@ expression can be used in patterns.
     result returned from print function and finish the cycle.  Option
     __--continue__ forces to continue normal printing process after print
     function called.  So please be sure that all data being consistent.
+
+- __--call__=_function_(_..._), __--call__=_function_=_..._
+- __-M___module_::_function(...)_, __-M___module_::_function=..._
+
+    Option __--call__ specify the function executed at the beginning of
+    each file processing.  This _function_ have to be called from __main__
+    package.  So if you define the function in the module package, use the
+    full package name or export properly.
+
+    It can be set with module option, following module name.  In this
+    form, the function will be called with module package name.  So you
+    don't have to export it.
+
+    Optional argument list can be set in the form of `key` or
+    `key=value`, connected by comma.  These arguments will be passed to
+    the funciton in key => value list.  Sole key will have the value one.
+    Also processing file name is passed with "file" key.  As a result, the
+    option in the next form:
+
+        --call function(key1,key=val2)
+        --call function=key1,key=val2
+
+        -Mmodule::function(key1,key=val2)
+        -Mmodule::function=key1,key=val2
+
+    will be transformed into following function call:
+
+        function(file => "filename", key1 => 1, key2 => "val2")
+
+    The function can be defined in `.greplerc` or modules.  Assign the
+    arguments into hash, then you can access argument list as member of
+    the hash.  Content of the target file can be accessed by `$_`.
+
+        sub function {
+            my %arg = @_;
+            $arg{file};    # "filename"
+            $arg{key1};    # 1
+            $arg{key2};    # "val2"
+            $_;            # contents
+        }
 
 ## PGP
 
