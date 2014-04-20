@@ -149,7 +149,7 @@ my $opt_rc = 1;
 my $opt_need = 0;
 my $opt_allow = 0;
 my $opt_strict = 0;
-my $opt_print;
+my @opt_print;
 my $opt_continue;
 my $opt_filestyle = 'line';
 my $opt_linestyle = 'line';
@@ -230,7 +230,7 @@ my @optargs = (
     'colorful'           => sub {$opt_colormode = 'RD GD BD CD MD YD'},
     'random!'            => \$opt_random,
     'regioncolor|rc!'    => \$opt_regioncolor,
-    'print=s'            => \$opt_print,
+    'print=s'            => \@opt_print,
     'continue!'          => \$opt_continue,
     'M|module:s'         => sub { warn "Use -M option before other options.\n"; exit 2 },
 );
@@ -632,27 +632,44 @@ my %stat = (
     );
 
 ##
-## user defined print function
+## Setup functions (--print, --call)
 ##
-local *printfunc;
-if ($opt_print) {
-    if ($opt_print =~ /^sub\s*{/) {
-	*printfunc = eval $opt_print;
-    } else {
-	*printfunc = $opt_print;
-    }
-    unless (defined &printfunc) {
-	die "&$opt_print is not defined\n";
+my @printfuncs;
+my @callfuncs;
+for my $set (
+    [ "Print", \@opt_print, \@printfuncs ],
+    [ "Call",  \@opt_call,  \@callfuncs  ],
+    ) {
+    my($cat, $opt, $list) = @$set;
+    for (@$opt) {
+	if (my $funcarg = parse_func($_)) {
+	    push @$list, $funcarg;
+	} else {
+	    die "$cat function format error: $_\n";
+	}
     }
 }
 
 ##
-## --call funcname(arg1,arg2,arg3=val3)
-## --call funcname=arg1,arg2,arg3=val3
+## sub { ... }
+## funcname(arg1,arg2,arg3=val3)
+## funcname=arg1,arg2,arg3=val3
 ##
-my @callfuncs;
-for (@opt_call) {
-    if (m{
+sub parse_func {
+    local $_ = shift;
+    if (/^sub\s*{/) {
+	my $sub = eval $_;
+	if ($@) {
+	    warn "Error in function -- $_ --.\n";
+	    die $@;
+	}
+	if (ref $sub eq 'CODE') {
+	    [ $sub ];
+	} else {
+	    die "Unexpected result from eval.\n";
+	}
+    }
+    elsif (m{
 	^ (?<name>[\w:]+)
 	  (?:
 	    (?: (?<P>[(]) | = )  ## start with '(' or '='
@@ -661,9 +678,10 @@ for (@opt_call) {
 	  )?
 	$
     }x) {
-	push @callfuncs, [ $+{name}, arg2kvlist($+{arg}) ];
-    } else {
-	warn "Unknown call format: $_\n";
+	[ $+{name}, arg2kvlist($+{arg}) ];
+    }
+    else {
+	undef;
     }
 }
 
@@ -943,14 +961,14 @@ sub do_grep {
 	    $_->[1] = $_->[1] - $block_start;
 	}
 
-	if (defined &printfunc) {
+	for my $func (@printfuncs) {
 	    for ($block) {
-		$_ = printfunc(file => $file, matched => $result);
+		$_ = callfunc(@$func, file => $file, matched => $result);
 	    }
-	    unless ($opt_continue) {
-		print $block if defined $block;
-		next;
-	    }
+	}
+	if (@printfuncs and not $opt_continue) {
+	    print $block if defined $block;
+	    next;
 	}
 
 	if ($opt_n) {
@@ -1464,8 +1482,12 @@ sub blocknize {
 
 sub callfunc {
     my($name, @arg) = @_;
-    no strict 'refs';
-    &$name(@arg);
+    if (ref $name eq 'CODE') {
+	&$name(@arg);
+    } else {
+	no strict 'refs';
+	&$name(@arg);
+    }
 }
 
 ##
