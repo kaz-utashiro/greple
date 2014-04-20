@@ -613,6 +613,10 @@ expression can be used in patterns.
 
         greple --print=print_simple ...
 
+    It is possible to use multiple __--print__ options.  In that case,
+    second function will get the result of the first function.  The
+    command will print the final result of the last funciton.
+
 - __--continue__
 
     When __--print__ option is given, __greple__ will immediately print the
@@ -632,33 +636,33 @@ expression can be used in patterns.
     form, the function will be called with module package name.  So you
     don't have to export it.
 
-    Optional argument list can be set in the form of `key` or
-    `key=value`, connected by comma.  These arguments will be passed to
-    the funciton in key => value list.  Sole key will have the value one.
-    Also processing file name is passed with "file" key.  As a result, the
-    option in the next form:
+For these run-time functions, optional argument list can be set in the
+form of `key` or `key=value`, connected by comma.  These arguments
+will be passed to the funciton in key => value list.  Sole key will
+have the value one.  Also processing file name is passed with "file"
+key.  As a result, the option in the next form:
 
-        --call function(key1,key=val2)
-        --call function=key1,key=val2
+    --print|call function(key1,key=val2)
+    --print|call function=key1,key=val2
 
-        -Mmodule::function(key1,key=val2)
-        -Mmodule::function=key1,key=val2
+    -Mmodule::function(key1,key=val2)
+    -Mmodule::function=key1,key=val2
 
-    will be transformed into following function call:
+will be transformed into following function call:
 
-        function(file => "filename", key1 => 1, key2 => "val2")
+    function(file => "filename", key1 => 1, key2 => "val2")
 
-    The function can be defined in `.greplerc` or modules.  Assign the
-    arguments into hash, then you can access argument list as member of
-    the hash.  Content of the target file can be accessed by `$_`.
+The function can be defined in `.greplerc` or modules.  Assign the
+arguments into hash, then you can access argument list as member of
+the hash.  Content of the target file can be accessed by `$_`.
 
-        sub function {
-            my %arg = @_;
-            $arg{file};    # "filename"
-            $arg{key1};    # 1
-            $arg{key2};    # "val2"
-            $_;            # contents
-        }
+    sub function {
+        my %arg = @_;
+        $arg{file};    # "filename"
+        $arg{key1};    # 1
+        $arg{key2};    # "val2"
+        $_;            # contents
+    }
 
 ## PGP
 

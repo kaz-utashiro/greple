@@ -123,6 +123,10 @@ my @opt_of;
 my @opt_glob;
 my @opt_icode;
 my @opt_block;
+my @opt_inside;
+my @opt_outside;
+my @opt_include;
+my @opt_exclude;
 my @opt_chdir;
 my @opt_call;
 my $opt_noif;
@@ -169,9 +173,6 @@ my $opt_C = 0;
 my $opt_H;
 #my $opt_M;
 
-my @reg_union = ();
-my @reg_clude = ();
-
 my @optargs = (
     'e|and=s'            => \@opt_e,
     'v|not=s'            => \@opt_v,
@@ -212,10 +213,10 @@ my @optargs = (
     'pgppass=s'          => \$opt_pgppass,
     'block=s'            => \@opt_block,
     'blockend:s'         => \$opt_blockend,
-    'inside=s'           => sub { push @reg_union, [ 1, $_[1] ] },
-    'outside=s'          => sub { push @reg_union, [ 0, $_[1] ] },
-    'include=s'          => sub { push @reg_clude, [ 1, $_[1] ] },
-    'exclude=s'          => sub { push @reg_clude, [ 0, $_[1] ] },
+    'inside=s'           => \@opt_inside,
+    'outside=s'          => \@opt_outside,
+    'include=s'          => \@opt_include,
+    'exclude=s'          => \@opt_exclude,
     'strict!'            => \$opt_strict,
     'chdir=s'            => \@opt_chdir,
     'glob=s'             => \@opt_glob,
@@ -632,58 +633,29 @@ my %stat = (
     );
 
 ##
-## Setup functions (--print, --call)
+## Setup functions
 ##
-my @printfuncs;
-my @callfuncs;
 for my $set (
-    [ "Print", \@opt_print, \@printfuncs ],
-    [ "Call",  \@opt_call,  \@callfuncs  ],
+    [ "print"  , \@opt_print  , 0 ],
+    [ "call"   , \@opt_call   , 0 ],
+    [ "block"  , \@opt_block  , 1 ],
+    [ "inside" , \@opt_inside , 1 ],
+    [ "outside", \@opt_outside, 1 ],
+    [ "include", \@opt_include, 1 ],
+    [ "exclude", \@opt_exclude, 1 ],
     ) {
-    my($cat, $opt, $list) = @$set;
-    for (@$opt) {
-	if (my $funcarg = parse_func($_)) {
-	    push @$list, $funcarg;
-	} else {
-	    die "$cat function format error: $_\n";
-	}
+    my($cat, $opt, $pattern) = @$set;
+    for (@{$opt}) {
+	s/^&// or next if $pattern;
+	$_ = parse_func($_) or die "$cat function format error: $_\n";
     }
 }
 
-##
-## sub { ... }
-## funcname(arg1,arg2,arg3=val3)
-## funcname=arg1,arg2,arg3=val3
-##
-sub parse_func {
-    local $_ = shift;
-    if (/^sub\s*{/) {
-	my $sub = eval $_;
-	if ($@) {
-	    warn "Error in function -- $_ --.\n";
-	    die $@;
-	}
-	if (ref $sub eq 'CODE') {
-	    [ $sub ];
-	} else {
-	    die "Unexpected result from eval.\n";
-	}
-    }
-    elsif (m{
-	^ (?<name>[\w:]+)
-	  (?:
-	    (?: (?<P>[(]) | = )  ## start with '(' or '='
-	    (?<arg> [^)]* )      ## optional arg list
-	    (?(<P>) [)] | )      ## close ')' or none
-	  )?
-	$
-    }x) {
-	[ $+{name}, arg2kvlist($+{arg}) ];
-    }
-    else {
-	undef;
-    }
-}
+my @reg_union =
+    (map({ [ 1, $_ ] } @opt_inside), map({ [ 0, $_ ] } @opt_outside));
+
+my @reg_clude =
+    (map({ [ 1, $_ ] } @opt_include), map({ [ 0, $_ ] } @opt_exclude));
 
 ##------------------------------------------------------------
 
@@ -905,7 +877,7 @@ sub grep_file {
 
     defined $content or return 0;
 
-    for my $f (@callfuncs) {
+    for my $f (@opt_call) {
 	for ($content) {
 	    callfunc(@$f, file => $current_file);
 	}
@@ -961,12 +933,12 @@ sub do_grep {
 	    $_->[1] = $_->[1] - $block_start;
 	}
 
-	for my $func (@printfuncs) {
+	for my $func (@opt_print) {
 	    for ($block) {
 		$_ = callfunc(@$func, file => $file, matched => $result);
 	    }
 	}
-	if (@printfuncs and not $opt_continue) {
+	if (@opt_print and not $opt_continue) {
 	    print $block if defined $block;
 	    next;
 	}
@@ -1346,20 +1318,12 @@ sub select_regions_strict {
 sub get_regions {
     local *_ = shift;
     my $pattern = shift;
-    ##
-    ## when &name
-    ##
-    if ($pattern =~ /^&(\w+) (?: \( (.*) \) )?/x) {
-	my $func = $1;
-	my @arg = (file => $current_file);
-	if (defined $2) {
-	    push @arg, arg2kvlist($2);
-	}
-	callfunc($func, @arg);
+
+    ## function array
+    if (ref $pattern eq 'ARRAY') {
+	callfunc(@$pattern, file => $current_file);
     }
-    ##
-    ## when /pattern/
-    ##
+    ## pattern
     else {
 	matched_regions({catchgroup => 0}, \$_, $pattern);
     }
@@ -1482,11 +1446,44 @@ sub blocknize {
 
 sub callfunc {
     my($name, @arg) = @_;
-    if (ref $name eq 'CODE') {
-	&$name(@arg);
-    } else {
-	no strict 'refs';
-	&$name(@arg);
+    no strict 'refs';
+    $name->(@arg);
+}
+
+##
+## sub { ... }
+## funcname(arg1,arg2,arg3=val3)
+## funcname=arg1,arg2,arg3=val3
+##
+sub parse_func {
+    local $_ = shift;
+    my $noinline = @_ ? shift : 0;
+
+    if (not $noinline and /^sub\s*{/) {
+	my $sub = eval $_;
+	if ($@) {
+	    warn "Error in function -- $_ --.\n";
+	    die $@;
+	}
+	if (ref $sub eq 'CODE') {
+	    [ $sub ];
+	} else {
+	    die "Unexpected result from eval.\n";
+	}
+    }
+    elsif (m{
+	^ (?<name>[\w:]+)
+	  (?:
+	    (?: (?<P>[(]) | = )  ## start with '(' or '='
+	    (?<arg> [^)]* )      ## optional arg list
+	    (?(<P>) [)] | )      ## close ')' or none
+	  )?
+	$
+    }x) {
+	[ $+{name}, arg2kvlist($+{arg}) ];
+    }
+    else {
+	undef;
     }
 }
 
@@ -2415,6 +2412,10 @@ Then, you can use this function in the command line.
 
     greple --print=print_simple ...
 
+It is possible to use multiple B<--print> options.  In that case,
+second function will get the result of the first function.  The
+command will print the final result of the last funciton.
+
 =item B<--continue>
 
 When B<--print> option is given, B<greple> will immediately print the
@@ -2435,14 +2436,16 @@ It can be set with module option, following module name.  In this
 form, the function will be called with module package name.  So you
 don't have to export it.
 
-Optional argument list can be set in the form of C<key> or
-C<key=value>, connected by comma.  These arguments will be passed to
-the funciton in key => value list.  Sole key will have the value one.
-Also processing file name is passed with "file" key.  As a result, the
-option in the next form:
+=back
 
-    --call function(key1,key=val2)
-    --call function=key1,key=val2
+For these run-time functions, optional argument list can be set in the
+form of C<key> or C<key=value>, connected by comma.  These arguments
+will be passed to the funciton in key => value list.  Sole key will
+have the value one.  Also processing file name is passed with "file"
+key.  As a result, the option in the next form:
+
+    --print|call function(key1,key=val2)
+    --print|call function=key1,key=val2
 
     -Mmodule::function(key1,key=val2)
     -Mmodule::function=key1,key=val2
@@ -2462,8 +2465,6 @@ the hash.  Content of the target file can be accessed by C<$_>.
 	$arg{key2};    # "val2"
 	$_;            # contents
     }
-
-=back
 
 
 =head2 PGP
