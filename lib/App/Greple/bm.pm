@@ -228,7 +228,8 @@ sub bmcache {
 	and
 	($arg{force} or not cache_valid($arg{file}))
 	and
-	($arg{create} or ($arg{update} and -f $cache_file))) {
+	($arg{create} or ($arg{update} and -f $cache_file)))
+    {
 	warn "updating $cache_file\n" ;
 	setdata($arg{file}, $arg{force}) ;
 	my $json_text =
@@ -283,6 +284,8 @@ sub get_json {
 
 __DATA__
 
+option default --cache
+
 option --cdedit --chdir $ENV{SCCC2DIR}/Edit
 option --ed1 --cdedit --glob ../SCCC1/*.bm1
 option --ed2 --cdedit --glob *.bm1
@@ -322,3 +325,23 @@ help --jp       display Japanese block
 help --eg       display English block
 help --both     display Japanese/English combined block
 help --comment  display comment block
+
+help --table              search inside table
+help --figure             search inside figure
+help --example            search inside example
+help --notable            exclude table
+help --nofigure           exclude figure
+help --noexample          exclude example
+
+define :nevermatch: (?=never)match
+option --cache --call bmcache(update)
+option --cache_create --re :nevermatch: --call bmcache(create)
+option --cache_clean  --re :nevermatch: --call bmcache(clean)
+option --cache_update --re :nevermatch: --call bmcache(force,update)
+option --nocache --call bmcache(nocache)
+
+help --cache              automatic cache update
+help --nocache            disable cache
+help --cache_create       create cache
+help --cache_clean        remove cache
+help --cache_update       force to update cache
