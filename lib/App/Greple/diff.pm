@@ -109,12 +109,11 @@ define :text_alt: :text_alt_c:
 
 option  --diffcolor \
 	--all --need 1 \
-	--colormode= \
-	--re :ctrl:                     --addcolor "CS"   \
-	--re :sep:                      --addcolor "C"    \
-	--re :mark_old: --re :text_old: --addcolor "RS R" \
-	--re :mark_new: --re :text_new: --addcolor "GS G" \
-	--re :mark_alt: --re :text_alt: --addcolor "BS B"
+	--re :ctrl:                     --colormap "CS"   \
+	--re :sep:                      --colormap "C"    \
+	--re :mark_old: --re :text_old: --colormap "RS R" \
+	--re :mark_new: --re :text_new: --colormap "GS G" \
+	--re :mark_alt: --re :text_alt: --colormap "BS B"
 
 define :ctrl_u:     ^\@\@.*
 define :old_u:      (?:^\-.*\n)+
@@ -127,11 +126,11 @@ define :block_u:    ^\@\@.*\n(?:[ \-\+].*\n)+
 
 option  --udiffcolor \
 	--all --need 1 \
-	--re :ctrl_u:     --addcolor C  \
-	--re :mark_old_u: --addcolor RS \
-	--re :text_old_u: --addcolor R  \
-	--re :mark_new_u: --addcolor GS \
-	--re :text_new_u: --addcolor G
+	--re :ctrl_u:     --colormap C  \
+	--re :mark_old_u: --colormap RS \
+	--re :text_old_u: --colormap R  \
+	--re :mark_new_u: --colormap GS \
+	--re :text_new_u: --colormap G
 
 define :block:      :block_n:|:block_c:|:block_u:
 define :block_apnd: :block_apnd_n:|:block_apnd_c:
@@ -150,5 +149,5 @@ help :diffblock:    diff section pattern
 option --wdiffcolor \
 	--all \
 	--print print_wdiff --continue \
-	--re '(?s)\[\-.*?\-\]' --addcolor R \
-	--re '(?s)\{\+.*?\+\}' --addcolor G
+	--re '(?s)\[\-.*?\-\]' --colormap R \
+	--re '(?s)\{\+.*?\+\}' --colormap G
