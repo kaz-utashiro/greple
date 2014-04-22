@@ -290,29 +290,29 @@ option --cdedit --chdir $ENV{SCCC2DIR}/Edit
 option --ed1 --cdedit --glob ../SCCC1/*.bm1
 option --ed2 --cdedit --glob *.bm1
 
-option --com  --nocolor -nH --re '^※+'
-option --com1 --nocolor -nH --re '^※(?!※)'
-option --com2 --nocolor -nH --re '^※※(?!※)'
-option --com3 --nocolor -nH --re '^※※※'
-option --com2+ --nocolor -nH --re '^※※'
+option --com  --nocolor -nH --re ^※+
+option --com1 --nocolor -nH --re ^※(?!※)
+option --com2 --nocolor -nH --re ^※※(?!※)
+option --com3 --nocolor -nH --re ^※※※
+option --com2+ --nocolor -nH --re ^※※
 
-option --injp --inside '&part(jp)'
-option --jp --block '&part(jp)'
+option --injp --inside &part(jp)
+option --jp --block &part(jp)
 
-option --ineg --inside '&part(eg)'
-option --eg --block '&part(eg)'
+option --ineg --inside &part(eg)
+option --eg --block &part(eg)
 
-option --both --block '&part(both)'
+option --both --block &part(both)
 
-option --comment --block '&part(comment)'
+option --comment --block &part(comment)
 
-option --table   --inside '&part(table)'
-option --figure  --inside '&part(figure)'
-option --example --inside '&part(example)'
+option --table   --inside &part(table)
+option --figure  --inside &part(figure)
+option --example --inside &part(example)
 
-option --notable   --exclude '&part(table)'
-option --nofigure  --exclude '&part(figure)'
-option --noexample --exclude '&part(example)'
+option --notable   --exclude &part(table)
+option --nofigure  --exclude &part(figure)
+option --noexample --exclude &part(example)
 
 help --com      find all comments
 help --com1     find comment level 1
