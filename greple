@@ -27,6 +27,7 @@ use Pod::Usage;
 use Text::ParseWords qw(shellwords);
 use List::Util qw(min max first sum);
 use Data::Dumper;
+use Carp;
 
 use utf8;
 use Encode;
@@ -127,9 +128,9 @@ my $opt_noif;
 my $opt_all;
 my $opt_blockend;
 my $opt_color = 'auto';
-my $opt_colormode = 'RD';
-my @opt_addcolor;
-my $opt_colorfull;
+my $opt_256 = 1;
+my @opt_colormap;
+my $opt_colorful;
 my $opt_random;
 my $opt_regioncolor;
 my $opt_icode;
@@ -218,14 +219,14 @@ my @optargs = (
     'chdir=s'            => \@opt_chdir,
     'glob=s'             => \@opt_glob,
     'clean!'             => \$opt_clean,
-    'quote=s'            => sub {$opt_color='always'; $opt_colormode=$_[1]},
+    'quote=s'            => sub {$opt_color='always';push @opt_colormap,$_[1]},
     'color|colour=s'     => \$opt_color,
-    'colormode|cm|colourmode:s'
-                         => \$opt_colormode,
-    'addcolor=s'         => \@opt_addcolor,
+    'colormap|colormode|addcolor|cm:s'
+                         => \@opt_colormap,
     'nocolor|nocolour'   => sub {$opt_color = 'never'},
-    'colorful'           => sub {$opt_colormode = 'RD GD BD CD MD YD'},
+    'colorful!'          => \$opt_colorful,
     'random!'            => \$opt_random,
+    '256!'               => \$opt_256,
     'regioncolor|rc!'    => \$opt_regioncolor,
     'print=s'            => \$opt_print,
     'continue!'          => \$opt_continue,
@@ -581,10 +582,46 @@ if ((@ARGV > 1 or $opt_readlist) and not $opt_h) {
 
 $opt_join = 1 if $opt_joinby ne "";
 
-if (@opt_addcolor) {
-    $opt_colormode = "@opt_addcolor";
+##------------------------------------------------------------
+## colors
+##
+my %colormap = (
+    LINE  => "Y",
+    FILE  => "G",
+    DELIM => "" ,
+    );
+
+my @colors;
+
+if (@opt_colormap) {
+    map {
+	my $c = pop @$_;
+	if (@$_ == 0) {
+	    push @colors, $c;
+	}
+	else {
+	    map { $colormap{$_} = $c }
+	    map { match_glob($_, keys %colormap) }
+	    @$_;
+	}
+    }
+    map { [ split /=/, $_, -1 ] }
+    map { split /[,\s]\s*/ }
+    @opt_colormap;
 }
-my @colors = map { [ colorseq($_), $_ ] } split(' ', $opt_colormode);
+
+my @default_color = $opt_256
+    ? qw(D/544 D/454 D/445 D/455 D/454 D/554)
+    : qw(RD GD BD CD MD YD);
+
+if (@colors == 0) {
+    @colors = $opt_colorful ? @default_color : $default_color[0];
+}
+
+if ($opt_d{c}) {
+    warn 'colormap = ', Dumper \%colormap;
+    warn 'colors = ', "@colors\n";
+}
 
 my $need_color = (($opt_color eq 'always')
 		  or (($opt_color eq 'auto') and (!$opt_o and -t STDOUT)));
@@ -630,7 +667,7 @@ if ($opt_d{m}) {
     for my $i (0 .. $#xpattern) {
 	my($mode, $p) = @{$xpattern[$i]};
 	warn sprintf("  %s /%s/\n", $mode ? 'and' : 'not',
-		     @colors > 1 ? color($p, $i) : $p);
+		     @colors > 1 ? index_color($p, $i) : $p);
     }
 }
 
@@ -935,20 +972,21 @@ sub do_grep {
 	    }
 
 	    if ($s ne '' and $need_color) {
-		substr($block, $ms, $me - $ms) = color($s, $pi);
+		substr($block, $ms, $me - $ms) = index_color($s, $pi);
 	    }
 	}
 	if ($opt_n and $opt_linestyle eq 'line') {
 	    my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
 	    $block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
-			my $s = $1 ? $opt_joinby : sprintf("%d:", $line);
+			my $s = $1 ? $opt_joinby : sprintf("%s:", _line($line));
 			$line += $increment;
 			$s;
 		       }gse;
 	}
 
 	if ($need_filename and $opt_filestyle eq 'line') {
-	    $block =~ s/^/$file:/mg;
+	    my $s = _file($file);
+	    $block =~ s/^/$s:/mg;
 	}
 
 	print $block;
@@ -959,41 +997,9 @@ sub do_grep {
     $matched_count;
 }
 
-sub color {
-    my $text = shift;
-    if (@colors) {
-	my $index = @_ ? shift(@_) % @colors : 0;
-	$text =~ s/([^\r\n]+)/$colors[$index][0]$1$colors[$index][1]/g;
-    }
-    $text;
-}
-
-use Term::ANSIColor qw(:constants);
-sub colorseq {
-    my $colormode = shift;
-
-    my($start, $end) = ('', '');
-    if ($colormode =~ /,/) {
-	($start, $end) = split(/,/, $colormode, 2);
-    } else {
-	map {
-	    $start .= UNDERLINE if /U/;
-	    $start .= REVERSE   if /S/;
-	    $start .= BOLD      if /D/;
-	    $start .= BLINK     if /F/;
-	    $start .= RED       if /R/; $start .= ON_RED       if /r/;
-	    $start .= GREEN     if /G/; $start .= ON_GREEN     if /g/;
-	    $start .= BLUE      if /B/; $start .= ON_BLUE      if /b/;
-	    $start .= CYAN      if /C/; $start .= ON_CYAN      if /c/;
-	    $start .= MAGENTA   if /M/; $start .= ON_MAGENTA   if /m/;
-	    $start .= YELLOW    if /Y/; $start .= ON_YELLOW    if /y/;
-	    $start .= BLACK     if /K/; $start .= ON_BLACK     if /k/;
-	    $start .= WHITE     if /W/; $start .= ON_WHITE     if /w/;
-	} $colormode if $colormode;
-	$end = RESET if $start;
-    }
-    ($start, $end);
-}
+sub _file  { $need_color ? color('FILE',  $_[0]) : $_[0] }
+sub _line  { $need_color ? color('LINE',  $_[0]) : $_[0] }
+sub _delim { $need_color ? color('DELIM', $_[0]) : $_[0] }
 
 ######################################################################
 
@@ -1441,6 +1447,105 @@ sub unctrl {
 sub uniq {
     my %seen;
     grep { not $seen{$_}++ } @_;
+}
+
+##
+## Implement minimum function because Text::Glob is not in standard library
+##
+sub match_glob {
+    local $_ = shift;
+    s/\?/./g;
+    s/\*/.*/g;
+    my $regex = qr/^$_$/;
+    grep { $_ =~ $regex } @_;
+}
+
+######################################################################
+## colors
+######################################################################
+use Term::ANSIColor qw(:constants);
+
+use constant { FG => 'fg', BG => 'bg' } ;
+
+sub colorseq {
+    my $colormode = shift;
+
+    my($start, $end) = ('', '');
+    if ($colormode =~ /:/) {
+	($start, $end) = split(/:/, $colormode, 2);
+    } else {
+	map {
+	    if (s/(\/?)((?:[\da-f]{6})|[0-5][0-5][0-5])//i and $opt_256) {
+		$start .= ansi256($2, $1 ? BG : FG);
+	    }
+	    $start .= UNDERLINE if /U/;
+	    $start .= REVERSE   if /S/;
+	    $start .= BOLD      if /D/;
+	    $start .= BLINK     if /F/;
+	    $start .= RED       if /R/; $start .= ON_RED       if /r/;
+	    $start .= GREEN     if /G/; $start .= ON_GREEN     if /g/;
+	    $start .= BLUE      if /B/; $start .= ON_BLUE      if /b/;
+	    $start .= CYAN      if /C/; $start .= ON_CYAN      if /c/;
+	    $start .= MAGENTA   if /M/; $start .= ON_MAGENTA   if /m/;
+	    $start .= YELLOW    if /Y/; $start .= ON_YELLOW    if /y/;
+	    $start .= BLACK     if /K/; $start .= ON_BLACK     if /k/;
+	    $start .= WHITE     if /W/; $start .= ON_WHITE     if /w/;
+	} $colormode if $colormode;
+	$end = RESET if $start;
+	$start =~ s/m\e\[/;/g;
+    }
+    ($start, $end);
+}
+
+sub ansi256 {
+    my($code, $fg_or_bg) = @_;
+    my($r, $g, $b);
+    if ($code =~ /^([0-5])([0-5])([0-5])$/) {
+	($r, $g, $b) = ($1, $2, $3);
+    }
+    elsif ($code =~ /^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i) {
+	$r = int(5 * hex($1) / 255);
+	$g = int(5 * hex($2) / 255);
+	$b = int(5 * hex($3) / 255);
+    }
+    else {
+	croak "Color format error.\n";
+    }
+    sprintf("\e[%d;%d;%dm",
+	    $fg_or_bg eq BG ? 48 : 38,
+	    5,
+	    16 + ($r * 36) + ($g * 6) + $b
+	);
+}
+
+my %colorcache;
+my $reset_re;
+BEGIN {
+    my $reset = RESET;
+    $reset_re = qr/\Q$reset/;
+}
+
+sub index_color {
+    my $text = shift;
+    if (@colors) {
+	my $index = @_ ? shift(@_) % @colors : 0;
+	$text = color($colors[$index], $text);
+    }
+    $text;
+}
+
+sub color {
+    my($color, $text) = @_;
+    return $text unless $color;
+    unless ($colorcache{$color}) {
+	my $mode = exists $colormap{$color} ? $colormap{$color} : $color;
+	$colorcache{$color} = [ colorseq($mode) ];
+    }
+    my($s, $e) = @{$colorcache{$color}};
+    if ($s ne "") {
+	$text =~ s/(^|$reset_re)([^\e\r\n]+)/$1$s$2$e/mg;
+    }
+    $text;
 }
 
 ######################################################################
@@ -2063,11 +2168,11 @@ and other effects :
     D  Double-struck (boldface)
     F  Flash (blink)
 
-If the mode string contains comma `,' character, they are used to
+If the mode string contains colon `:' character, they are used to
 quote the matched string.  If you want to quote the pattern by angle
 bracket, use like this.
 
-    greple --quote='<,>' pattern
+    greple --quote='<:>' pattern
 
 Option B<--quote> is an alias for B<--colormode>, but it set the
 option B<--color>=I<always> at the same time.
