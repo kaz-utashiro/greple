@@ -983,7 +983,7 @@ sub do_grep {
 
 	my($block_start, $block_end) = @{shift @$result};
 	my $block = substr($_, $block_start, $block_end - $block_start);
-	my $need_newline = not $block =~ /\n\Z/;
+	my $need_newline = not $block =~ /\n\z/;
 
 	for (@$result) {
 	    $_->[0] = $_->[0] > $block_start ? $_->[0] - $block_start : 0;
@@ -1021,21 +1021,21 @@ sub do_grep {
 	my $mark = "\001";
 	for my $matched (reverse @$result) {
 	    my($ms, $me, $pi) = @$matched;
+	    next if $ms == $me;
+
 	    my $s = substr($block, $ms, $me - $ms);
 
 	    $pi = rand(@colors) if $opt_random;
 
 	    if ($opt_join) {
 		if ($opt_n and $opt_linestyle eq 'line') {
-		    $s =~ s/\n/$mark/g;
+		    $s =~ s/(?<!\A)\n(?!\z)/$mark/g;
 		} else {
-		    $s =~ s/\n/$opt_joinby/g;
+		    $s =~ s/(?<!\A)\n(?!\z)/$opt_joinby/g;
 		}
 	    }
-
-	    if ($s ne '' and $need_color) {
-		substr($block, $ms, $me - $ms) = index_color($s, $pi);
-	    }
+	    substr($block, $ms, $me - $ms,
+		   $need_color ? index_color($s, $pi) : $s);
 	}
 	if ($opt_n and $opt_linestyle eq 'line') {
 	    my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
@@ -1455,7 +1455,7 @@ sub blocknize {
 	$begin += length $delim;
     }
 
-    if ($matched =~ /$delim\Z/) {
+    if ($matched =~ /$delim\z/) {
 	$to -= length($delim);
     }
     for (my $c = $opt_A + 1; $c; $c--) {
