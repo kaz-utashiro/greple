@@ -136,7 +136,8 @@ my $opt_blockend;
 my $opt_color = 'auto';
 my $opt_256 = 1;
 my @opt_colormap;
-my $opt_colorful;
+my $opt_colorful = 1;
+my @opt_face;
 my $opt_random;
 my $opt_regioncolor;
 my $opt_icode;
@@ -190,7 +191,9 @@ my @optargs = (
     'H'                  => \$opt_H,
     'filestyle|fs=s'     => \$opt_filestyle,
     'linestyle|ls=s'     => \$opt_linestyle,
-    'separate',          => sub { $opt_filestyle = $opt_linestyle = $_[0] },
+    'separate',          => sub {
+	$opt_filestyle = $opt_linestyle = $_[0]
+    },
     'o|only-matching!'   => \$opt_o,
     'p|paragraph!'       => \$opt_p,
     'A|after-context:2'  => \$opt_A,
@@ -223,18 +226,25 @@ my @optargs = (
     'glob=s'             => \@opt_glob,
     'call=s'             => \@opt_call,
     'clean!'             => \$opt_clean,
-    'quote=s'            => sub {$opt_color='always';push @opt_colormap,$_[1]},
-    'color|colour=s'     => \$opt_color,
+    'quote=s'            => sub {
+	$opt_color = 'always';
+	push @opt_colormap, $_[1]
+    },
+    'color=s'            => \$opt_color,
     'colormap|colormode|addcolor|cm:s'
                          => \@opt_colormap,
-    'nocolor|nocolour'   => sub {$opt_color = 'never'},
+    'nocolor|nocolour'   => sub { $opt_color = 'never' },
     'colorful!'          => \$opt_colorful,
+    'face=s'             => \@opt_face,
     'random!'            => \$opt_random,
     '256!'               => \$opt_256,
     'regioncolor|rc!'    => \$opt_regioncolor,
     'print=s'            => \@opt_print,
     'continue!'          => \$opt_continue,
-    'M|module:s'         => sub { warn "Use -M option before other options.\n"; exit 2 },
+    'module|M:s'         => sub {
+	warn "Use -M option before other options.\n";
+	exit 2;
+    },
 );
 
 binmode STDERR, ":encoding(utf8)";
@@ -611,9 +621,10 @@ $opt_join = 1 if $opt_joinby ne "";
 ## colors
 ##
 my %colormap = (
-    LINE  => "Y",
-    FILE  => "G",
-    DELIM => "" ,
+    FILE  => $opt_256 ? "G" : "G",
+    LINE  => $opt_256 ? "Y" : "Y",
+    COLON => $opt_256 ? "" : "" ,
+    BLOCKEND => "",
     );
 
 my @colors;
@@ -643,9 +654,20 @@ if (@colors == 0) {
     @colors = $opt_colorful ? @default_color : $default_color[0];
 }
 
+if (@opt_face) {
+    my $remove = 0;
+    for my $flag (split //, join('', @opt_face)) {
+	if ($flag eq '-' or $flag eq '+') {
+	    $remove = $flag eq '-';
+	    next;
+	}
+	map { $remove ? s/$flag//g : s/^/$flag/ } @colors;
+    }
+}
+
 if ($opt_d{c}) {
     warn 'colormap = ', Dumper \%colormap;
-    warn 'colors = ', "@colors\n";
+    warn 'colors = ', Dumper \@colors;
 }
 
 my $need_color = (($opt_color eq 'always')
@@ -986,11 +1008,11 @@ sub do_grep {
 
 	if (my $nl = 0, 1) {
 	    if ($need_filename and $opt_filestyle eq 'separate') {
-		print $current_file, ":";
+		print _file($current_file), _colon(":");
 		$nl++;
 	    }
 	    if ($opt_n and $opt_linestyle eq 'separate') {
-		print $line, ":";
+		print _line($line), _colon(":");
 		$nl++;
 	    }
 	    print "\n" if $nl;
@@ -1018,28 +1040,32 @@ sub do_grep {
 	if ($opt_n and $opt_linestyle eq 'line') {
 	    my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
 	    $block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
-			my $s = $1 ? $opt_joinby : sprintf("%s:", _line($line));
+			my $s = $1 ? $opt_joinby
+				   : _line($line) . _colon(":");
 			$line += $increment;
 			$s;
 		       }gse;
 	}
 
 	if ($need_filename and $opt_filestyle eq 'line') {
-	    my $s = _file($file);
-	    $block =~ s/^/$s:/mg;
+	    my $s = _file($file) . _colon(':');
+	    $block =~ s/^/$s/mg;
 	}
 
 	print $block;
 	print "\n" if $need_newline;
-	print $blockend if $need_blockend;
+	print _blockend($blockend) if $need_blockend;
     }
 
     $matched_count;
 }
 
-sub _file  { $need_color ? color('FILE',  $_[0]) : $_[0] }
-sub _line  { $need_color ? color('LINE',  $_[0]) : $_[0] }
-sub _delim { $need_color ? color('DELIM', $_[0]) : $_[0] }
+sub _file     { _color('FILE', @_) }
+sub _line     { _color('LINE', @_) }
+sub _delim    { _color('DELIM', @_) }
+sub _colon    { _color('COLON', @_) }
+sub _blockend { _color('BLOCKEND', @_) }
+sub _color    { $need_color ? goto &color : $_[1] }
 
 ######################################################################
 
