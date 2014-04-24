@@ -77,10 +77,11 @@ B<OPTIONS>
 
     --color=when         use terminal color (auto, always, never)
     --nocolor            same as --color=never
-    --colormode=mode     R, G, B, C, M, Y, W, Standout, bolD, Underline
-    --colorful           same as --colormode 'RD GD BD CD MD YD'
+    --colormap=color     R, G, B, C, M, Y, W, Standout, Double-struck, Underline
+    --colorful           use default multiple colors
+    --[no]256            use ANSI 256 colors
     --random             random color
-    --regioncolor        color by region
+    --regioncolor        use different color for inside/outside regions
 
     -o                   print only the matching part
     -p                   paragraph mode
@@ -656,7 +657,7 @@ if (@colors == 0) {
 
 if (@opt_face) {
     my $remove = 0;
-    for my $flag (split //, join('', @opt_face)) {
+    for my $flag (map { split // } @opt_face) {
 	if ($flag eq '-' or $flag eq '+') {
 	    $remove = $flag eq '-';
 	    next;
@@ -2242,9 +2243,9 @@ expected.
 
 Option B<--nocolor> is alias for B<--color>=I<never>.
 
-=item B<--colormode>=I<RGBCYMKWrgbcymkwSUDF>, B<--quote>=I<start>,I<end>
+=item B<--colormap>=I<RGBCYMKWrgbcymkwSUDF>, B<--quote>=I<start>,I<end>
 
-Specify color mode.  Default is RD: RED and BOLD.
+Specify color map.  Default is RD: RED and BOLD.
 
 COLOR is combination of single character representing uppercase
 foreground color :
@@ -2262,6 +2263,21 @@ and corresponding lowercase background color :
 
     r, g, b, c, m, y, k, w
 
+or RGB value if using ANSI 256 color terminal :
+
+    FORMAT:
+        foreground[/background]
+
+    COLOR:
+        000 .. 555       : 6 x 6 x 6 216 colors
+        000000 .. FFFFFF : 24bit RGB mapped to 216 colors
+
+    Sample:
+        005     0000FF        : blue foreground
+           /505       /FF00FF : magenta background
+        000/555 000000/FFFFFF : black on white
+        500/050 FF0000/00FF00 : red on green
+
 and other effects :
 
     S  Standout (reverse video)
@@ -2275,22 +2291,55 @@ bracket, use like this.
 
     greple --quote='<:>' pattern
 
-Option B<--quote> is an alias for B<--colormode>, but it set the
+Option B<--quote> is an alias for B<--colormap>, but it set the
 option B<--color>=I<always> at the same time.
 
-Multiple colors can be specified separating by white spaces.  Those
-colors will be applied for each pattern keywords.  Next command will
-show word `foo' in red, `bar' in green and `baz' in blue.
+Multiple colors can be specified separating by white space or comma,
+or by repeating options.  Those colors will be applied for each
+pattern keywords.  Next command will show word `foo' in red, `bar' in
+green and `baz' in blue.
 
-    greple --colormode='R G B' 'foo bar baz' ...
+    greple --colormap='R G B' 'foo bar baz'
 
-=item B<--colorful>
+    greple --cm R -e foo --cm G -e bar --cm B -e baz
 
-Shortcut for B<--colormode>='I<RD GD BD CD MD YD>'
+=item B<--colormap>=I<field>=I<color>,I<field>=I<color>,...
+
+Another form of colormap option to specify the color for fields:
+
+    FILE      File name
+    LINE      Line number
+    COLON     Colon after file name and line number
+    BLOCKEND  Block end mark
+
+=item B<--[no]colorful>
+
+Shortcut for B<--colormap>='I<RD GD BD CD MD YD>' in ANSI 16 colors
+mode, and B<--colormap>='I<D/544 D/454 D/445 D/455 D/454 D/554>' for
+256 colors mode.  Enabled by default.
+
+=item B<--[no]256>
+
+Set/unset ANSI 256 color mode.  Enabled by default.
 
 =item B<--regioncolor>
 
 Use different colors for each B<--inside>/B<outside> regions.
+Disabled by default.
+
+=item B<--face>=[-+]I<effect>
+
+Set or unset specified I<effect> for all color specs.  Use `+'
+(optional) to set, and `-' to unset.  Effect is a single character
+expressing: S (Standout), U (Underline), D (Double-struck), F (Flash).
+
+Next example romove D (double-struck) effect.
+
+    greple --face -D
+
+Multiple effects can be set/unset at once.
+
+    greple --face SF-D
 
 =back
 

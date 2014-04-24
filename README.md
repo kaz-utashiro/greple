@@ -38,10 +38,11 @@ __OPTIONS__
 
     --color=when         use terminal color (auto, always, never)
     --nocolor            same as --color=never
-    --colormode=mode     R, G, B, C, M, Y, W, Standout, bolD, Underline
-    --colorful           same as --colormode 'RD GD BD CD MD YD'
+    --colormap=color     R, G, B, C, M, Y, W, Standout, Double-struck, Underline
+    --colorful           use default multiple colors
+    --[no]256            use ANSI 256 colors
     --random             random color
-    --regioncolor        color by region
+    --regioncolor        use different color for inside/outside regions
 
     -o                   print only the matching part
     -p                   paragraph mode
@@ -349,9 +350,9 @@ expression can be used in patterns.
 
     Option __--nocolor__ is alias for __--color__=_never_.
 
-- __--colormode__=_RGBCYMKWrgbcymkwSUDF_, __--quote__=_start_,_end_
+- __--colormap__=_RGBCYMKWrgbcymkwSUDF_, __--quote__=_start_,_end_
 
-    Specify color mode.  Default is RD: RED and BOLD.
+    Specify color map.  Default is RD: RED and BOLD.
 
     COLOR is combination of single character representing uppercase
     foreground color :
@@ -369,6 +370,21 @@ expression can be used in patterns.
 
         r, g, b, c, m, y, k, w
 
+    or RGB value if using ANSI 256 color terminal :
+
+        FORMAT:
+            foreground[/background]
+
+        COLOR:
+            000 .. 555       : 6 x 6 x 6 216 colors
+            000000 .. FFFFFF : 24bit RGB mapped to 216 colors
+
+        Sample:
+            005     0000FF        : blue foreground
+               /505       /FF00FF : magenta background
+            000/555 000000/FFFFFF : black on white
+            500/050 FF0000/00FF00 : red on green
+
     and other effects :
 
         S  Standout (reverse video)
@@ -376,28 +392,61 @@ expression can be used in patterns.
         D  Double-struck (boldface)
         F  Flash (blink)
 
-    If the mode string contains comma \`,' character, they are used to
+    If the mode string contains colon \`:' character, they are used to
     quote the matched string.  If you want to quote the pattern by angle
     bracket, use like this.
 
-        greple --quote='<,>' pattern
+        greple --quote='<:>' pattern
 
-    Option __--quote__ is an alias for __--colormode__, but it set the
+    Option __--quote__ is an alias for __--colormap__, but it set the
     option __--color__=_always_ at the same time.
 
-    Multiple colors can be specified separating by white spaces.  Those
-    colors will be applied for each pattern keywords.  Next command will
-    show word \`foo' in red, \`bar' in green and \`baz' in blue.
+    Multiple colors can be specified separating by white space or comma,
+    or by repeating options.  Those colors will be applied for each
+    pattern keywords.  Next command will show word \`foo' in red, \`bar' in
+    green and \`baz' in blue.
 
-        greple --colormode='R G B' 'foo bar baz' ...
+        greple --colormap='R G B' 'foo bar baz'
 
-- __--colorful__
+        greple --cm R -e foo --cm G -e bar --cm B -e baz
 
-    Shortcut for __--colormode__='_RD GD BD CD MD YD_'
+- __--colormap__=_field_=_color_,_field_=_color_,...
+
+    Another form of colormap option to specify the color for fields:
+
+        FILE      File name
+        LINE      Line number
+        COLON     Colon after file name and line number
+        BLOCKEND  Block end mark
+
+- __--\[no\]colorful__
+
+    Shortcut for __--colormap__='_RD GD BD CD MD YD_' in ANSI 16 colors
+    mode, and __--colormap__='_D/544 D/454 D/445 D/455 D/454 D/554_' for
+    256 colors mode.  Enabled by default.
+
+- __--\[no\]256__
+
+    Set/unset ANSI 256 color mode.  Enabled by default.
 
 - __--regioncolor__
 
     Use different colors for each __--inside__/__outside__ regions.
+    Disabled by default.
+
+- __--face__=\[-+\]_effect_
+
+    Set or unset specified _effect_ for all color specs.  Use \`+'
+    (optional) to set, and \`-' to unset.  Effect is a single character
+    expressing: S (Standout), U (Underline), D (Double-struck), F (Flash).
+
+    Next example romove D (double-struck) effect.
+
+        greple --face -D
+
+    Multiple effects can be set/unset at once.
+
+        greple --face SF-D
 
 ## BLOCKS
 
