@@ -31,6 +31,7 @@ __OPTIONS__
     --joinby=string      replace newline in the matched text by string
     --filestyle=style    how filename printed (once, separate, line)
     --linestyle=style    how line number printed (separate, line)
+    --separate           set filestyle and linestyle both "separate"
 
     --need=n             required positive match count
     --allow=n            acceptable negative match count
@@ -303,6 +304,12 @@ expression can be used in patterns.
     Default style is _line_, and __greple__ prints line numbers at the
     beginning of each line.  Style _separate_ prints line number in the
     separate line before each line or block.
+
+- __--separate__
+
+    Shortcut for __--filestyle__=_separate_ __--linestyle__=_separate_.
+    This is convenient to use block mode search and visiting each location
+    from supporting tool, such as Emacs.
 
 ## FILES
 
@@ -741,7 +748,7 @@ can be implemented both in function and macro.
         use Exporter   ();
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.20 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.21 $ =~ /(\d+)/g;
     
         @ISA         = qw(Exporter);
         @EXPORT      = qw(&pod &comment &podcomment);
