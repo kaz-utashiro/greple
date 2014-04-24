@@ -1083,9 +1083,9 @@ sub grep_pattern {
 	my($sw, $regex) = @{$patterns[$i]};
 	my $rp = $result[$i] = [];
 	while ($_ =~ /$regex/g) {
-	    push @$rp, [ int $-[0], int $+[0], $i ];
+	    push @$rp, [ $-[0], $+[0], $i ];
 	    if ($sw eq MATCH_POSITIVE) {
-		push @blocks, [ int $-[0], int $+[0] ];
+		push @blocks, [ $-[0], $+[0] ];
 		$stat{match_positive}++;
 	    } else {
 		$stat{match_negative}++;
@@ -1576,7 +1576,7 @@ sub colorseq {
 	($start, $end) = split(/:/, $colormode, 2);
     } else {
 	map {
-	    if (s/(\/?)((?:[\da-f]{6})|[0-5][0-5][0-5])//i and $opt_256) {
+	    while ($opt_256 and s/(\/?)((?:[\da-f]{6})|[0-5][0-5][0-5])//i) {
 		$start .= ansi256($2, $1 ? BG : FG);
 	    }
 	    $start .= UNDERLINE if /U/;
