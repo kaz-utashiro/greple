@@ -922,21 +922,22 @@ sub do_grep {
 	my $mark = "\001";
 	for my $matched (reverse @$result) {
 	    my($ms, $me, $pi) = @$matched;
+	    next if $ms == $me;
+
 	    my $s = substr($block, $ms, $me - $ms);
 
 	    $pi = rand(@colors) if $opt_random;
 
 	    if ($opt_join) {
 		if ($opt_n and $opt_linestyle eq 'line') {
-		    $s =~ s/\n/$mark/g;
+		    $s =~ s/(?<!\A)\n(?!\z)/$mark/g;
 		} else {
-		    $s =~ s/\n/$opt_joinby/g;
+		    $s =~ s/(?<!\A)\n(?!\z)/$opt_joinby/g;
 		}
 	    }
 
-	    if ($s ne '' and $need_color) {
-		substr($block, $ms, $me - $ms) = color($s, $pi);
-	    }
+	    substr($block, $ms, $me - $ms,
+		   $need_color ? color($s, $pi) : $s);
 	}
 	if ($opt_n and $opt_linestyle eq 'line') {
 	    my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
