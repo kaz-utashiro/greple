@@ -2178,11 +2178,18 @@ overlaps each other and makes single block.
 
 Convert newline character found in matched string to empty or specifed
 I<string>.  Using B<--join> with B<-o> (only-matching) option, you can
-collect searching sentence list in one per line form.  This is almost
-useless for English text but sometimes useful for Japanese text.  For
-example, next command prints the list of KATAKANA words.
+collect searching sentence list in one per line form.  This is
+sometimes useful for Japanese text processing.  For example, next
+command prints the list of KATAKANA words, including those spread
+across multiple lines.
 
-    greple -ho --join '\p{utf8::InKatakana}[\n\p{utf8::InKatakana}]*'
+    greple -ho --join '\p{InKatakana}+(\n\p{InKatakana}+)*'
+
+Space separated word sequence can be processed with B<--joinby>
+option.  Next exapmle prints all `for *something*' pattern in pod
+documents within Perl script.
+
+    greple -Mperl --pod -ioe '\bfor \w+' --joinby ' '
 
 =item B<--filestyle>=I<line>|I<once>|I<separate>, B<--fs>
 
@@ -2590,7 +2597,7 @@ be used like this:
         my %attr = @_;
         for my $r (reverse @{$attr{matched}}) {
             my($s, $e) = @$r;
-            substr($_, $s, $e - $s) = color(substr($_, $s, $e - $s));
+            substr($_, $s, $e - $s, color('B', substr($_, $s, $e - $s)));
         }
         $_;
     }
@@ -2758,8 +2765,8 @@ Metacharacters can be included without escaping.  Defined string
 replacement is done only in definition in option argument.  If you
 want to use the word in command line, use option directive instead.
 
-    define :kana: \p{utf8::InKatakana}
-    option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
+    define :kana: \p{InKatakana}
+    option --kanalist --nocolor -o --join --re ':kana:+(\n:kana:+)*'
     help   --kanalist List up Katakana string
 
 =back
