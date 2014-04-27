@@ -160,9 +160,11 @@ sub setdata {
     ##
     ## comment, eg, jp, both
     ##
-    while (m{ \G ( (?:^.+\n)+ ) \n+ }mgx) {
+    while (m{ \G ( (?:^.+\n)+ ) (\n+) }mgx) {
+#	my($from, $to) = ( $-[1], $+[1] ) ;
+	my $to = pos() - length $2;
+	my $from = $to - length $1;
 	my $para = $1 ;
-	my($from, $to) = ( $-[1], $+[1] ) ;
 
 	next if $para =~ /\A-\*-/ ;
 
