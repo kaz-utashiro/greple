@@ -456,14 +456,14 @@ if (@opt_f) {
     my @patterns;
     for my $opt_f (@opt_f) {
 	open my $fh, '<:encoding(utf8)', $opt_f or die "$opt_f: $!\n";
-	push @patterns, do {
+	push @patterns, [
 	    map  { chomp ; s{\s*//.*}{} ; $_ }
 	    grep { not m{^\s*(?:#|//|$)} }
 	    <$fh>
-	} ;
+	] ;
 	close $fh;
     }
-    unshift @opt_re, join('|', map { make_pattern($_) } @patterns);
+    unshift @opt_re, map { join '|', map { make_pattern($_) } @$_ } @patterns;
 } else {
     if (@opt_le + @opt_re + @opt_fe + @opt_or + @opt_e == 0) {
 	&usage if @ARGV == 0;
@@ -1485,9 +1485,9 @@ sub blocknize {
 ######################################################################
 
 sub callfunc {
-    my($name, @arg) = @_;
+    my $name = shift;
     no strict 'refs';
-    $name->(@arg);
+    &$name;
 }
 
 ##
