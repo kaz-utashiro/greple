@@ -1767,6 +1767,16 @@ sub parseline {
     my $line = shift;
     my($arg0, $arg1, $rest) = split(' ', $line, 3);
 
+    ##
+    ## in-line help document after //
+    ##
+    if (grep { $arg0 eq $_ } qw(define option defopt) and
+	$rest =~ s{ \s+ // \s+ (.*) }{}x)
+    {
+	my $help = $1;
+	$obj->help($arg1, $help);
+    }
+
     if ($arg0 eq "define") {
 	$obj->define($arg1, $rest);
     }

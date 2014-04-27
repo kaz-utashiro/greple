@@ -284,64 +284,45 @@ sub get_json {
 
 __DATA__
 
-option default --cache
+option default --cache-auto
 
 option --cdedit --chdir $ENV{SCCC2DIR}/Edit
 option --ed1 --cdedit --glob ../SCCC1/*.bm1
 option --ed2 --cdedit --glob *.bm1
 
-option --com  --nocolor -nH --re ^※+
-option --com1 --nocolor -nH --re ^※(?!※)
-option --com2 --nocolor -nH --re ^※※(?!※)
-option --com3 --nocolor -nH --re ^※※※
-option --com2+ --nocolor -nH --re ^※※
+option --com  --nocolor -nH --re ^※+		// find all comments
+option --com1 --nocolor -nH --re ^※(?!※)	// find comment level 1
+option --com2 --nocolor -nH --re ^※※(?!※)	// find comment level 2
+option --com3 --nocolor -nH --re ^※※※		// find comment level 3
+option --com2+ --nocolor -nH --re ^※※		// find comment level 2 or <
 
-option --injp --inside &part(jp)
-option --jp --block &part(jp)
+option --injp --inside &part(jp)		// match text in Japanese part
+option --jp --block &part(jp)			// display Japanese block
 
-option --ineg --inside &part(eg)
-option --eg --block &part(eg)
+option --ineg --inside &part(eg)		// match text in English part
+option --eg --block &part(eg)			// display English block
 
-option --both --block &part(both)
+option --both --block &part(both)		// display jp/eg combined block
 
-option --comment --block &part(comment)
+option --comment --block &part(comment)		// display comment block
 
-option --table   --inside &part(table)
-option --figure  --inside &part(figure)
-option --example --inside &part(example)
+option --table   --inside &part(table)		// search inside table  
+option --figure  --inside &part(figure)		// search inside figure 
+option --example --inside &part(example)	// search inside example
 
-option --notable   --exclude &part(table)
-option --nofigure  --exclude &part(figure)
-option --noexample --exclude &part(example)
+option --notable   --exclude &part(table)	// exclude table	 
+option --nofigure  --exclude &part(figure)	// exclude figure 
+option --noexample --exclude &part(example)	// exclude example
 
-help --com      find all comments
-help --com1     find comment level 1
-help --com2     find comment level 2
-help --com3     find comment level 3
-help --com2+    find comment level 2 and more
-help --injp     match text in Japanese part
-help --ineg     match text in English part
-help --jp       display Japanese block
-help --eg       display English block
-help --both     display Japanese/English combined block
-help --comment  display comment block
+define :nev: (?=never)match
+option --cache-auto   --call bmcache(update)	// automatic cache update
+option --cache-create --re :nev: --call bmcache(create)	// create cache
+option --cache-clean  --re :nev: --call bmcache(clean)	// remove cache
+option --cache-update --re :nev: --call bmcache(force,update) \
+						// force to update cache
+option --nocache      --call bmcache(nocache)	// disable cache
 
-help --table              search inside table
-help --figure             search inside figure
-help --example            search inside example
-help --notable            exclude table
-help --nofigure           exclude figure
-help --noexample          exclude example
-
-define :nevermatch: (?=never)match
-option --cache --call bmcache(update)
-option --cache_create --re :nevermatch: --call bmcache(create)
-option --cache_clean  --re :nevermatch: --call bmcache(clean)
-option --cache_update --re :nevermatch: --call bmcache(force,update)
-option --nocache --call bmcache(nocache)
-
-help --cache              automatic cache update
-help --nocache            disable cache
-help --cache_create       create cache
-help --cache_clean        remove cache
-help --cache_update       force to update cache
+option --cache        --cache-auto	// ignore
+option --cache_create --cache-create	// ignore
+option --cache_clean  --cache-clean	// ignore
+option --cache_update --cache-update	// ignore
