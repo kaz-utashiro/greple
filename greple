@@ -470,9 +470,11 @@ if (@opt_or) {
 }
 
 for my $p (@opt_re) {
+    $p = "(?i)$p" if $opt_i;
     push @xpattern, [MATCH_POSITIVE, qr/$p/m];
 }
 for my $p (@opt_fe) {
+    $p = "(?i)$p" if $opt_i;
     push @xpattern, [MATCH_POSITIVE, qr/\Q$p/];
 }
 
