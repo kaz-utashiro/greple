@@ -6,27 +6,28 @@ bm - Greple module for bombay format
 
 greple -Mbm [ options ]
 
-    --com      find all comments
-    --com1     find comment level 1
-    --com2     find comment level 2
-    --com3     find comment level 3
-    --com2+    find comment level 2 and 3
-    --injp     match text in Japanese part
-    --jp       search only Japanese block only
-    --ineg     match text in English part
-    --eg       search only English block only
-    --both     search Japanese/English block
-    --comment  search comment block
-
-    --call=bmcache(list)     Print cache filename
-    --call=bmcache(clean)    Clean up cache file
-    --call=bmcache(create)   Create cache file
-    --call=bmcache(udpate)   Update cache file if it exists and necessary
-    --call=bmcache(nojson)   Do not use JSON module
-    --call=bmcache(nocache)  Do not use cache file
-
-    -Mbm::cache()    Keep cache file always updated
-    -Mbm::nocache()  Do not use cache
+    --com                find all comments
+    --com1               find comment level 1
+    --com2               find comment level 2
+    --com3               find comment level 3
+    --com2+              find comment level 2 or <
+    --injp               match text in Japanese part
+    --jp                 display Japanese block
+    --ineg               match text in English part
+    --eg                 display English block
+    --both               display jp/eg combined block
+    --comment            display comment block
+    --table              search inside table  
+    --figure             search inside figure 
+    --example            search inside example
+    --notable            exclude table	 
+    --nofigure           exclude figure 
+    --noexample          exclude example
+    --cache-auto         automatic cache update
+    --cache-create       create cache
+    --cache-clean        remove cache
+    --cache-update       force to update cache
+    --nocache            disable cache
 
 =head1 TEXT FORMAT
 
@@ -160,9 +161,9 @@ sub setdata {
     ##
     ## comment, eg, jp, both
     ##
-    while (m{ \G ( (?:^.+\n)+ ) (\n+) }mgx) {
+    while (m{ ^ ( (?:.+\n)+ (?:.*\z)? )  }mgx) {
 #	my($from, $to) = ( $-[1], $+[1] ) ;
-	my $to = pos() - length $2;
+	my $to = pos();
 	my $from = $to - length $1;
 	my $para = $1 ;
 
@@ -182,8 +183,14 @@ sub setdata {
 		warn("Unexpected wide char in english part:\n",
 		     $para,
 		     "***\n") ;
+		if ($lang ne 'eg' and $lang ne 'jp') {
+		    $lang = 'jp';
+		    @{$part{$lang}} or @{$part{$lang}} = ([0, 0]);
+		    @{$part{both}} or @{$part{both}} = ([0, 0]);
+		}
 		$part{$lang}->[-1][1] = $to ;
 		$part{both}->[-1][1] = $to ;
+
 		next ;
 	    }
 	    else {
@@ -201,8 +208,9 @@ sub setdata {
     ##
     ## table, figure, example
     ##
-    while (m{^<blockquote\s+class=(\w+)>(?s:.*?)</\1>}mg) {
-	push @{$part{$1}}, [ $-[0], $+[0] ];
+    while (m{^(<blockquote\s+class=(\w+)>(?s:.*?)\n</blockquote>)}mg) {
+	my $pos = pos();
+	push @{$part{$2}}, [ $pos - length($1), $pos ];
     }
 }
 
