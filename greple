@@ -601,7 +601,7 @@ my $current_file;
 use Cwd;
 if (@opt_chdir) {
     $start_directory = getcwd;
-    @opt_chdir = map { glob $_ } @opt_chdir;
+    @opt_chdir = uniq(map { glob $_ } @opt_chdir);
     push @argv_files, splice(@ARGV);
     unless ($opt_h or
 	    (@opt_chdir == 1 and @argv_files == 1 and @opt_glob == 0)) {
