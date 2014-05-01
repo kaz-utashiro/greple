@@ -662,7 +662,7 @@ if (@opt_colormap) {
 }
 
 my @default_color = $opt_256
-    ? qw(D/544 D/454 D/445 D/455 D/454 D/554)
+    ? qw(D/544 D/454 D/445 D/455 D/545 D/554)
     : qw(RD GD BD CD MD YD);
 
 if (@colors == 0) {
