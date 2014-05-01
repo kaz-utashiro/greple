@@ -1367,23 +1367,19 @@ sub get_regions {
     }
     ## pattern
     else {
-	matched_regions({catchgroup => 0}, \$_, $pattern);
+	matched_regions(\$_, $pattern);
     }
 }
 
 sub matched_regions {
-    my $opt = ref $_[0] eq 'HASH' ? shift : {};
     local *_ = shift;
-    my($pattern) = @_;
+    my $pattern = shift;
     my @list;
 
     my $re = qr/$pattern/m;
-    while (/$re/g) {
-	if ($opt->{catchgroup}) {
-	    push @list, defined $-[1] ? [$-[1], $+[1]] : [$-[0], $+[0]];
-	} else {
-	    push @list, [$-[0], $+[0]];
-	}
+    while (/($re)/g) {
+	my $pos = pos();
+	push @list, [$pos - length($1), $pos];
     }
     @list;
 }
