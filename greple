@@ -119,6 +119,7 @@ my @opt_re;
 my @opt_le;
 my @opt_fe;
 my @opt_or;
+my @opt_must;
 
 my @opt_if;
 my @opt_of;
@@ -380,7 +381,7 @@ foreach (@ARGV) {
 }
 
 my @SAVEDARGV = @ARGV;
-Getopt::Long::Configure("bundling");
+Getopt::Long::Configure qw(bundling no_getopt_compat);
 GetOptions(@optargs) || pod2usage;
 
 sub set_options {
@@ -481,7 +482,9 @@ for (@opt_le) {
 	    push @opt_v, $p;
 	} elsif ($p =~ s/^\?//) {	# ?pattern
 	    push @opt_or, $p;
-	} elsif ($p =~ s/^\+// or 1) {	# +pattern
+	} elsif ($p =~ s/^\+//) {	# +pattern
+	    push @opt_must, $p;
+	} else {
 	    push @opt_e, $p;
 	}
     }
@@ -489,10 +492,15 @@ for (@opt_le) {
 
 my @xpattern;
 use constant {
-    MATCH_POSITIVE => 1,
     MATCH_NEGATIVE => 0,
+    MATCH_POSITIVE => 1,
+    MATCH_MUST => 2,
 };
 
+for my $p (@opt_must) {
+    $p = make_pattern($p);
+    push @xpattern, [MATCH_MUST, qr/$p/m];
+}
 for my $p (@opt_e) {
     $p = make_pattern($p);
     push @xpattern, [MATCH_POSITIVE, qr/$p/m];
@@ -515,13 +523,17 @@ for my $p (@opt_fe) {
     push @xpattern, [MATCH_POSITIVE, qr/\Q$p/];
 }
 
-my($positive_pattern, $negative_pattern);
+my($positive_pattern, $negative_pattern) = (0, 0);
 for (@xpattern) {
     $_->[0] == MATCH_POSITIVE ? $positive_pattern++ : $negative_pattern++;
 }
 
 $opt_need += $positive_pattern if $opt_need <= 0;
 $opt_allow += $negative_pattern if $opt_allow < 0;
+
+if ($opt_need > 0) {
+    map { $_->[0] == MATCH_MUST and $opt_need-- } @xpattern;
+}
 
 ##
 ## setup input/output filter
@@ -726,7 +738,12 @@ if ($opt_d{m}) {
     warn "Search pattern:\n";
     for my $i (0 .. $#xpattern) {
 	my($mode, $p) = @{$xpattern[$i]};
-	warn sprintf("  %s /%s/\n", $mode ? 'and' : 'not',
+	my $type =
+	    $mode == MATCH_POSITIVE ? 'and ' :
+	    $mode == MATCH_NEGATIVE ? 'not ' :
+	    $mode == MATCH_MUST ? 'must' :
+	    'unknown';
+	warn sprintf("  %s /%s/\n", $type,
 		     @colors > 1 ? index_color($p, $i) : $p);
     }
 }
@@ -1072,6 +1089,20 @@ sub _color    { $need_color ? goto &color : $_[1] }
 
 ######################################################################
 
+use constant {
+    POSI_BASE => 0, POSI_POSI => 0, POSI_NEGA => 1, POSI_LIST => 2,
+    NEGA_BASE => 3, NEGA_POSI => 3, NEGA_NEGA => 4, NEGA_LIST => 5,
+    MUST_BASE => 6, MUST_POSI => 6, MUST_NEGA => 7, MUST_LIST => 8,
+    INDX_POSI => 0, INDX_NEGA => 1, INDX_LIST => 2,
+};
+
+my @match_base;
+BEGIN {
+    $match_base[MATCH_POSITIVE] = POSI_BASE;
+    $match_base[MATCH_NEGATIVE] = NEGA_BASE;
+    $match_base[MATCH_MUST] = MUST_BASE;
+}
+
 sub grep_pattern {
     local *_ = shift;
     my @patterns = @{+shift};
@@ -1095,7 +1126,7 @@ sub grep_pattern {
 	    my $pos = pos();
 	    my($s, $e) = ($pos - length($1), $pos);
 	    push @p, [ $s, $e, $i ];
-	    if ($sw eq MATCH_POSITIVE) {
+	    if ($sw eq MATCH_MUST or $sw eq MATCH_POSITIVE) {
 		push @blocks, [ $s, $e ];
 		$stat{match_positive}++;
 	    } else {
@@ -1103,7 +1134,8 @@ sub grep_pattern {
 	    }
 	}
 	if (@p) {
-	    $required{$sw eq MATCH_POSITIVE ? 'yes' : 'no'}++;
+	    $required{$sw eq MATCH_MUST || $sw eq MATCH_POSITIVE
+			  ? 'yes' : 'no'}++;
 	}
 	push @result, \@p;
     }
@@ -1180,14 +1212,9 @@ sub grep_pattern {
     ##
     ## build match table
     ##
-    my @match_table = map { [ 0, 0, [], 0, 0, [] ] } @blocks;
-    use constant {
-	POSI_BASE => 0, POSI_POSI => 0, POSI_NEGA => 1, POSI_LIST => 2,
-	NEGA_BASE => 3, NEGA_POSI => 3, NEGA_NEGA => 4, NEGA_LIST => 5,
-			INDX_POSI => 0, INDX_NEGA => 1, INDX_LIST => 2,
-    };
+    my @match_table = map { [ 0, 0, [], 0, 0, [], 0, 0, [] ] } @blocks;
     for my $i (0 .. $#result) {
-	my $base = $patterns[$i][0] eq MATCH_POSITIVE ? POSI_BASE : NEGA_BASE;
+	my $base = $match_base[$patterns[$i][0]];
 	my @b = classify_regions({ strict => $opt_strict },
 				 $result[$i], \@blocks);
 	for my $bi (0 .. $#b) {
@@ -1207,8 +1234,10 @@ sub grep_pattern {
     ## now it is quite easy to get effective blocks
     ##
     my @effective_index = grep(
+	$match_table[$_][MUST_NEGA] == 0 &&
 	$match_table[$_][POSI_POSI] >= $opt_need &&
-	$match_table[$_][NEGA_POSI] <= $opt_allow, 0 .. $#blocks);
+	$match_table[$_][NEGA_POSI] <= $opt_allow,
+	0 .. $#blocks);
 
     ##
     ## --block with -ABC option
@@ -1228,6 +1257,7 @@ sub grep_pattern {
     my @list = ();
     for my $bi (@effective_index) {
 	my @matched = merge_regions({nojoin => $opt_o, sort => 1},
+				    @{$match_table[$bi][MUST_LIST]},
 				    @{$match_table[$bi][POSI_LIST]},
 				    @{$match_table[$bi][NEGA_LIST]}
 	    );
