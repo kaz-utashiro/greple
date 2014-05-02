@@ -115,11 +115,11 @@ B<OPTIONS>
 
 my @opt_e;
 my @opt_v;
+my @opt_r;
 my @opt_re;
 my @opt_le;
 my @opt_fe;
 my @opt_or;
-my @opt_must;
 
 my @opt_if;
 my @opt_of;
@@ -181,6 +181,7 @@ my $opt_H;
 
 my @optargs = (
     'e|and=s'            => \@opt_e,
+    'r|must=s'           => \@opt_r,
     'v|not=s'            => \@opt_v,
     'le=s'               => \@opt_le,
     're=s'               => \@opt_re,
@@ -485,7 +486,7 @@ for (@opt_le) {
 	} elsif ($p =~ s/^\?//) {	# ?pattern
 	    push @opt_or, $p;
 	} elsif ($p =~ s/^\+//) {	# +pattern
-	    push @opt_must, $p;
+	    push @opt_r, $p;
 	} else {
 	    push @opt_e, $p;
 	}
@@ -499,7 +500,7 @@ use constant {
     MATCH_MUST => 2,
 };
 
-for my $p (@opt_must) {
+for my $p (@opt_r) {
     $p = make_pattern($p);
     push @xpattern, [MATCH_MUST, qr/$p/m];
 }
