@@ -154,8 +154,10 @@ my $opt_joinby = "";
 my $opt_clean;
 my $opt_readlist;
 my $opt_rc = 1;
-my $opt_need = 0;
+my $opt_need;
 my $opt_allow = 0;
+my @opt_need;
+my @opt_allow;
 my $opt_strict = 0;
 my @opt_print;
 my $opt_continue;
@@ -183,8 +185,8 @@ my @optargs = (
     'le=s'               => \@opt_le,
     're=s'               => \@opt_re,
     'fe=s'               => \@opt_fe,
-    'need=i'             => \$opt_need,
-    'allow=i'            => \$opt_allow,
+    'need=s'             => \@opt_need,
+    'allow=s'            => \@opt_allow,
     'i|ignore-case'      => \$opt_i,
     'l'                  => \$opt_l,
     'c|count'            => \$opt_c,
@@ -528,11 +530,42 @@ for (@xpattern) {
     $_->[0] == MATCH_POSITIVE ? $positive_pattern++ : $negative_pattern++;
 }
 
-$opt_need += $positive_pattern if $opt_need <= 0;
-$opt_allow += $negative_pattern if $opt_allow < 0;
+##
+## set $opt_need and $opt_alow
+##
+{
+    my $must = grep { $_->[0] == MATCH_MUST } @xpattern;
+    my $posi = grep { $_->[0] == MATCH_POSITIVE } @xpattern;
+    my $nega = grep { $_->[0] == MATCH_NEGATIVE } @xpattern;
 
-if ($opt_need > 0) {
-    map { $_->[0] == MATCH_MUST and $opt_need-- } @xpattern;
+    $opt_need = $must ? 0 : $posi;
+    for (@opt_need) {
+	if (/^([+-]\d+)$/) {	# --need -n, +n
+	    $opt_need += $1;
+	}
+	elsif (/^(\d+)$/) {	# --need n
+	    $opt_need = $_ - $must;
+	}
+	else {
+	    die "$_ is not valid count.\n"
+	}
+    }
+
+    $opt_allow = 0;
+    for (@opt_allow) {
+	if (/^-(\d+)$/) {	# --allow -n
+	    $opt_allow = $nega - $1;
+	}
+	elsif (/^\+(\d+)$/) {	# --allow +n
+	    $opt_need += $_;
+	}
+	elsif (/^(\d+)$/) {	# --allow n
+	    $opt_allow = $_;
+	}
+	else {
+	    die "$_ is not valid count.\n"
+	}
+    }
 }
 
 ##
@@ -746,6 +779,7 @@ if ($opt_d{m}) {
 	warn sprintf("  %s /%s/\n", $type,
 		     @colors > 1 ? index_color($p, $i) : $p);
     }
+    warn sprintf "need = %d, allow = %d\n", $opt_need, $opt_allow;
 }
 
 ## record start time
