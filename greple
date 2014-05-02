@@ -48,6 +48,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     pattern           'positive -negative ?alternative'
 
     -e pattern        regex pattern match across line boundary
+    -r pattern        regex pattern cannot be compromised
     -v pattern        regex pattern not to be matched
     --le pattern      lexical expression (same as bare pattern)
     --re pattern      regular expression
@@ -72,8 +73,8 @@ B<OPTIONS>
     --linestyle=style    how line number printed (separate, line)
     --separate           set filestyle and linestyle both "separate"
 
-    --need=n             required positive match count
-    --allow=n            acceptable negative match count
+    --need=[+-]n         required positive match count
+    --allow=[+-]n        acceptable negative match count
 
     --color=when         use terminal color (auto, always, never)
     --nocolor            same as --color=never
@@ -2050,17 +2051,27 @@ and `baz' and one or more from `yabba', `dabba' or `doo'.
 
 NOT operator can be specified by prefixing the token by minus (`-')
 sign.  Next example will show the line which contain both `foo' and
-bar' but none of `yabba' or `dabba' or `doo'.  It is ok to put `+'
-mark for positive matching pattern.
+bar' but none of `yabba' or `dabba' or `doo'.
 
     greple 'foo bar -yabba -dabba -doo'
-    greple '+foo +bar -yabba|dabba|doo'
 
 This can be written as this using B<-e> and B<-v> option.
 
     greple -e foo -e bar -v yabba -v dabba -v doo
     greple -e foo -e bar -v 'yabba|dabba|doo'
 
+If `+' is placed to positive matching pattern, that pattern is marked
+as required, and match required count is automatically set to the
+number of required pattern.  So
+
+    greple '+foo bar baz'
+
+commands implicitly set the option C<--need 1>, and consequently print
+all lines including `foo'.  If you want to search lines which includes
+either or both of `bar' and `baz', use like this:
+
+    greple '+foo bar baz' --need 2
+    greple '+foo bar baz' --need +1
 
 =head2 LINE ACROSS MATCH
 
@@ -2099,8 +2110,7 @@ expression can be used in patterns.
 
 Treat the string as a collection of tokens separated by spaces.  Each
 token is interpreted by the first character.  Token start with `-'
-means negative pattern, `?' means alternative, optional `+' and
-anything other means positive match.
+means negative pattern, `?' means alternative, and `+' does required.
 
 Next example print lines which contains `foo' and `bar', and one or
 more of `yabba' and 'dabba', and none of `bar' and `doo'.
@@ -2130,6 +2140,13 @@ multiple lines.  Next commands search the series of word `foo', `bar'
 and `baz' even if they are separated by newlines.
 
     greple -e 'foo bar baz'
+
+=item B<-r> I<pattern>, B<--must>=I<pattern>
+
+Specify required match token.  Next two commands are equivalent.
+
+    greple '+foo bar baz'
+    greple -r foo -e bar -e baz
 
 =item B<-v> I<pattern>, B<--not>=I<pattern>
 
@@ -2173,7 +2190,7 @@ command.
     grep -e foo -e bar -e baz
     greple --need=1 -e foo -e bar -e baz
 
-When the count I<n> is negative value, it is subtracted from maximum
+When the count I<n> is negative value, it is subtracted from default
 value.
 
 =item B<-f> I<file>, B<--file>=I<file>
