@@ -540,11 +540,14 @@ for (@xpattern) {
 
     $opt_need = $must ? 0 : $posi;
     for (@opt_need) {
-	if (/^([+-]\d+)$/) {	# --need -n, +n
+	if (/^-(\d+)$/) {	# --need -n
+	    $opt_need = $posi - $1;
+	}
+	elsif (/^\+(\d+)$/) {	# --need +n
 	    $opt_need += $1;
 	}
 	elsif (/^(\d+)$/) {	# --need n
-	    $opt_need = $_ - $must;
+	    $opt_need = $1 - $must;
 	}
 	else {
 	    die "$_ is not valid count.\n"
@@ -557,10 +560,10 @@ for (@xpattern) {
 	    $opt_allow = $nega - $1;
 	}
 	elsif (/^\+(\d+)$/) {	# --allow +n
-	    $opt_need += $_;
+	    $opt_allow += $1;
 	}
 	elsif (/^(\d+)$/) {	# --allow n
-	    $opt_allow = $_;
+	    $opt_allow = $1;
 	}
 	else {
 	    die "$_ is not valid count.\n"
