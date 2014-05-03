@@ -470,9 +470,9 @@ if (@opt_f) {
     }
     unshift @opt_re, map { join '|', map { make_pattern($_) } @$_ } @patterns;
 } else {
-    if (@opt_le + @opt_re + @opt_fe + @opt_or + @opt_e == 0) {
+    if (@opt_le + @opt_re + @opt_fe + @opt_or + @opt_e + @opt_r == 0) {
 	&usage if @ARGV == 0;
-	unshift @opt_le, shift(@ARGV);
+	unshift @opt_le, shift @ARGV;
     }
 }
 
