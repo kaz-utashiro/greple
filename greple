@@ -527,11 +527,6 @@ for my $p (@opt_fe) {
     push @xpattern, [MATCH_POSITIVE, qr/\Q$p/];
 }
 
-my($positive_pattern, $negative_pattern) = (0, 0);
-for (@xpattern) {
-    $_->[0] == MATCH_POSITIVE ? $positive_pattern++ : $negative_pattern++;
-}
-
 ##
 ## set $opt_need and $opt_alow
 ##
@@ -1554,7 +1549,7 @@ sub blocknize {
 sub callfunc {
     my $name = shift;
     no strict 'refs';
-    &$name;
+    goto &$name;
 }
 
 ##
