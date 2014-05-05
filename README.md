@@ -6,71 +6,77 @@ greple - grep with multiple keywords
 
 __greple__ \[__-M___module_\] \[ __-options__ \] pattern \[ file... \]
 
-    pattern           'positive -negative ?alternative'
-
-    -e pattern        regex pattern match across line boundary
-    -v pattern        regex pattern not to be matched
-    --le pattern      lexical expression (same as bare pattern)
-    --re pattern      regular expression
-    --fe pattern      fixed expression
-
-__OPTIONS__
-
-    -i                   ignore case
-    -l                   list filename only
-    -c                   print count of matched block only
-    -n                   print line number
-    -h                   do not display filenames
-    -H                   always display filenames
-    --inside=pattern     select matches inside of pattern
-    --outside=pattern    select matches outside of pattern
-    --include=pattern    reduce matches to the area
-    --exclude=pattern    reduce matches to outside of the area
-    --strict             strict mode for --inside/outside --block
-    --join               delete newline in the matched part
-    --joinby=string      replace newline in the matched text by string
-    --filestyle=style    how filename printed (once, separate, line)
-    --linestyle=style    how line number printed (separate, line)
-    --separate           set filestyle and linestyle both "separate"
-
-    --need=n             required positive match count
-    --allow=n            acceptable negative match count
-
-    --color=when         use terminal color (auto, always, never)
-    --nocolor            same as --color=never
-    --colormap=color     R, G, B, C, M, Y, W, Standout, Double-struck, Underline
-    --colorful           use default multiple colors
-    --[no]256            use ANSI 256 colors
-    --random             random color
-    --regioncolor        use different color for inside/outside regions
-
-    -o                   print only the matching part
-    -p                   paragraph mode
-    -A[n]                after match context
-    -B[n]                before match context
-    -C[n]                after and before match context
-    --all                print whole data
-    --block=pattern      specify the block of records
-    --blockend=s         specify the block end mark (Default: "--\n")
-
-    -f file              file contains search pattern
-    -d flags             display info (f:file d:dir c:count m:misc s:stat)
-    --man                display command or module manual page
-    --show               display module file
-    --icode=name         specify file encoding
-    --ocode=name         specify output encoding
-    --if=filter          set filter command
-    --of=filter          output filter command
-    --noif               disable default input filter
-    --[no]pgp            decrypt and find PGP file (Default: false)
-    --pgppass=phrase     pgp passphrase
-    --readlist           get filenames from stdin
-    --chdir              change directory before search
-    --glob=glob          glob target files
-    --print=func         print function
-    --continue           continue after print function
-    --call=func          call function before search
-    --norc               skip reading startup file
+    PATTERN
+      pattern              'positive +must -negative ?alternative'
+      -e pattern           regex pattern match across line boundary
+      -r pattern           regex pattern cannot be compromised
+      -v pattern           regex pattern not to be matched
+      --le pattern         lexical expression (same as bare pattern)
+      --re pattern         regular expression
+      --fe pattern         fixed expression
+      --file file          file contains search pattern
+    MATCH
+      -i                   ignore case
+      --need=[+-]n         required positive match count
+      --allow=[+-]n        acceptable negative match count
+    STYLE
+      -l                   list filename only
+      -c                   print count of matched block only
+      -n                   print line number
+      -h                   do not display filenames
+      -H                   always display filenames
+      -o                   print only the matching part
+      -A[n]                after match context
+      -B[n]                before match context
+      -C[n]                after and before match context
+      --join               delete newline in the matched part
+      --joinby=string      replace newline in the matched text by string
+      --filestyle=style    how filename printed (once, separate, line)
+      --linestyle=style    how line number printed (separate, line)
+      --separate           set filestyle and linestyle both "separate"
+    FILE
+      --glob=glob          glob target files
+      --chdir              change directory before search
+      --readlist           get filenames from stdin
+    COLOR
+      --color=when         use terminal color (auto, always, never)
+      --nocolor            same as --color=never
+      --colormap=color     R, G, B, C, M, Y, W, Standout, Double-struck, Underline
+      --colorful           use default multiple colors
+      --[no]256            use ANSI 256 colors
+      --regioncolor        use different color for inside/outside regions
+      --random             random color
+      --face
+    BLOCK
+      -p                   paragraph mode
+      --all                print whole data
+      --block=pattern      specify the block of records
+      --blockend=s         specify the block end mark (Default: "--\n")
+    REGION
+      --inside=pattern     select matches inside of pattern
+      --outside=pattern    select matches outside of pattern
+      --include=pattern    reduce matches to the area
+      --exclude=pattern    reduce matches to outside of the area
+      --strict             strict mode for --inside/outside --block
+    CHARACTER CODE
+      --icode=name         specify file encoding
+      --ocode=name         specify output encoding
+    FILTER
+      --if=filter          set filter command
+      --of=filter          output filter command
+      --noif               disable default input filter
+    RUNTIME FUNCTION
+      --print=func         print function
+      --continue           continue after print function
+      --call=func          call function before search
+    PGP
+      --[no]pgp            decrypt and find PGP file (Default: false)
+      --pgppass=phrase     pgp passphrase
+    OTHER
+      --norc               skip reading startup file
+      --man                display command or module manual page
+      --show               display module file
+      -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 # DESCRIPTION
 
@@ -101,16 +107,27 @@ and \`baz' and one or more from \`yabba', \`dabba' or \`doo'.
 
 NOT operator can be specified by prefixing the token by minus (\`-')
 sign.  Next example will show the line which contain both \`foo' and
-bar' but none of \`yabba' or \`dabba' or \`doo'.  It is ok to put \`+'
-mark for positive matching pattern.
+bar' but none of \`yabba' or \`dabba' or \`doo'.
 
     greple 'foo bar -yabba -dabba -doo'
-    greple '+foo +bar -yabba|dabba|doo'
 
 This can be written as this using __-e__ and __-v__ option.
 
     greple -e foo -e bar -v yabba -v dabba -v doo
     greple -e foo -e bar -v 'yabba|dabba|doo'
+
+If \`+' is placed to positive matching pattern, that pattern is marked
+as required, and match required count is automatically set to the
+number of required pattern.  So
+
+    greple '+foo bar baz'
+
+commands implicitly set the option `--need 1`, and consequently print
+all lines including \`foo'.  If you want to search lines which includes
+either or both of \`bar' and \`baz', use like this:
+
+    greple '+foo bar baz' --need 2
+    greple '+foo bar baz' --need +1
 
 ## LINE ACROSS MATCH
 
@@ -143,8 +160,7 @@ expression can be used in patterns.
 
     Treat the string as a collection of tokens separated by spaces.  Each
     token is interpreted by the first character.  Token start with \`-'
-    means negative pattern, \`?' means alternative, optional \`+' and
-    anything other means positive match.
+    means negative pattern, \`?' means alternative, and \`+' does required.
 
     Next example print lines which contains \`foo' and \`bar', and one or
     more of \`yabba' and 'dabba', and none of \`bar' and \`doo'.
@@ -174,6 +190,13 @@ expression can be used in patterns.
     and \`baz' even if they are separated by newlines.
 
         greple -e 'foo bar baz'
+
+- __-r__ _pattern_, __--must__=_pattern_
+
+    Specify required match token.  Next two commands are equivalent.
+
+        greple '+foo bar baz'
+        greple -r foo -e bar -e baz
 
 - __-v__ _pattern_, __--not__=_pattern_
 
@@ -216,7 +239,7 @@ expression can be used in patterns.
         grep -e foo -e bar -e baz
         greple --need=1 -e foo -e bar -e baz
 
-    When the count _n_ is negative value, it is subtracted from maximum
+    When the count _n_ is negative value, it is subtracted from default
     value.
 
 - __-f__ _file_, __--file__=_file_
@@ -288,11 +311,18 @@ expression can be used in patterns.
 
     Convert newline character found in matched string to empty or specifed
     _string_.  Using __--join__ with __-o__ (only-matching) option, you can
-    collect searching sentence list in one per line form.  This is almost
-    useless for English text but sometimes useful for Japanese text.  For
-    example, next command prints the list of KATAKANA words.
+    collect searching sentence list in one per line form.  This is
+    sometimes useful for Japanese text processing.  For example, next
+    command prints the list of KATAKANA words, including those spread
+    across multiple lines.
 
-        greple -ho --join '\p{utf8::InKatakana}[\n\p{utf8::InKatakana}]*'
+        greple -ho --join '\p{InKatakana}+(\n\p{InKatakana}+)*'
+
+    Space separated word sequence can be processed with __--joinby__
+    option.  Next exapmle prints all \`for \*something\*' pattern in pod
+    documents within Perl script.
+
+        greple -Mperl --pod -ioe '\bfor \w+' --joinby ' '
 
 - __--filestyle__=_line_|_once_|_separate_, __--fs__
 
@@ -416,14 +446,13 @@ expression can be used in patterns.
 
         FILE      File name
         LINE      Line number
-        COLON     Colon after file name and line number
         BLOCKEND  Block end mark
 
 - __--\[no\]colorful__
 
     Shortcut for __--colormap__='_RD GD BD CD MD YD_' in ANSI 16 colors
-    mode, and __--colormap__='_D/544 D/454 D/445 D/455 D/454 D/554_' for
-    256 colors mode.  Enabled by default.
+    mode, and __--colormap__='_D/544 D/454 D/445 D/455 D/454 D/554_' and
+    other combination of 3, 4, 5 for 256 colors mode.  Enabled by default.
 
 - __--\[no\]256__
 
@@ -653,7 +682,7 @@ expression can be used in patterns.
             my %attr = @_;
             for my $r (reverse @{$attr{matched}}) {
                 my($s, $e) = @$r;
-                substr($_, $s, $e - $s) = color(substr($_, $s, $e - $s));
+                substr($_, $s, $e - $s, color('B', substr($_, $s, $e - $s)));
             }
             $_;
         }
@@ -783,8 +812,8 @@ on user's home directory.  Following directives can be used.
     replacement is done only in definition in option argument.  If you
     want to use the word in command line, use option directive instead.
 
-        define :kana: \p{utf8::InKatakana}
-        option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
+        define :kana: \p{InKatakana}
+        option --kanalist --nocolor -o --join --re ':kana:+(\n:kana:+)*'
         help   --kanalist List up Katakana string
 
 Environment variable substitution is done for string specified by
