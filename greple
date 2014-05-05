@@ -1020,9 +1020,7 @@ sub do_grep {
 	return $matched_count;
     }
 
-    if ($matched_count == 0) {
-	return $matched_count;
-    }
+    return 0 if @result == 0;
 
     if ($need_filename and $opt_filestyle eq 'once') {
 	print $current_file, ":\n";
@@ -1178,7 +1176,9 @@ sub grep_pattern {
     ##
     ## optimization for zero match
     ##
-    return () if $required{yes} == 0;
+    if ($required{yes} == 0 and $opt_need > 0) {
+	return ();
+    }
 
     ##
     ## --inside, --outside
