@@ -672,7 +672,6 @@ $opt_join = 1 if $opt_joinby ne "";
 my %colormap = (
     FILE  => $opt_256 ? "G" : "G",
     LINE  => $opt_256 ? "Y" : "Y",
-    COLON => $opt_256 ? "" : "" ,
     BLOCKEND => "",
     );
 
@@ -1064,11 +1063,11 @@ sub do_grep {
 
 	if (my $nl = 0, 1) {
 	    if ($need_filename and $opt_filestyle eq 'separate') {
-		print _file($current_file), _colon(":");
+		print _file("$current_file:");
 		$nl++;
 	    }
 	    if ($opt_n and $opt_linestyle eq 'separate') {
-		print _line($line), _colon(":");
+		print _line("$line:");
 		$nl++;
 	    }
 	    print "\n" if $nl;
@@ -1097,14 +1096,14 @@ sub do_grep {
 	    my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
 	    $block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
 			my $s = $1 ? $opt_joinby
-				   : _line($line) . _colon(":");
+				   : _line("$line:");
 			$line += $increment;
 			$s;
 		       }gse;
 	}
 
 	if ($need_filename and $opt_filestyle eq 'line') {
-	    my $s = _file($file) . _colon(':');
+	    my $s = _file("$file:");
 	    $block =~ s/^/$s/mg;
 	}
 
@@ -1119,7 +1118,6 @@ sub do_grep {
 sub _file     { _color('FILE', @_) }
 sub _line     { _color('LINE', @_) }
 sub _delim    { _color('DELIM', @_) }
-sub _colon    { _color('COLON', @_) }
 sub _blockend { _color('BLOCKEND', @_) }
 sub _color    { $need_color ? goto &color : $_[1] }
 
@@ -2417,14 +2415,13 @@ Another form of colormap option to specify the color for fields:
 
     FILE      File name
     LINE      Line number
-    COLON     Colon after file name and line number
     BLOCKEND  Block end mark
 
 =item B<--[no]colorful>
 
 Shortcut for B<--colormap>='I<RD GD BD CD MD YD>' in ANSI 16 colors
-mode, and B<--colormap>='I<D/544 D/454 D/445 D/455 D/454 D/554>' for
-256 colors mode.  Enabled by default.
+mode, and B<--colormap>='I<D/544 D/454 D/445 D/455 D/454 D/554>' and
+other combination of 3, 4, 5 for 256 colors mode.  Enabled by default.
 
 =item B<--[no]256>
 
