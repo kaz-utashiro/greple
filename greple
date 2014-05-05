@@ -45,72 +45,77 @@ greple - grep with multiple keywords
 
 B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
 
-    pattern           'positive -negative ?alternative'
-
-    -e pattern        regex pattern match across line boundary
-    -r pattern        regex pattern cannot be compromised
-    -v pattern        regex pattern not to be matched
-    --le pattern      lexical expression (same as bare pattern)
-    --re pattern      regular expression
-    --fe pattern      fixed expression
-
-B<OPTIONS>
-
+  PATTERN
+    pattern              'positive +must -negative ?alternative'
+    -e pattern           regex pattern match across line boundary
+    -r pattern           regex pattern cannot be compromised
+    -v pattern           regex pattern not to be matched
+    --le pattern         lexical expression (same as bare pattern)
+    --re pattern         regular expression
+    --fe pattern         fixed expression
+    --file file          file contains search pattern
+  MATCH
     -i                   ignore case
+    --need=[+-]n         required positive match count
+    --allow=[+-]n        acceptable negative match count
+  STYLE
     -l                   list filename only
     -c                   print count of matched block only
     -n                   print line number
     -h                   do not display filenames
     -H                   always display filenames
-    --inside=pattern     select matches inside of pattern
-    --outside=pattern    select matches outside of pattern
-    --include=pattern    reduce matches to the area
-    --exclude=pattern    reduce matches to outside of the area
-    --strict             strict mode for --inside/outside --block
+    -o                   print only the matching part
+    -A[n]                after match context
+    -B[n]                before match context
+    -C[n]                after and before match context
     --join               delete newline in the matched part
     --joinby=string      replace newline in the matched text by string
     --filestyle=style    how filename printed (once, separate, line)
     --linestyle=style    how line number printed (separate, line)
     --separate           set filestyle and linestyle both "separate"
-
-    --need=[+-]n         required positive match count
-    --allow=[+-]n        acceptable negative match count
-
+  FILE
+    --glob=glob          glob target files
+    --chdir              change directory before search
+    --readlist           get filenames from stdin
+  COLOR
     --color=when         use terminal color (auto, always, never)
     --nocolor            same as --color=never
     --colormap=color     R, G, B, C, M, Y, W, Standout, Double-struck, Underline
     --colorful           use default multiple colors
     --[no]256            use ANSI 256 colors
-    --random             random color
     --regioncolor        use different color for inside/outside regions
-
-    -o                   print only the matching part
+    --random             random color
+    --face
+  BLOCK
     -p                   paragraph mode
-    -A[n]                after match context
-    -B[n]                before match context
-    -C[n]                after and before match context
     --all                print whole data
     --block=pattern      specify the block of records
     --blockend=s         specify the block end mark (Default: "--\n")
-
-    -f file              file contains search pattern
-    -d flags             display info (f:file d:dir c:count m:misc s:stat)
-    --man                display command or module manual page
-    --show               display module file
+  REGION
+    --inside=pattern     select matches inside of pattern
+    --outside=pattern    select matches outside of pattern
+    --include=pattern    reduce matches to the area
+    --exclude=pattern    reduce matches to outside of the area
+    --strict             strict mode for --inside/outside --block
+  CHARACTER CODE
     --icode=name         specify file encoding
     --ocode=name         specify output encoding
+  FILTER
     --if=filter          set filter command
     --of=filter          output filter command
     --noif               disable default input filter
-    --[no]pgp            decrypt and find PGP file (Default: false)
-    --pgppass=phrase     pgp passphrase
-    --readlist           get filenames from stdin
-    --chdir              change directory before search
-    --glob=glob          glob target files
+  RUNTIME FUNCTION
     --print=func         print function
     --continue           continue after print function
     --call=func          call function before search
+  PGP
+    --[no]pgp            decrypt and find PGP file (Default: false)
+    --pgppass=phrase     pgp passphrase
+  OTHER
     --norc               skip reading startup file
+    --man                display command or module manual page
+    --show               display module file
+    -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 =cut
 
