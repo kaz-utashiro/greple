@@ -1529,10 +1529,13 @@ sub blocknize {
 
     my($begin, $end);
 
+    $begin = $from;
     for (my $c = $opt_B + 1; $c; $c--) {
-	$begin = rindex($_, $delim, $from - length $delim);
+	if ($opt_p) {
+	    $begin-- while substr($_, $begin, 2) eq "\n\n";
+	}
+	$begin = rindex($_, $delim, $begin - length $delim);
 	last if $begin < 0;
-	$from = $begin;
     }
     if ($begin < 0) {
 	$begin = 0;
@@ -1540,18 +1543,26 @@ sub blocknize {
 	$begin += length $delim;
     }
 
-    if ($matched =~ /$delim\z/) {
-	$to -= length($delim);
+    my $start = $to;
+    if (substr($matched, -(length $delim)) eq $delim) {
+	$start -= length $delim;
     }
     for (my $c = $opt_A + 1; $c; $c--) {
-	$end = index($_, $delim, $to);
-	last if $end < 0;
-	$to = $end + length $delim;
-    }
-    if ($end < 0) {
+	pos($_) = $start;
+	if ($opt_p) {
+	    if (/\G(?:.+\n)*(\n+)/g) {
+		$start = pos();
+		$end = $start - length $1;
+		next;
+	    }
+	} else {
+	    if (/\G.*\n/g) {
+		$end = $start = pos();
+		next;
+	    }
+	}
 	$end = length $_;
-    } else {
-	$end += 1;
+	last;
     }
 
     ($begin, $end);
