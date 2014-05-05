@@ -1530,9 +1530,9 @@ sub blocknize {
     my($begin, $end);
 
     for (my $c = $opt_B + 1; $c; $c--) {
-	$begin = rindex($_, $delim, $from);
+	$begin = rindex($_, $delim, $from - length $delim);
 	last if $begin < 0;
-	$from = $begin - length $delim;
+	$from = $begin;
     }
     if ($begin < 0) {
 	$begin = 0;
@@ -1551,7 +1551,7 @@ sub blocknize {
     if ($end < 0) {
 	$end = length $_;
     } else {
-	$end += length $delim;
+	$end += 1;
     }
 
     ($begin, $end);
