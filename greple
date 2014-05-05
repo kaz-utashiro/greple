@@ -716,7 +716,10 @@ if (@opt_face) {
 
 if ($opt_d{c}) {
     warn 'colormap = ', Dumper \%colormap;
-    warn 'colors = ', Dumper \@colors;
+    for (Dumper \@colors) {
+	s/(?<=')([^']+)(?=')/color($1, $1)/ge;
+	warn 'colors = ', $_;
+    }
 }
 
 my $need_color = (($opt_color eq 'always')
