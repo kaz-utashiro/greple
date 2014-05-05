@@ -184,6 +184,7 @@ my @optargs = (
     'e|and=s'            => \@opt_e,
     'r|must=s'           => \@opt_r,
     'v|not=s'            => \@opt_v,
+    'or=s'               => \@opt_or,
     'le=s'               => \@opt_le,
     're=s'               => \@opt_re,
     'fe=s'               => \@opt_fe,
