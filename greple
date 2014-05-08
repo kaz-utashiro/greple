@@ -1103,14 +1103,18 @@ sub do_grep {
 	    substr($block, $ms, $me - $ms,
 		   $need_color ? index_color($s, $pi) : $s);
 	}
-	if ($opt_n and $opt_linestyle eq 'line') {
-	    my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
-	    $block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
-			my $s = $1 ? $opt_joinby
-				   : _line("$line:");
-			$line += $increment;
-			$s;
-		       }gse;
+	if ($opt_n) {
+	    if ($opt_linestyle eq 'line') {
+		my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
+		$block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
+			    my $s = $1 ? $opt_joinby
+				       : _line("$line:");
+			    $line += $increment;
+			    $s;
+			   }gse;
+	    } else {
+		$line += $block =~ tr/\n/\n/;
+	    }
 	}
 
 	if ($need_filename and $opt_filestyle eq 'line') {
