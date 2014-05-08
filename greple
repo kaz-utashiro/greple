@@ -2121,7 +2121,16 @@ as a search pattern specified by B<-le> option.  All of these patterns
 can be specified multiple times.
 
 Command itself is written in Perl, and any kind of Perl style regular
-expression can be used in patterns.
+expression can be used in patterns.  See L<perlre(1)> for detail.
+
+Note that multiple line modifier (C<m>) is set when executed, so put
+C<(?-m)> at the beginning of regex if you wat to explicitly disable
+it.
+
+Order of capture group in the pattern is not guaranteed.  Please avoid
+to use direct index, and use relative or named capture group instead.
+For example, repated character can be written as C<(\w)\g{-1}>
+or C<(?E<lt>cE<gt>\w)\g{c}>.
 
 =over 7
 

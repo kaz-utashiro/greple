@@ -154,7 +154,16 @@ as a search pattern specified by __-le__ option.  All of these patterns
 can be specified multiple times.
 
 Command itself is written in Perl, and any kind of Perl style regular
-expression can be used in patterns.
+expression can be used in patterns.  See [perlre(1)](http://man.he.net/man1/perlre) for detail.
+
+Note that multiple line modifier (`m`) is set when executed, so put
+`(?-m)` at the beginning of regex if you wat to explicitly disable
+it.
+
+Order of capture group in the pattern is not guaranteed.  Please avoid
+to use direct index, and use relative or named capture group instead.
+For example, repated character can be written as `(\w)\g{-1}`
+or `(?<c>\w)\g{c}`.
 
 - __--le__=_pattern_
 
