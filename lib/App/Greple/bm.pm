@@ -104,7 +104,7 @@ BEGIN {
     $VERSION = sprintf "%d.%03d", q$Revision: 1.1 $ =~ /(\d+)/g ;
 
     @ISA         = qw(Exporter) ;
-    @EXPORT      = qw(&part &bmcache) ;
+    @EXPORT      = qw(&part &bmcache &join_block) ;
     %EXPORT_TAGS = ( ) ;
     @EXPORT_OK   = qw() ;
 }
@@ -290,6 +290,66 @@ sub get_json {
     from_json($json_text, {utf8 => 1}) ;
 }
 
+######################################################################
+
+my $skip_re =
+    qr{
+	\n?<blockquote.*?</blockquote>\n?
+	|
+	\n?<pre>.*?\</pre\>\n?
+	|
+	<div\s+class=quote\>.*?</div>
+    }six;
+
+sub join_block {
+    s{
+	( (?:^.+\n)+ )
+    }{
+	remove_newlines($1)
+    }mgex;
+}
+
+sub remove_newlines {
+    my $_ = shift;
+
+    my @list = split(/($skip_re)/, $_);
+
+    for my $line (grep !/$skip_re/, @list) {
+	my $buf = '';
+	for (split(/\n/, $line)) {
+	    $buf = append_line($buf, $_);
+	}
+	$line = $buf;
+    }
+
+    join('', @list);
+}
+
+my $zenkaku =
+    qr/[\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]/;
+
+sub append_line {
+    my($orig, $apnd) = @_;
+    my $space = ' ';
+    if ($orig ne '' and $orig !~ /\n\Z/ and
+	(
+	 $orig =~ m{</(?:table|blockquote)>\Z} or
+	 $apnd =~ /\A(?:<(?:li)>|<\/(?:ol)>)|<\/?(?:table|tr|th|td|blockquote)/
+	)
+       ){
+	$space = "\n";
+    }
+    elsif ($orig eq ''
+	   or $orig =~   /[、。（）　]\Z/
+	   or $apnd =~ /\A[、。（）　]/
+	   # 全角で終り全角で始まる
+	   or ($orig =~ /$zenkaku\Z/ and $apnd =~ /\A$zenkaku/)
+	  ) {
+	$space = '';
+    }
+    $orig . $space . $apnd;
+}
+
 1;
 
 __DATA__
@@ -336,3 +396,5 @@ option --cache        --cache-auto	// ignore
 option --cache_create --cache-create	// ignore
 option --cache_clean  --cache-clean	// ignore
 option --cache_update --cache-update	// ignore
+
+option --join-block --call join_block()		// join block into single line
