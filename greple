@@ -767,7 +767,7 @@ for my $set (
     ) {
     my($cat, $opt, $pattern) = @$set;
     for (@{$opt}) {
-	s/^&// or next if $pattern;
+	/^&\w+/ or next if $pattern;
 	$_ = parse_func($_) or die "$cat function format error: $_\n";
     }
 }
@@ -1602,7 +1602,8 @@ sub parse_func {
 	}
     }
     elsif (m{
-	^ (?<name>[\w:]+)
+	^ &?
+	  (?<name>[\w:]+)
 	  (?:
 	    (?: (?<P>[(]) | = )  ## start with '(' or '='
 	    (?<arg> [^)]* )      ## optional arg list
