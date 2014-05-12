@@ -880,7 +880,7 @@ can be implemented both in function and macro.
         use Exporter   ();
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.21 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.22 $ =~ /(\d+)/g;
     
         @ISA         = qw(Exporter);
         @EXPORT      = qw(&pod &comment &podcomment);
