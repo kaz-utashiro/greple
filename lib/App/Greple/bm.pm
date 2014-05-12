@@ -11,10 +11,14 @@ greple -Mbm [ options ]
     --com2               find comment level 2
     --com3               find comment level 3
     --com2+              find comment level 2 or <
-    --injp               match text in Japanese part
+    --injp               match in Japanese part
+    --injptxt            match in Japanese text part
     --jp                 display Japanese block
-    --ineg               match text in English part
+    --jptxt              display Japanese text block
+    --ineg               match in English part
+    --inegtxt            match in English text part
     --eg                 display English block
+    --egtxt              display English text block
     --both               display jp/eg combined block
     --comment            display comment block
     --table              search inside table  
@@ -28,6 +32,8 @@ greple -Mbm [ options ]
     --cache-clean        remove cache
     --cache-update       force to update cache
     --nocache            disable cache
+    --join-block         join block into single line
+
 
 =head1 TEXT FORMAT
 
@@ -154,7 +160,11 @@ sub setdata {
 	}
     }
 
-    %part = ( eg => [], jp => [], comment => [], both => [] ) ;
+    %part = ( egtxt => [], jptxt => [],
+	      eg => [], jp => [],
+	      both => [],
+	      comment => [],
+	) ;
 
     my $lang = 'null' ;
 
@@ -185,8 +195,9 @@ sub setdata {
 		     "***\n") ;
 		if ($lang ne 'eg' and $lang ne 'jp') {
 		    $lang = 'jp';
-		    @{$part{$lang}} or @{$part{$lang}} = ([0, 0]);
-		    @{$part{both}} or @{$part{both}} = ([0, 0]);
+		    @{$part{jp}}    or @{$part{jp}}    = ([0, 0]);
+		    @{$part{jptxt}} or @{$part{jptxt}} = ([0, 0]);
+		    @{$part{both}}  or @{$part{both}}  = ([0, 0]);
 		}
 		$part{$lang}->[-1][1] = $to ;
 		$part{both}->[-1][1] = $to ;
@@ -199,6 +210,7 @@ sub setdata {
 	    }
 	}
 	push @{$part{$lang}}, [ $from, $to ] ;
+	push @{$part{"${lang}txt"}}, [ $from, $to ] ;
 
 	#if ($lang eq 'eg' and $para =~ /$wchar_re/) {
 	#    die "Unexpected wide char in english part:\n", $para ;
@@ -369,11 +381,15 @@ option --com2 --nocolor -nH --re ^※※(?!※)	// find comment level 2
 option --com3 --nocolor -nH --re ^※※※		// find comment level 3
 option --com2+ --nocolor -nH --re ^※※		// find comment level 2 or <
 
-option --injp --inside &part(jp)		// match text in Japanese part
-option --jp --block &part(jp)			// display Japanese block
+option --injp    --inside &part(jp)		// match in Japanese part
+option --injptxt --inside &part(jptxt)		// match in Japanese text part
+option --jp      --block  &part(jp)		// display Japanese block
+option --jptxt   --block  &part(jptxt)		// display Japanese text block
 
-option --ineg --inside &part(eg)		// match text in English part
-option --eg --block &part(eg)			// display English block
+option --ineg    --inside &part(eg)		// match in English part
+option --inegtxt --inside &part(egtxt)		// match in English text part
+option --eg      --block  &part(eg)		// display English block
+option --egtxt   --block  &part(egtxt)		// display English text block
 
 option --both --block &part(both)		// display jp/eg combined block
 
