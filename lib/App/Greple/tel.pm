@@ -1,6 +1,6 @@
 =head1 NAME
 
-tel - Module to support simplentelephone/address data file
+tel - Module to support simple telephone/address data file
 
 =head1 SYNOPSIS
 

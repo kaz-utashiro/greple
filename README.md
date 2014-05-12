@@ -6,69 +6,77 @@ greple - grep with multiple keywords
 
 __greple__ \[__-M___module_\] \[ __-options__ \] pattern \[ file... \]
 
-    pattern           'positive -negative ?alternative'
-
-    -e pattern        regex pattern match across line boundary
-    -v pattern        regex pattern not to be matched
-    --le pattern      lexical expression (same as bare pattern)
-    --re pattern      regular expression
-    --fe pattern      fixed expression
-
-__OPTIONS__
-
-    -i                   ignore case
-    -l                   list filename only
-    -c                   print count of matched block only
-    -n                   print line number
-    -h                   do not display filenames
-    -H                   always display filenames
-    --inside=pattern     select matches inside of pattern
-    --outside=pattern    select matches outside of pattern
-    --include=pattern    reduce matches to the area
-    --exclude=pattern    reduce matches to outside of the area
-    --strict             strict mode for --inside/outside --block
-    --join               delete newline in the matched part
-    --joinby=string      replace newline in the matched text by string
-    --filestyle=style    how filename printed (once, separate, line)
-    --linestyle=style    how line number printed (separate, line)
-    --separate           set filestyle and linestyle both "separate"
-
-    --need=n             required positive match count
-    --allow=n            acceptable negative match count
-
-    --color=when         use terminal color (auto, always, never)
-    --nocolor            same as --color=never
-    --colormode=mode     R, G, B, C, M, Y, W, Standout, bolD, Underline
-    --colorful           same as --colormode 'RD GD BD CD MD YD'
-    --random             random color
-    --regioncolor        color by region
-
-    -o                   print only the matching part
-    -p                   paragraph mode
-    -A[n]                after match context
-    -B[n]                before match context
-    -C[n]                after and before match context
-    --all                print whole data
-    --block=pattern      specify the block of records
-    --blockend=s         specify the block end mark (Default: "--\n")
-
-    -f file              file contains search pattern
-    -d flags             display info (f:file d:dir c:count m:misc s:stat)
-    --man                display command or module manual page
-    --show               display module file
-    --icode=name         specify file encoding
-    --ocode=name         specify output encoding
-    --if=filter          set filter command
-    --of=filter          output filter command
-    --noif               disable default input filter
-    --[no]pgp            decrypt and find PGP file (Default: false)
-    --pgppass=phrase     pgp passphrase
-    --readlist           get filenames from stdin
-    --chdir              change directory before search
-    --glob=glob          glob target files
-    --print=func         print function
-    --continue           continue after print function
-    --norc               skip reading startup file
+    PATTERN
+      pattern              'positive +must -negative ?alternative'
+      -e pattern           regex pattern match across line boundary
+      -r pattern           regex pattern cannot be compromised
+      -v pattern           regex pattern not to be matched
+      --le pattern         lexical expression (same as bare pattern)
+      --re pattern         regular expression
+      --fe pattern         fixed expression
+      --file file          file contains search pattern
+    MATCH
+      -i                   ignore case
+      --need=[+-]n         required positive match count
+      --allow=[+-]n        acceptable negative match count
+    STYLE
+      -l                   list filename only
+      -c                   print count of matched block only
+      -n                   print line number
+      -h                   do not display filenames
+      -H                   always display filenames
+      -o                   print only the matching part
+      -A[n]                after match context
+      -B[n]                before match context
+      -C[n]                after and before match context
+      --join               delete newline in the matched part
+      --joinby=string      replace newline in the matched text by string
+      --filestyle=style    how filename printed (once, separate, line)
+      --linestyle=style    how line number printed (separate, line)
+      --separate           set filestyle and linestyle both "separate"
+    FILE
+      --glob=glob          glob target files
+      --chdir              change directory before search
+      --readlist           get filenames from stdin
+    COLOR
+      --color=when         use terminal color (auto, always, never)
+      --nocolor            same as --color=never
+      --colormap=color     R, G, B, C, M, Y, W, Standout, Double-struck, Underline
+      --colorful           use default multiple colors
+      --[no]256            use ANSI 256 colors
+      --regioncolor        use different color for inside/outside regions
+      --random             random color
+      --face
+    BLOCK
+      -p                   paragraph mode
+      --all                print whole data
+      --block=pattern      specify the block of records
+      --blockend=s         specify the block end mark (Default: "--\n")
+    REGION
+      --inside=pattern     select matches inside of pattern
+      --outside=pattern    select matches outside of pattern
+      --include=pattern    reduce matches to the area
+      --exclude=pattern    reduce matches to outside of the area
+      --strict             strict mode for --inside/outside --block
+    CHARACTER CODE
+      --icode=name         specify file encoding
+      --ocode=name         specify output encoding
+    FILTER
+      --if=filter          set filter command
+      --of=filter          output filter command
+      --noif               disable default input filter
+    RUNTIME FUNCTION
+      --print=func         print function
+      --continue           continue after print function
+      --call=func          call function before search
+    PGP
+      --[no]pgp            decrypt and find PGP file (Default: false)
+      --pgppass=phrase     pgp passphrase
+    OTHER
+      --norc               skip reading startup file
+      --man                display command or module manual page
+      --show               display module file
+      -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 # DESCRIPTION
 
@@ -99,16 +107,27 @@ and \`baz' and one or more from \`yabba', \`dabba' or \`doo'.
 
 NOT operator can be specified by prefixing the token by minus (\`-')
 sign.  Next example will show the line which contain both \`foo' and
-bar' but none of \`yabba' or \`dabba' or \`doo'.  It is ok to put \`+'
-mark for positive matching pattern.
+bar' but none of \`yabba' or \`dabba' or \`doo'.
 
     greple 'foo bar -yabba -dabba -doo'
-    greple '+foo +bar -yabba|dabba|doo'
 
 This can be written as this using __-e__ and __-v__ option.
 
     greple -e foo -e bar -v yabba -v dabba -v doo
     greple -e foo -e bar -v 'yabba|dabba|doo'
+
+If \`+' is placed to positive matching pattern, that pattern is marked
+as required, and match required count is automatically set to the
+number of required pattern.  So
+
+    greple '+foo bar baz'
+
+commands implicitly set the option `--need 1`, and consequently print
+all lines including \`foo'.  If you want to search lines which includes
+either or both of \`bar' and \`baz', use like this:
+
+    greple '+foo bar baz' --need 2
+    greple '+foo bar baz' --need +1
 
 ## LINE ACROSS MATCH
 
@@ -135,14 +154,22 @@ as a search pattern specified by __-le__ option.  All of these patterns
 can be specified multiple times.
 
 Command itself is written in Perl, and any kind of Perl style regular
-expression can be used in patterns.
+expression can be used in patterns.  See [perlre(1)](http://man.he.net/man1/perlre) for detail.
+
+Note that multiple line modifier (`m`) is set when executed, so put
+`(?-m)` at the beginning of regex if you wat to explicitly disable
+it.
+
+Order of capture group in the pattern is not guaranteed.  Please avoid
+to use direct index, and use relative or named capture group instead.
+For example, repated character can be written as `(\w)\g{-1}`
+or `(?<c>\w)\g{c}`.
 
 - __--le__=_pattern_
 
     Treat the string as a collection of tokens separated by spaces.  Each
     token is interpreted by the first character.  Token start with \`-'
-    means negative pattern, \`?' means alternative, optional \`+' and
-    anything other means positive match.
+    means negative pattern, \`?' means alternative, and \`+' does required.
 
     Next example print lines which contains \`foo' and \`bar', and one or
     more of \`yabba' and 'dabba', and none of \`bar' and \`doo'.
@@ -172,6 +199,13 @@ expression can be used in patterns.
     and \`baz' even if they are separated by newlines.
 
         greple -e 'foo bar baz'
+
+- __-r__ _pattern_, __--must__=_pattern_
+
+    Specify required match token.  Next two commands are equivalent.
+
+        greple '+foo bar baz'
+        greple -r foo -e bar -e baz
 
 - __-v__ _pattern_, __--not__=_pattern_
 
@@ -214,7 +248,7 @@ expression can be used in patterns.
         grep -e foo -e bar -e baz
         greple --need=1 -e foo -e bar -e baz
 
-    When the count _n_ is negative value, it is subtracted from maximum
+    When the count _n_ is negative value, it is subtracted from default
     value.
 
 - __-f__ _file_, __--file__=_file_
@@ -286,11 +320,18 @@ expression can be used in patterns.
 
     Convert newline character found in matched string to empty or specifed
     _string_.  Using __--join__ with __-o__ (only-matching) option, you can
-    collect searching sentence list in one per line form.  This is almost
-    useless for English text but sometimes useful for Japanese text.  For
-    example, next command prints the list of KATAKANA words.
+    collect searching sentence list in one per line form.  This is
+    sometimes useful for Japanese text processing.  For example, next
+    command prints the list of KATAKANA words, including those spread
+    across multiple lines.
 
-        greple -ho --join '\p{utf8::InKatakana}[\n\p{utf8::InKatakana}]*'
+        greple -ho --join '\p{InKatakana}+(\n\p{InKatakana}+)*'
+
+    Space separated word sequence can be processed with __--joinby__
+    option.  Next exapmle prints all \`for \*something\*' pattern in pod
+    documents within Perl script.
+
+        greple -Mperl --pod -ioe '\bfor \w+' --joinby ' '
 
 - __--filestyle__=_line_|_once_|_separate_, __--fs__
 
@@ -348,9 +389,9 @@ expression can be used in patterns.
 
     Option __--nocolor__ is alias for __--color__=_never_.
 
-- __--colormode__=_RGBCYMKWrgbcymkwSUDF_, __--quote__=_start_,_end_
+- __--colormap__=_RGBCYMKWrgbcymkwSUDF_, __--quote__=_start_,_end_
 
-    Specify color mode.  Default is RD: RED and BOLD.
+    Specify color map.  Default is RD: RED and BOLD.
 
     COLOR is combination of single character representing uppercase
     foreground color :
@@ -368,6 +409,21 @@ expression can be used in patterns.
 
         r, g, b, c, m, y, k, w
 
+    or RGB value if using ANSI 256 color terminal :
+
+        FORMAT:
+            foreground[/background]
+
+        COLOR:
+            000 .. 555       : 6 x 6 x 6 216 colors
+            000000 .. FFFFFF : 24bit RGB mapped to 216 colors
+
+        Sample:
+            005     0000FF        : blue foreground
+               /505       /FF00FF : magenta background
+            000/555 000000/FFFFFF : black on white
+            500/050 FF0000/00FF00 : red on green
+
     and other effects :
 
         S  Standout (reverse video)
@@ -375,28 +431,60 @@ expression can be used in patterns.
         D  Double-struck (boldface)
         F  Flash (blink)
 
-    If the mode string contains comma \`,' character, they are used to
+    If the mode string contains colon \`:' character, they are used to
     quote the matched string.  If you want to quote the pattern by angle
     bracket, use like this.
 
-        greple --quote='<,>' pattern
+        greple --quote='<:>' pattern
 
-    Option __--quote__ is an alias for __--colormode__, but it set the
+    Option __--quote__ is an alias for __--colormap__, but it set the
     option __--color__=_always_ at the same time.
 
-    Multiple colors can be specified separating by white spaces.  Those
-    colors will be applied for each pattern keywords.  Next command will
-    show word \`foo' in red, \`bar' in green and \`baz' in blue.
+    Multiple colors can be specified separating by white space or comma,
+    or by repeating options.  Those colors will be applied for each
+    pattern keywords.  Next command will show word \`foo' in red, \`bar' in
+    green and \`baz' in blue.
 
-        greple --colormode='R G B' 'foo bar baz' ...
+        greple --colormap='R G B' 'foo bar baz'
 
-- __--colorful__
+        greple --cm R -e foo --cm G -e bar --cm B -e baz
 
-    Shortcut for __--colormode__='_RD GD BD CD MD YD_'
+- __--colormap__=_field_=_color_,_field_=_color_,...
+
+    Another form of colormap option to specify the color for fields:
+
+        FILE      File name
+        LINE      Line number
+        BLOCKEND  Block end mark
+
+- __--\[no\]colorful__
+
+    Shortcut for __--colormap__='_RD GD BD CD MD YD_' in ANSI 16 colors
+    mode, and __--colormap__='_D/544 D/454 D/445 D/455 D/454 D/554_' and
+    other combination of 3, 4, 5 for 256 colors mode.  Enabled by default.
+
+- __--\[no\]256__
+
+    Set/unset ANSI 256 color mode.  Enabled by default.
 
 - __--regioncolor__
 
     Use different colors for each __--inside__/__outside__ regions.
+    Disabled by default.
+
+- __--face__=\[-+\]_effect_
+
+    Set or unset specified _effect_ for all color specs.  Use \`+'
+    (optional) to set, and \`-' to unset.  Effect is a single character
+    expressing: S (Standout), U (Underline), D (Double-struck), F (Flash).
+
+    Next example romove D (double-struck) effect.
+
+        greple --face -D
+
+    Multiple effects can be set/unset at once.
+
+        greple --face SF-D
 
 ## BLOCKS
 
@@ -582,7 +670,7 @@ expression can be used in patterns.
 
     Specify output filter commands.
 
-## PRINT
+## RUNTIME FUNCTIONS
 
 - __--print__=_function_, __--print__=_sub{...}_
 
@@ -603,7 +691,7 @@ expression can be used in patterns.
             my %attr = @_;
             for my $r (reverse @{$attr{matched}}) {
                 my($s, $e) = @$r;
-                substr($_, $s, $e - $s) = color(substr($_, $s, $e - $s));
+                substr($_, $s, $e - $s, color('B', substr($_, $s, $e - $s)));
             }
             $_;
         }
@@ -612,12 +700,56 @@ expression can be used in patterns.
 
         greple --print=print_simple ...
 
+    It is possible to use multiple __--print__ options.  In that case,
+    second function will get the result of the first function.  The
+    command will print the final result of the last funciton.
+
 - __--continue__
 
     When __--print__ option is given, __greple__ will immediately print the
     result returned from print function and finish the cycle.  Option
     __--continue__ forces to continue normal printing process after print
     function called.  So please be sure that all data being consistent.
+
+- __--call__=_function_(_..._), __--call__=_function_=_..._
+- __-M___module_::_function(...)_, __-M___module_::_function=..._
+
+    Option __--call__ specify the function executed at the beginning of
+    each file processing.  This _function_ have to be called from __main__
+    package.  So if you define the function in the module package, use the
+    full package name or export properly.
+
+    It can be set with module option, following module name.  In this
+    form, the function will be called with module package name.  So you
+    don't have to export it.
+
+For these run-time functions, optional argument list can be set in the
+form of `key` or `key=value`, connected by comma.  These arguments
+will be passed to the funciton in key => value list.  Sole key will
+have the value one.  Also processing file name is passed with "file"
+key.  As a result, the option in the next form:
+
+    --print|call function(key1,key=val2)
+    --print|call function=key1,key=val2
+
+    -Mmodule::function(key1,key=val2)
+    -Mmodule::function=key1,key=val2
+
+will be transformed into following function call:
+
+    function(file => "filename", key1 => 1, key2 => "val2")
+
+The function can be defined in `.greplerc` or modules.  Assign the
+arguments into hash, then you can access argument list as member of
+the hash.  Content of the target file can be accessed by `$_`.
+
+    sub function {
+        my %arg = @_;
+        $arg{file};    # "filename"
+        $arg{key1};    # 1
+        $arg{key2};    # "val2"
+        $_;            # contents
+    }
 
 ## PGP
 
@@ -689,8 +821,8 @@ on user's home directory.  Following directives can be used.
     replacement is done only in definition in option argument.  If you
     want to use the word in command line, use option directive instead.
 
-        define :kana: \p{utf8::InKatakana}
-        option --kanalist --color=never -o --join --re ':kana:[:kana:\n]+'
+        define :kana: \p{InKatakana}
+        option --kanalist --nocolor -o --join --re ':kana:+(\n:kana:+)*'
         help   --kanalist List up Katakana string
 
 Environment variable substitution is done for string specified by
