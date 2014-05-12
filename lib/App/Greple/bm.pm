@@ -307,6 +307,7 @@ sub join_block {
     }{
 	remove_newlines($1)
     }mgex;
+    $_;
 }
 
 sub remove_newlines {
@@ -322,7 +323,9 @@ sub remove_newlines {
 	$line = $buf;
     }
 
-    join('', @list);
+    $_ = join('', @list);
+    $_ .= "\n" unless /\n\z/;
+    $_;
 }
 
 my $zenkaku =
