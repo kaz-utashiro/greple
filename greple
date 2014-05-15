@@ -2129,7 +2129,7 @@ Command itself is written in Perl, and any kind of Perl style regular
 expression can be used in patterns.  See L<perlre(1)> for detail.
 
 Note that multiple line modifier (C<m>) is set when executed, so put
-C<(?-m)> at the beginning of regex if you wat to explicitly disable
+C<(?-m)> at the beginning of regex if you want to explicitly disable
 it.
 
 Order of capture group in the pattern is not guaranteed.  Please avoid
