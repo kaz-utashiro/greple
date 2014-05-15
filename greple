@@ -1130,11 +1130,10 @@ sub do_grep {
     $matched_count;
 }
 
-sub _file     { _color('FILE', @_) }
-sub _line     { _color('LINE', @_) }
-sub _delim    { _color('DELIM', @_) }
-sub _blockend { _color('BLOCKEND', @_) }
-sub _color    { $need_color ? goto &color : $_[1] }
+sub _file     { unshift @_, 'FILE'     ; goto &color }
+sub _line     { unshift @_, 'LINE'     ; goto &color }
+sub _delim    { unshift @_, 'DELIM'    ; goto &color }
+sub _blockend { unshift @_, 'BLOCKEND' ; goto &color }
 
 ######################################################################
 
@@ -1729,6 +1728,7 @@ BEGIN {
 
 sub index_color {
     my $text = shift;
+    return $text unless $need_color;
     if (@colors) {
 	my $index = @_ ? shift(@_) % @colors : 0;
 	$text = color($colors[$index], $text);
@@ -1738,7 +1738,7 @@ sub index_color {
 
 sub color {
     my($color, $text) = @_;
-    return $text unless $color;
+    return $text unless $need_color and $color;
     unless ($colorcache{$color}) {
 	my $mode = exists $colormap{$color} ? $colormap{$color} : $color;
 	$colorcache{$color} = [ colorseq($mode) ];
