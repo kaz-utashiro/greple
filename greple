@@ -1204,7 +1204,7 @@ sub grep_pattern {
 	for my $regi (0 .. $#reg_union) {
 	    my($region_sw, $arg) = @{$reg_union[$regi]};
 	    my @select = get_regions(\$_, $arg);
-	    next unless $region_sw or @select;
+	    $region_sw == 0 or next if @select == 0;
 	    for my $resi (0 .. $#result) {
 		my $r = $result[$resi];
 		my @l = select_regions({ strict => $opt_strict },
