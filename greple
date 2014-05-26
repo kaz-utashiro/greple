@@ -1165,27 +1165,18 @@ sub grep_pattern {
     my %required = (yes => 0, no => 0);
     for my $i (0 .. $#patterns) {
 	my($sw, $regex) = @{$patterns[$i]};
-	my @p;
-	while ($_ =~ /($regex)/g) {
-	    ##
-	    ## this is much faster than:
-	    ## my($s, $e) = ($-[0], $+[0]);
-	    ##
-	    ## calling pos() cost is not neglective, either.
-	    ##
-	    my $pos = pos();
-	    my($s, $e) = ($pos - length($1), $pos);
-	    push @p, [ $s, $e, $i ];
-	    if ($sw eq MATCH_MUST or $sw eq MATCH_POSITIVE) {
-		push @blocks, [ $s, $e ];
-		$stat{match_positive}++;
-	    } else {
-		$stat{match_negative}++;
-	    }
-	}
+	my($func, @args) = (\&match_regions, $regex);
+	my @p = callfunc($func, @args);
 	if (@p) {
-	    $required{$sw eq MATCH_MUST || $sw eq MATCH_POSITIVE
-			  ? 'yes' : 'no'}++;
+	    if ($sw eq MATCH_MUST or $sw eq MATCH_POSITIVE) {
+		push @blocks, map { [ @$_ ] } @p;
+		$stat{match_positive} += @p;
+		$required{yes}++;
+	    } else {
+		$stat{match_negative} += @p;
+		$required{no}++;
+	    }
+	    map { push @$_, $i } @p;
 	}
 	push @result, \@p;
     }
@@ -1339,6 +1330,23 @@ sub show_match_table {
     }
 }
 
+sub match_regions {
+    my $pattern = shift;
+    my $regex = ref $pattern eq 'Regexp' ? $pattern : qr/$pattern/m;
+    my @regions;
+    while (/($regex)/g) {
+	##
+	## this is much faster than:
+	## my($s, $e) = ($-[0], $+[0]);
+	##
+	## calling pos() cost is not neglective, either.
+	##
+	my $pos = pos();
+	push @regions, [ $pos - length($1), $pos ];
+    }
+    @regions;
+}
+
 sub classify_regions {
     my $opt = ref $_[0] eq 'HASH' ? shift : {};
 
@@ -1449,21 +1457,8 @@ sub get_regions {
     }
     ## pattern
     else {
-	matched_regions(\$_, $pattern);
+	match_regions($pattern);
     }
-}
-
-sub matched_regions {
-    local *_ = shift;
-    my $pattern = shift;
-    my @list;
-
-    my $re = qr/$pattern/m;
-    while (/($re)/g) {
-	my $pos = pos();
-	push @list, [$pos - length($1), $pos];
-    }
-    @list;
 }
 
 sub merge_regions {
