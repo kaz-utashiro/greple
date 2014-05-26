@@ -263,7 +263,7 @@ sub bmcache {
 		      allow_nonref => 0,
 		    });
 	if (open CACHE, ">$cache_file") {
-	    print CACHE $json_text ;
+	    print CACHE $json_text, "\n" ;
 	    close CACHE ;
 	} else {
 	    warn "$cache_file: $!\n" ;
