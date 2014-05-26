@@ -417,3 +417,7 @@ option --cache_clean  --cache-clean	// ignore
 option --cache_update --cache-update	// ignore
 
 option --join-block --call join_block()		// join block into single line
+
+option --oldcite --re '\[([\w.]+\s+)+\d{2}\]'	// old style 2digit citation
+option --newcite --re '\[([\w.]+\s+)+\d{4}\]'	// new style 4digit citation
+option --cite --re '\[([\w.]+\s+)+\d{2,4}\]'	// citacion
