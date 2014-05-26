@@ -772,11 +772,13 @@ for my $set (
     }
 }
 
-my @reg_union =
-    (map({ [ 1, $_ ] } @opt_inside), map({ [ 0, $_ ] } @opt_outside));
-
-my @reg_clude =
-    (map({ [ 1, $_ ] } @opt_include), map({ [ 0, $_ ] } @opt_exclude));
+use constant {
+    REG_IN => 1, REG_OUT => 0,
+};
+my @reg_union = (map({ [ REG_IN,  $_ ] } @opt_inside),
+		 map({ [ REG_OUT, $_ ] } @opt_outside));
+my @reg_clude = (map({ [ REG_IN,  $_ ] } @opt_include),
+		 map({ [ REG_OUT, $_ ] } @opt_exclude));
 
 ##------------------------------------------------------------
 
@@ -1202,13 +1204,13 @@ sub grep_pattern {
     if (@reg_union) {
 	my @tmp = map { [] } @result;
 	for my $regi (0 .. $#reg_union) {
-	    my($region_sw, $arg) = @{$reg_union[$regi]};
+	    my($in_out, $arg) = @{$reg_union[$regi]};
 	    my @select = get_regions(\$_, $arg);
-	    $region_sw == 0 or next if @select == 0;
+	    next unless $in_out == REG_OUT or @select;
 	    for my $resi (0 .. $#result) {
 		my $r = $result[$resi];
 		my @l = select_regions({ strict => $opt_strict },
-				       $r, \@select, $region_sw);
+				       $r, \@select, $in_out);
 		if ($opt_regioncolor or @result == 1) {
 		    map { $_->[2] = $regi } @l;
 		}
@@ -1222,12 +1224,12 @@ sub grep_pattern {
     ## --include, --exclude
     ##
     for my $region (@reg_clude) {
-	my($region_sw, $arg) = @$region;
+	my($in_out, $arg) = @$region;
 	my @select = get_regions(\$_, $arg);
-	next unless $region_sw or @select;
+	next unless $in_out == REG_IN or @select;
 	for my $r (@result) {
 	    @$r = select_regions({ strict => $opt_strict },
-				 $r, \@select, $region_sw);
+				 $r, \@select, $in_out);
 	}
     }
 
@@ -1385,7 +1387,7 @@ sub select_regions {
 
     my @list = @{+shift};
     my @by = @{+shift};
-    my $inside = shift;
+    my $in_out = shift;
 
     my(@outside, @inside);
 
@@ -1408,13 +1410,13 @@ sub select_regions {
 	}
     }
     push @outside, @list;
-    $inside ? @inside : @outside;
+    $in_out == REG_IN ? @inside : @outside;
 }
 
 sub select_regions_strict {
     my @list = @{+shift};
     my @by = @{+shift};
-    my $inside = shift;
+    my $in_out = shift;
 
     my(@outside, @inside);
 
@@ -1434,7 +1436,7 @@ sub select_regions_strict {
 	}
     }
     push @outside, @list;
-    $inside ? @inside : @outside;
+    $in_out == REG_IN ? @inside : @outside;
 }
 
 sub get_regions {
