@@ -133,13 +133,14 @@ my $wchar_re = qr{
 
 sub part {
     my %arg = @_ ;
+    my $file = delete $arg{main::FILELABEL} or die;
 
     if ($target != \$_) {
-	setdata($arg{file}) ;
+	setdata($file) ;
 	$target = \$_ ;
     }
 
-    regions(grep { $_ ne 'file' and $arg{$_} } keys %arg);
+    regions(grep { $arg{$_} } keys %arg);
 }
 
 sub regions {
@@ -228,8 +229,8 @@ sub setdata {
 
 sub bmcache {
     my %arg = @_ ;
-
-    my $cache_file = cachename($arg{file}) ;
+    my $file = delete $arg{main::FILELABEL} or die;
+    my $cache_file = cachename($file) ;
 
     if ($arg{list}) {
 	printf "%s: %s\n", $cache_file, -f $cache_file ? "yes" : "no" ;
@@ -246,14 +247,14 @@ sub bmcache {
 	}
     }
 
-    if (($arg{file} ne '-' and -f $arg{file})
+    if (($file ne '-' and -f $file)
 	and
-	($arg{force} or not cache_valid($arg{file}))
+	($arg{force} or not cache_valid($file))
 	and
 	($arg{create} or ($arg{update} and -f $cache_file)))
     {
 	warn "updating $cache_file\n" ;
-	setdata($arg{file}, $arg{force}) ;
+	setdata($file, $arg{force}) ;
 	my $json_text =
 	    to_json(\%part,
 		    { pretty => 0,

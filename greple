@@ -119,6 +119,8 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
 
 =cut
 
+use constant FILELABEL => '__file__';
+
 my @opt_e;
 my @opt_v;
 my @opt_r;
@@ -482,30 +484,36 @@ if (@opt_f) {
     }
 }
 
-##
-## --le
-##
-for (@opt_le) {
-    for my $p (split /(?<!\\) +/, $_) {
-	next if $p eq "";
-	if ($p =~ s/^-//) {		# -pattern
-	    push @opt_v, $p;
-	} elsif ($p =~ s/^\?//) {	# ?pattern
-	    push @opt_or, $p;
-	} elsif ($p =~ s/^\+//) {	# +pattern
-	    push @opt_r, $p;
-	} else {
-	    push @opt_e, $p;
-	}
-    }
-}
-
 my @xpattern;
 use constant {
     MATCH_NEGATIVE => 0,
     MATCH_POSITIVE => 1,
     MATCH_MUST => 2,
 };
+
+##
+## --le
+##
+for (@opt_le) {
+    for my $p (split /(?<!\\) +/, $_) {
+	next if $p eq "";
+	if ($p =~ /^\&/ and my $f = parse_func($p)) {	# &func(...)
+	    push @xpattern, [MATCH_POSITIVE, $f ];
+	}
+	elsif ($p =~ s/^-//) {				# -pattern
+	    push @opt_v, $p;
+	}
+	elsif ($p =~ s/^\?//) {				# ?pattern
+	    push @opt_or, $p;
+	}
+	elsif ($p =~ s/^\+//) {				# +pattern
+	    push @opt_r, $p;
+	}
+	else {
+	    push @opt_e, $p;
+	}
+    }
+}
 
 for my $p (@opt_r) {
     $p = make_pattern($p);
@@ -1008,7 +1016,7 @@ sub grep_file {
 
     for my $f (@opt_call) {
 	for ($content) {
-	    callfunc(@$f, file => $current_file);
+	    callfunc(@$f, FILELABEL, $current_file);
 	}
     }
 
@@ -1060,7 +1068,7 @@ sub do_grep {
 
 	for my $func (@opt_print) {
 	    for ($block) {
-		$_ = callfunc(@$func, file => $file, matched => $result);
+		$_ = callfunc(@$func, FILELABEL, $file, matched => $result);
 	    }
 	}
 	if (@opt_print and not $opt_continue) {
@@ -1165,8 +1173,14 @@ sub grep_pattern {
     my %required = (yes => 0, no => 0);
     for my $i (0 .. $#patterns) {
 	my($sw, $regex) = @{$patterns[$i]};
-	my($func, @args) = (\&match_regions, $regex);
-	my @p = callfunc($func, @args);
+	my($func, @args) = do {
+	    if (ref $regex eq 'ARRAY') {
+		@$regex;
+	    } else {
+		(\&match_regions, pattern => $regex);
+	    }
+	};
+	my @p = callfunc($func, @args, FILELABEL, $current_file);
 	if (@p) {
 	    if ($sw eq MATCH_MUST or $sw eq MATCH_POSITIVE) {
 		push @blocks, map { [ @$_ ] } @p;
@@ -1331,7 +1345,8 @@ sub show_match_table {
 }
 
 sub match_regions {
-    my $pattern = shift;
+    my %arg = @_;
+    my $pattern = $arg{pattern} // die "Parameter error";
     my $regex = ref $pattern eq 'Regexp' ? $pattern : qr/$pattern/m;
     my @regions;
     while (/($regex)/g) {
@@ -1453,11 +1468,11 @@ sub get_regions {
 
     ## function array
     if (ref $pattern eq 'ARRAY') {
-	callfunc(@$pattern, file => $current_file);
+	callfunc(@$pattern, FILELABEL, $current_file);
     }
     ## pattern
     else {
-	match_regions($pattern);
+	match_regions(pattern => $pattern);
     }
 }
 
