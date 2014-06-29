@@ -798,8 +798,18 @@ if ($opt_d{m}) {
 	    $mode == MATCH_NEGATIVE ? 'not ' :
 	    $mode == MATCH_MUST ? 'must' :
 	    'unknown';
-	warn sprintf("  %s /%s/\n", $type,
-		     @colors > 1 ? index_color($p, $i) : $p);
+	my $target = do {
+	    if (ref $p) {
+		local $_ = Dumper $p;
+		chomp;
+		s/\n\s*/ /g;
+		$_;
+	    } else {
+		"/$p/";
+	    }
+	};
+	warn sprintf("  %s %s\n", $type,
+		     @colors > 1 ? index_color($target, $i) : $target);
     }
     warn sprintf "need = %d, allow = %d\n", $opt_need, $opt_allow;
 }
