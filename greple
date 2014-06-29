@@ -351,9 +351,7 @@ sub load_module {
 	die "$mod: Module error ($@)\n";
     }
     local *data = "${module}::DATA";
-    if (not eof *data) {
-	greplerc({Title => $mod}, <data>);
-    }
+    greplerc({Title => $mod}, (not eof *data) ? <data> : ());
     if ($call) {
 	push @opt_call, "${module}::${call}";
     }
