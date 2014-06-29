@@ -730,16 +730,18 @@ if (@opt_face) {
     }
 }
 
-if ($opt_d{c}) {
-    warn 'colormap = ', Dumper \%colormap;
-    for (Dumper \@colors) {
-	s/(?<=')([^']+)(?=')/color($1, $1)/ge;
-	warn 'colors = ', $_;
-    }
-}
-
 my $need_color = (($opt_color eq 'always')
 		  or (($opt_color eq 'auto') and (!$opt_o and -t STDOUT)));
+
+if ($opt_d{c}) {
+    my $dump = sub {
+	local $_ = Dumper shift;
+	s/(?<=')([\w\/]+)(?=')/color($1, $1)/ge;
+	$_;
+    };
+    warn 'colormap = ', $dump->(\%colormap);
+    warn 'colors = ', $dump->(\@colors);
+}
 
 my $blockend = "--\n";
 if (defined $opt_blockend) {
