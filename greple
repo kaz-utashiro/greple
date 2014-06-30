@@ -801,7 +801,7 @@ if ($opt_d{m}) {
 	    $mode == MATCH_MUST ? 'must' :
 	    'unknown';
 	my $target = do {
-	    if (ref $p) {
+	    if (ref $p and ref $p ne 'Regexp') {
 		local $_ = Dumper $p;
 		chomp;
 		s/\n\s*/ /g;
