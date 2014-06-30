@@ -157,7 +157,7 @@ Command itself is written in Perl, and any kind of Perl style regular
 expression can be used in patterns.  See [perlre(1)](http://man.he.net/man1/perlre) for detail.
 
 Note that multiple line modifier (`m`) is set when executed, so put
-`(?-m)` at the beginning of regex if you wat to explicitly disable
+`(?-m)` at the beginning of regex if you want to explicitly disable
 it.
 
 Order of capture group in the pattern is not guaranteed.  Please avoid
@@ -179,6 +179,23 @@ or `(?<c>\w)\g{c}`.
     Multiple \`?' preceded tokens are treated all mixed together.  That
     means \`?A|B ?C|D' is equivalent to \`?A|B|C|D'.  If you want to mean
     \`(A or B) and (C or D)', use AND syntax instead: \`A|B C|D'.
+
+    If the pattern start with ampersand (\`&'), it is treated as a
+    function, and the function is called instead of searching pattern.
+    Function call interface is same as the one for block/region options.
+
+    If you have a definition of _odd\_line_ function in you `.greplrc`,
+    which is described in this manual later, you can print odd number
+    lines like this:
+
+        greple -n '&odd_line' file
+
+    This is the summary of start character for __--le__ option:
+
+        +  Required pattern
+        -  Negative match pattern
+        ?  Alternative pattern
+        &  Function call
 
 - __-e__ _pattern_, __--and__=_pattern_
 
@@ -806,6 +823,25 @@ on user's home directory.  Following directives can be used.
 
     If the option named __default__ is defined, it will be used as a
     default option.
+
+    For the purpose to include following arguments within replaced
+    strings, two special notations can be used in option definition.
+    String `$<_n_>` is replaced by the _n_th argument after the
+    substituted option, where _n_ is number start from one.  String
+    `$<shift>` is replaced by following command line argument and
+    the argument is removed from option list.
+
+    For example, when
+
+        option --line --le &line=$<shift>
+
+    is defined, command
+
+        greple --line 10,20-30,40
+
+    will be evaluated as this:
+
+        greple --le &line=10,20-30,40
 
 - __help__ _name_
 
