@@ -939,7 +939,9 @@ sub make_pattern {
     } else {
 	$p =~ s{
 	    (
-	     \[[^\]]*\]		# character-class
+	     \[[^\]]*\] [\?\*]?	# character-class
+	     |
+	     \(\?[=!][^\)]*\)	# look-ahead pattern
 	     |
 	     \(\?\<[=!][^\)]*\)	# look-behind pattern
 	    )
@@ -963,7 +965,21 @@ sub make_pattern {
 	$p =~ s/($wchar_re)([\(\[]+)/$1\\s*$2/g;
 
 	# ) ]
-	$p =~ s/($wchar_re[\)\]]+)(?!\||$)/$1\\s*/g;
+	$p =~ s{
+	    (
+	     \(\?<?[=!][^\)]*\)	# look-ahead/behind pattern
+	    )
+	    |
+	    (
+		$wchar_re[\)\]]+[?]?)(?![|]|$
+	    )
+	}{
+	    if (defined $1) {
+		$1;
+	    } else {
+		$2 . "\\s*";
+	    }
+	}egx;
 
 	# remove \s* arround space
 	$p =~ s/(?:\\s\*)?\\? +(?:\\s\*)?/\\s+/g;
