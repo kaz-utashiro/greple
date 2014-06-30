@@ -4,7 +4,7 @@ greple - grep with multiple keywords
 
 # SYNOPSIS
 
-__greple__ \[__-M___module_\] \[ __-options__ \] pattern \[ file... \]
+**greple** \[**-M**_module_\] \[ **-options** \] pattern \[ file... \]
 
     PATTERN
       pattern              'positive +must -negative ?alternative'
@@ -82,7 +82,7 @@ __greple__ \[__-M___module_\] \[ __-options__ \] pattern \[ file... \]
 
 ## MULTIPLE KEYWORDS
 
-__greple__ has almost the same function as Unix command [egrep(1)](http://man.he.net/man1/egrep) but
+**greple** has almost the same function as Unix command [egrep(1)](http://man.he.net/man1/egrep) but
 the search is done in the manner similar to search engine.  For
 example, next command print lines those contain all of \`foo' and \`bar'
 and \`baz'.
@@ -111,7 +111,7 @@ bar' but none of \`yabba' or \`dabba' or \`doo'.
 
     greple 'foo bar -yabba -dabba -doo'
 
-This can be written as this using __-e__ and __-v__ option.
+This can be written as this using **-e** and **-v** option.
 
     greple -e foo -e bar -v yabba -v dabba -v doo
     greple -e foo -e bar -v 'yabba|dabba|doo'
@@ -131,7 +131,7 @@ either or both of \`bar' and \`baz', use like this:
 
 ## LINE ACROSS MATCH
 
-__greple__ also search the pattern across the line boundaries.  This is
+**greple** also search the pattern across the line boundaries.  This is
 especially useful to handle Asian multi-byte text.  Japanese text can
 be separated by newline almost any place of the text.  So the search
 pattern may spread out on multiple lines.
@@ -142,15 +142,15 @@ of \`foo', \`bar' and 'baz', even they spread out to multiple lines.
 
     greple -e 'foo bar baz'
 
-Option __-e__ is necessary because space is taken as a token separator
-in the bare or __--le__ pattern.
+Option **-e** is necessary because space is taken as a token separator
+in the bare or **--le** pattern.
 
 # OPTIONS
 
 ## PATTERNS
 
-If specific option is not provided, __greple__ takes the first argument
-as a search pattern specified by __-le__ option.  All of these patterns
+If specific option is not provided, **greple** takes the first argument
+as a search pattern specified by **-le** option.  All of these patterns
 can be specified multiple times.
 
 Command itself is written in Perl, and any kind of Perl style regular
@@ -165,7 +165,7 @@ to use direct index, and use relative or named capture group instead.
 For example, repated character can be written as `(\w)\g{-1}`
 or `(?<c>\w)\g{c}`.
 
-- __--le__=_pattern_
+- **--le**=_pattern_
 
     Treat the string as a collection of tokens separated by spaces.  Each
     token is interpreted by the first character.  Token start with \`-'
@@ -190,14 +190,14 @@ or `(?<c>\w)\g{c}`.
 
         greple -n '&odd_line' file
 
-    This is the summary of start character for __--le__ option:
+    This is the summary of start character for **--le** option:
 
         +  Required pattern
         -  Negative match pattern
         ?  Alternative pattern
         &  Function call
 
-- __-e__ _pattern_, __--and__=_pattern_
+- **-e** _pattern_, **--and**=_pattern_
 
     Specify positive match token.  Next two commands are equivalent.
 
@@ -209,7 +209,7 @@ or `(?<c>\w)\g{c}`.
 
         greple -e -baz
 
-    Space characters are treated specially by __-e__ and __-v__ options.
+    Space characters are treated specially by **-e** and **-v** options.
     They are replaced by the pattern which matches any number of
     white spaces including newline.  So the pattern can be expand to
     multiple lines.  Next commands search the series of word \`foo', \`bar'
@@ -217,14 +217,14 @@ or `(?<c>\w)\g{c}`.
 
         greple -e 'foo bar baz'
 
-- __-r__ _pattern_, __--must__=_pattern_
+- **-r** _pattern_, **--must**=_pattern_
 
     Specify required match token.  Next two commands are equivalent.
 
         greple '+foo bar baz'
         greple -r foo -e bar -e baz
 
-- __-v__ _pattern_, __--not__=_pattern_
+- **-v** _pattern_, **--not**=_pattern_
 
     Specify negative match token.  Because it does not affect to the bare
     pattern argument, you can narrow down the search result like this.
@@ -233,24 +233,24 @@ or `(?<c>\w)\g{c}`.
         greple foo pattern file -v bar
         greple foo pattern file -v bar -v baz
 
-- __--re__=_pattern_
+- **--re**=_pattern_
 
     Specify regular expression.  No special treatment for space and wide
     characters.
 
-- __--fe__=_pattern_
+- **--fe**=_pattern_
 
     Specify fixed string pattern, like fgrep.
 
-- __-i__, __--ignore-case__
+- **-i**, **--ignore-case**
 
     Ignore case.
 
-- __--need__=_n_
-- __--allow__=_n_
+- **--need**=_n_
+- **--allow**=_n_
 
-    Option to compromize matching condition.  Option __--need__ specifies
-    the required match count, and __--allow__ the number of negative
+    Option to compromize matching condition.  Option **--need** specifies
+    the required match count, and **--allow** the number of negative
     condition to be overlooked.
 
         greple --need=2 --allow=1 'foo bar baz -yabba -dabba -doo'
@@ -259,7 +259,7 @@ or `(?<c>\w)\g{c}`.
     \`bar' and \`baz', and does not include more than one of \`yabba',
     \`dabba' or \`doo'.
 
-    Using option __--need__=_1_, __greple__ produces same result as __grep__
+    Using option **--need**=_1_, **greple** produces same result as **grep**
     command.
 
         grep -e foo -e bar -e baz
@@ -268,7 +268,7 @@ or `(?<c>\w)\g{c}`.
     When the count _n_ is negative value, it is subtracted from default
     value.
 
-- __-f__ _file_, __--file__=_file_
+- **-f** _file_, **--file**=_file_
 
     Specify the file which contains search pattern.  When file contains
     multiple lines, patterns on each lines are search in OR context.
@@ -282,37 +282,37 @@ or `(?<c>\w)\g{c}`.
 
 ## STYLES
 
-- __-l__
+- **-l**
 
     List filename only.
 
-- __-c__, __--count__
+- **-c**, **--count**
 
     Print count of matched block.
 
-- __-n__, __--line-number__
+- **-n**, **--line-number**
 
     Show line number.
 
-- __-h__, __--no-filename__
+- **-h**, **--no-filename**
 
     Do not display filename.
 
-- __-H__
+- **-H**
 
     Display filename always.
 
-- __-o__
+- **-o**
 
     Print matched string only.
 
-- __-A__\[_n_\], __--after-context__\[=_n_\]
-- __-B__\[_n_\], __--before-context__\[=_n_\]
-- __-C__\[_n_\], __--context__\[=_n_\]
+- **-A**\[_n_\], **--after-context**\[=_n_\]
+- **-B**\[_n_\], **--before-context**\[=_n_\]
+- **-C**\[_n_\], **--context**\[=_n_\]
 
     Print _n_-blocks before/after matched string.  The value _n_ can be
-    omitted and the default is 2.  When used with __--paragraph__ or
-    __--block__ option, _n_ means number of paragraph or block.
+    omitted and the default is 2.  When used with **--paragraph** or
+    **--block** option, _n_ means number of paragraph or block.
 
     Actually, these options expand the area of logical operation.  It
     means
@@ -332,11 +332,11 @@ or `(?<c>\w)\g{c}`.
     also matches this text, because matching blocks around \`foo' and \`bar'
     overlaps each other and makes single block.
 
-- __--join__
-- __--joinby__=_string_
+- **--join**
+- **--joinby**=_string_
 
     Convert newline character found in matched string to empty or specifed
-    _string_.  Using __--join__ with __-o__ (only-matching) option, you can
+    _string_.  Using **--join** with **-o** (only-matching) option, you can
     collect searching sentence list in one per line form.  This is
     sometimes useful for Japanese text processing.  For example, next
     command prints the list of KATAKANA words, including those spread
@@ -344,69 +344,69 @@ or `(?<c>\w)\g{c}`.
 
         greple -ho --join '\p{InKatakana}+(\n\p{InKatakana}+)*'
 
-    Space separated word sequence can be processed with __--joinby__
+    Space separated word sequence can be processed with **--joinby**
     option.  Next exapmle prints all \`for \*something\*' pattern in pod
     documents within Perl script.
 
         greple -Mperl --pod -ioe '\bfor \w+' --joinby ' '
 
-- __--filestyle__=_line_|_once_|_separate_, __--fs__
+- **--filestyle**=_line_|_once_|_separate_, **--fs**
 
-    Default style is _line_, and __greple__ prints filename at the
+    Default style is _line_, and **greple** prints filename at the
     beginning of each line.  Style _once_ prints the filename only once
     at the first time.  Style _separate_ prints filename in the separate
     line before each line or block.
 
-- __--linestyle__=_line_|_separate_, __--ls__
+- **--linestyle**=_line_|_separate_, **--ls**
 
-    Default style is _line_, and __greple__ prints line numbers at the
+    Default style is _line_, and **greple** prints line numbers at the
     beginning of each line.  Style _separate_ prints line number in the
     separate line before each line or block.
 
-- __--separate__
+- **--separate**
 
-    Shortcut for __--filestyle__=_separate_ __--linestyle__=_separate_.
+    Shortcut for **--filestyle**=_separate_ **--linestyle**=_separate_.
     This is convenient to use block mode search and visiting each location
     from supporting tool, such as Emacs.
 
 ## FILES
 
-- __--glob__=_pattern_
+- **--glob**=_pattern_
 
     Get files matches to specified pattern and use them as a target files.
-    Using __--chdir__ and __--glob__ makes easy to use __greple__ for fixed
+    Using **--chdir** and **--glob** makes easy to use **greple** for fixed
     common job.
 
-- __--chdir__=_directory_
+- **--chdir**=_directory_
 
     Change directory before processing files.  When multiple directories
-    are specified in __--chdir__ option, by using wildcard form or
-    repeating option, __--glob__ file expantion will be done for every
+    are specified in **--chdir** option, by using wildcard form or
+    repeating option, **--glob** file expantion will be done for every
     directories.
 
         greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
 
-- __--readlist__
+- **--readlist**
 
     Get filenames from standard input.  Read standard input and use each
     line as a filename for searching.  You can feed the output from other
-    command like [find(1)](http://man.he.net/man1/find) for __greple__ with this option.  Next example
+    command like [find(1)](http://man.he.net/man1/find) for **greple** with this option.  Next example
     searches string from files modified within 7 days:
 
         find . -mtime -7 -print | greple --readlist pattern
 
 ## COLORS
 
-- __--color__=_auto_|_always_|_never_, __--nocolor__
+- **--color**=_auto_|_always_|_never_, **--nocolor**
 
     Use terminal color capability to emphasize the matched text.  Default
-    is \`auto': effective when STDOUT is a terminal and option __-o__ is not
+    is \`auto': effective when STDOUT is a terminal and option **-o** is not
     given, not otherwise.  Option value \`always' and \`never' will work as
     expected.
 
-    Option __--nocolor__ is alias for __--color__=_never_.
+    Option **--nocolor** is alias for **--color**=_never_.
 
-- __--colormap__=_RGBCYMKWrgbcymkwSUDF_, __--quote__=_start_,_end_
+- **--colormap**=_RGBCYMKWrgbcymkwSUDF_, **--quote**=_start_,_end_
 
     Specify color map.  Default is RD: RED and BOLD.
 
@@ -454,8 +454,8 @@ or `(?<c>\w)\g{c}`.
 
         greple --quote='<:>' pattern
 
-    Option __--quote__ is an alias for __--colormap__, but it set the
-    option __--color__=_always_ at the same time.
+    Option **--quote** is an alias for **--colormap**, but it set the
+    option **--color**=_always_ at the same time.
 
     Multiple colors can be specified separating by white space or comma,
     or by repeating options.  Those colors will be applied for each
@@ -466,7 +466,7 @@ or `(?<c>\w)\g{c}`.
 
         greple --cm R -e foo --cm G -e bar --cm B -e baz
 
-- __--colormap__=_field_=_color_,_field_=_color_,...
+- **--colormap**=_field_=_color_,_field_=_color_,...
 
     Another form of colormap option to specify the color for fields:
 
@@ -474,22 +474,22 @@ or `(?<c>\w)\g{c}`.
         LINE      Line number
         BLOCKEND  Block end mark
 
-- __--\[no\]colorful__
+- **--\[no\]colorful**
 
-    Shortcut for __--colormap__='_RD GD BD CD MD YD_' in ANSI 16 colors
-    mode, and __--colormap__='_D/544 D/454 D/445 D/455 D/454 D/554_' and
+    Shortcut for **--colormap**='_RD GD BD CD MD YD_' in ANSI 16 colors
+    mode, and **--colormap**='_D/544 D/454 D/445 D/455 D/454 D/554_' and
     other combination of 3, 4, 5 for 256 colors mode.  Enabled by default.
 
-- __--\[no\]256__
+- **--\[no\]256**
 
     Set/unset ANSI 256 color mode.  Enabled by default.
 
-- __--regioncolor__
+- **--regioncolor**
 
-    Use different colors for each __--inside__/__outside__ regions.
+    Use different colors for each **--inside**/**outside** regions.
     Disabled by default.
 
-- __--face__=\[-+\]_effect_
+- **--face**=\[-+\]_effect_
 
     Set or unset specified _effect_ for all color specs.  Use \`+'
     (optional) to set, and \`-' to unset.  Effect is a single character
@@ -505,7 +505,7 @@ or `(?<c>\w)\g{c}`.
 
 ## BLOCKS
 
-- __-p__, __--paragraph__
+- **-p**, **--paragraph**
 
     Print the paragraph which contains the pattern.  Each paragraph is
     delimited by two or more successive newline characters by default.  Be
@@ -516,21 +516,21 @@ or `(?<c>\w)\g{c}`.
 
         greple -pe '^struct sockaddr' /usr/include/sys/socket.h
 
-    It changes the unit of context specified by __-A__, __-B__, __-C__
+    It changes the unit of context specified by **-A**, **-B**, **-C**
     options.
 
-- __--all__
+- **--all**
 
     Treat entire file contents as a single block.  This is almost
     identical to following command.
 
         greple --block='(?s).*'
 
-- __--block__=_pattern_, __--block__=_&sub_
+- **--block**=_pattern_, **--block**=_&sub_
 
     Specify the record block to display.  Default block is a single line.
 
-    Next example behave almost same as __--paragraph__ option, but is less
+    Next example behave almost same as **--paragraph** option, but is less
     efficient.
 
         greple --block='(.+\n)+'
@@ -548,17 +548,17 @@ or `(?<c>\w)\g{c}`.
     Please be aware that this option is sometimes quite time consuming,
     because it finds all blocks before processing.
 
-- __--blockend__=_string_
+- **--blockend**=_string_
 
-    Change the end mark displayed after __-pABC__ or __--block__ options.
+    Change the end mark displayed after **-pABC** or **--block** options.
     Default value is "--\\n".
 
 ## REGIONS
 
-- __--inside__=_pattern_
-- __--outside__=_pattern_
+- **--inside**=_pattern_
+- **--outside**=_pattern_
 
-    Option __--inside__ and __--outside__ limit the text area to be matched.
+    Option **--inside** and **--outside** limit the text area to be matched.
     For simple example, if you want to find string \`and' not in the word
     \`command', it can be done like this.
 
@@ -573,16 +573,16 @@ or `(?<c>\w)\g{c}`.
 
         greple --inside='(?s)^=.*?(^=cut|\Z)'
 
-    When multiple __inside__ and __outside__ regions are specified, those
+    When multiple **inside** and **outside** regions are specified, those
     regions are mixed up in union way.
 
     In multiple color environment, and if single keyword is specified,
-    matches in each __--inside__/__outside__ regions are printed in
+    matches in each **--inside**/**outside** regions are printed in
     different colors.  Forcing this operation with multiple keywords, use
-    __--regioncolor__ option.
+    **--regioncolor** option.
 
-- __--inside__=_&function_
-- __--outside__=_&function_
+- **--inside**=_&function_
+- **--outside**=_&function_
 
     If the pattern name begins by ampersand (&) character, it is treated
     as a name of subroutine which returns a list of blocks.  Using this
@@ -590,16 +590,16 @@ or `(?<c>\w)\g{c}`.
     the text they want to search.  User defined function can be defined in
     `.greplerc` file or by module option.
 
-- __--include__=_pattern_
-- __--exclude__=_pattern_
-- __--include__=_&function_
-- __--exclude__=_&function_
+- **--include**=_pattern_
+- **--exclude**=_pattern_
+- **--include**=_&function_
+- **--exclude**=_&function_
 
-    __--include__/__exclude__ option behave exactly same as
-    __--inside__/__outside__ when used alone.
+    **--include**/**exclude** option behave exactly same as
+    **--inside**/**outside** when used alone.
 
-    When used in combination, __--include__/__exclude__ are mixed in AND
-    manner, while __--inside__/__outside__ are in OR.
+    When used in combination, **--include**/**exclude** are mixed in AND
+    manner, while **--inside**/**outside** are in OR.
 
     Thus, in the next example, first line prints all matches, and second
     does none.
@@ -608,27 +608,27 @@ or `(?<c>\w)\g{c}`.
 
         greple --include PATTERN --exclude PATTERN
 
-    You can make up desired matches using __--inside__/__outside__ option,
-    then remove unnecessary part by __--include__/__exclude__
+    You can make up desired matches using **--inside**/**outside** option,
+    then remove unnecessary part by **--include**/**exclude**
 
-- __--strict__
+- **--strict**
 
     Limit the match area strictly.
 
-    By default, __--block__, __--inside__/__outside__,
-    __--include__/__exclude__ option allows partial match within the
+    By default, **--block**, **--inside**/**outside**,
+    **--include**/**exclude** option allows partial match within the
     specified area.  For instance,
 
         greple --inside and command
 
     matches pattern `command` because the part of matched string is
     included in specified inside-area.  Partial match failes when option
-    __--strict__ provided, and longer string never matches within shorter
+    **--strict** provided, and longer string never matches within shorter
     area.
 
 ## CHARACTER CODE
 
-- __--icode__=_code_
+- **--icode**=_code_
 
     Target file is assumed to be encoded in utf8 by default.  Use this
     option to set specific encoding.  When handling Japanese text, you may
@@ -650,13 +650,13 @@ or `(?<c>\w)\g{c}`.
 
         greple --icode=+euc-kr ...
 
-- __--ocode__=_code_
+- **--ocode**=_code_
 
     Specify output code.  Default is utf8.
 
 ## FILTER
 
-- __--if__=_filter_, __--if__=_EXP_:_filter_:_EXP_:_filter_:...
+- **--if**=_filter_, **--if**=_EXP_:_filter_:_EXP_:_filter_:...
 
     You can specify filter command which is applied to each files before
     search.  If only one filter command is specified, it is applied to all
@@ -674,22 +674,22 @@ or `(?<c>\w)\g{c}`.
         greple --if='nm /dev/stdin' crypt /usr/lib/lib*
 
     Filters for compressed and gzipped file is set by default unless
-    __--noif__ option is given.  Default action is like this:
+    **--noif** option is given.  Default action is like this:
 
         greple --if='s/\.Z$//:zcat:s/\.g?z$//:gunzip -c'
 
-- __--noif__
+- **--noif**
 
     Disable default input filter.  Which means compressed files will not
     be decompressed automatically.
 
-- __--of__=_filter_
+- **--of**=_filter_
 
     Specify output filter commands.
 
 ## RUNTIME FUNCTIONS
 
-- __--print__=_function_, __--print__=_sub{...}_
+- **--print**=_function_, **--print**=_sub{...}_
 
     Specify user defined function executed before data print.  Text to be
     printed is replaced by the result of the funcion.  Arbitrary function
@@ -699,7 +699,7 @@ or `(?<c>\w)\g{c}`.
     passed by `matched` key, in the form of perl array reference:
     `[[start,end],[start,end]...]`.
 
-    Simplest function is __--print__='_sub{$\_}_'.  Coloring capability can
+    Simplest function is **--print**='_sub{$\_}_'.  Coloring capability can
     be used like this:
 
         # ~/.greplerc
@@ -717,22 +717,22 @@ or `(?<c>\w)\g{c}`.
 
         greple --print=print_simple ...
 
-    It is possible to use multiple __--print__ options.  In that case,
+    It is possible to use multiple **--print** options.  In that case,
     second function will get the result of the first function.  The
     command will print the final result of the last funciton.
 
-- __--continue__
+- **--continue**
 
-    When __--print__ option is given, __greple__ will immediately print the
+    When **--print** option is given, **greple** will immediately print the
     result returned from print function and finish the cycle.  Option
-    __--continue__ forces to continue normal printing process after print
+    **--continue** forces to continue normal printing process after print
     function called.  So please be sure that all data being consistent.
 
-- __--call__=_function_(_..._), __--call__=_function_=_..._
-- __-M___module_::_function(...)_, __-M___module_::_function=..._
+- **--call**=_function_(_..._), **--call**=_function_=_..._
+- **-M**_module_::_function(...)_, **-M**_module_::_function=..._
 
-    Option __--call__ specify the function executed at the beginning of
-    each file processing.  This _function_ have to be called from __main__
+    Option **--call** specify the function executed at the beginning of
+    each file processing.  This _function_ have to be called from **main**
     package.  So if you define the function in the module package, use the
     full package name or export properly.
 
@@ -770,33 +770,33 @@ the hash.  Content of the target file can be accessed by `$_`.
 
 ## PGP
 
-- __--pgp__
+- **--pgp**
 
     Invoke PGP decrypt command for files end with _.pgp_, _.gpg_ or
     _.asc_.  PGP passphrase is asked only once at the beginning of
     command execution.
 
-- __--pgppass__=_phrase_
+- **--pgppass**=_phrase_
 
     You can specify PGP passphrase by this option.  Generally, it is not
     recommended to use.
 
 ## OTHERS
 
-- __--norc__
+- **--norc**
 
     Do not read startup file: `~/.greplerc`.
 
-- __--man__
+- **--man**
 
     Show manual page.
-    Display module's manual page when used with __-M__ option.
+    Display module's manual page when used with **-M** option.
 
-- __--show__
+- **--show**
 
-    Show module file contents.  Use with __-M__ option.
+    Show module file contents.  Use with **-M** option.
 
-- __--require__=_filename_
+- **--require**=_filename_
 
     Include arbitrary perl program.
 
@@ -808,7 +808,7 @@ are inserted before command line options.
 Before starting execution, _greple_ reads the file named `.greplerc`
 on user's home directory.  Following directives can be used.
 
-- __option__ _name_ string
+- **option** _name_ string
 
     Argument _name_ of \`option' directive is user defined option name.
     The rest are processed by _shellwords_ routine defined in
@@ -821,7 +821,7 @@ on user's home directory.  Following directives can be used.
         option --fromcode --outside='(?s)\/\*.*?\*\/'
         option --fromcomment --inside='(?s)\/\*.*?\*\/'
 
-    If the option named __default__ is defined, it will be used as a
+    If the option named **default** is defined, it will be used as a
     default option.
 
     For the purpose to include following arguments within replaced
@@ -843,13 +843,13 @@ on user's home directory.  Following directives can be used.
 
         greple --le &line=10,20-30,40
 
-- __help__ _name_
+- **help** _name_
 
     If \`help' directive is used for same option name, it will be printed
     in usage message.  If the help message is \`ignore', corresponding line
     won't show up in the usage.
 
-- __define__ _name_ string
+- **define** _name_ string
 
     Directive \`define' is almost same as \`option', but argument is not
     processed by _shellwords_ and treated just a simple text.
@@ -862,13 +862,13 @@ on user's home directory.  Following directives can be used.
         help   --kanalist List up Katakana string
 
 Environment variable substitution is done for string specified by
-\`option' and \`define' directivies.  Use Perl syntax __$ENV{NAME}__ for
+\`option' and \`define' directivies.  Use Perl syntax **$ENV{NAME}** for
 this purpose.  You can use this to make a portable module.
 
 When _greple_ found `__CODE__` line in `.greplerc` file, the rest
 of the file is evaluated as a Perl program.  You can define your own
-subroutines which can be used by __--inside__/__outside__,
-__--include__/__exclude__, __--block__ options.
+subroutines which can be used by **--inside**/**outside**,
+**--include**/**exclude**, **--block** options.
 
 For those subroutines, file content will be provided by global
 variable `$_`.  Expected response from the subroutine is the list of
@@ -896,15 +896,15 @@ lines.
 # MODULE
 
 Modules can be specified only at the beginning of command line by
-__-M___module_ option.  Name _module_ is prepended by __App::Greple__,
+**-M**_module_ option.  Name _module_ is prepended by **App::Greple**,
 so place the module file in `App/Greple/` directory in Perl library.
 
 If the package name is declared properly, `__DATA__` section in the
 module file will be interpreted same as `.greplerc` file content.
 
-Using __-M__ without module argument will print available module list.
-Option __--man__ will display module document when used with __-M__
-option.  Use __--show__ option to see the module itself.
+Using **-M** without module argument will print available module list.
+Option **--man** will display module document when used with **-M**
+option.  Use **--show** option to see the module itself.
 
 See this sample module code.  This sample define options to search
 from pod, comment and other segment in Perl script.  Those capability
@@ -975,9 +975,9 @@ You can use the module like this:
 
 # HISTORY
 
-Most capability of __greple__ is derived from __mg__ command, which has
+Most capability of **greple** is derived from **mg** command, which has
 been developing from early 1990's by the same author.  Because modern
-standard __grep__ family command becomes to have similar capabilities,
+standard **grep** family command becomes to have similar capabilities,
 it is a time to clean up entire functionarities, totally remodel the
 option interfaces, and change the command name. (2013.11)
 
