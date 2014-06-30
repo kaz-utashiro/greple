@@ -33,9 +33,9 @@ It is ok to use B<-L> option multiple times, like:
 
 But this command produce nothing, because each line definitions are
 taken as a different pattern, and B<greple> prints lines only when all
-pattern match is succeeded.  You can use B<--need 1> option in such
-case, then you will get expected result.  Note that next example will
-display 10th, 20th and 30th lines in different colors.
+patterns matched.  You can relax the condition by B<--need 1> option
+in such case, then you will get expected result.  Note that next
+example will display 10th, 20th and 30th lines in different colors.
 
     greple -Mline -L 10 -L 20 -L 30 --need 1
 
@@ -44,7 +44,7 @@ Range can be specified by colon:
     greple -Mline -L 10:20
 
 You can also specify the step with range.  Next command will print
-all even lines between 10th and 20th:
+all even lines from line 10 to 20:
 
     greple -Mline -L 10:20:2
 
@@ -68,7 +68,36 @@ colors.
 
     greple -Mline -L=1::4 -L=2::4 -L=3::4 -L=4::4 --need 1
 
+If forth parameter is given, it describes how many lines is included
+in that step cycle.  For example, next command prints top 3 lines in
+every 10 lines.
+
+    greple -Mline -L ::10:3
+
+When step count is omitted, forth value is used if available.
+
+=item B<L>=I<line numbers>
+
+This notation just define function spec, which can be used in
+patterns, as well as blocks and regions.  Actually, B<-L>=I<line> is
+equivalent to B<--le> B<L>=I<line>.
+
+Next command show patterns found in line number 1000-2000 area.
+
+    greple -Mline --inside L=1000:+1000 pattern
+
+Next command prints all 10 line blocks which include the pattern.
+
+    greple -Mline --block L=:::10 pattern
+
 =back
+
+This module implicitly set B<-n> option.  Use B<--no-line-number>
+option to disable it.
+
+Using this module, it is impossible to give single C<L> in command
+line arguments.  Use like B<--le=L> to search C<L>.  You have a file
+named F<L>?  Say, ... F<./L>?
 
 =cut
 
@@ -78,7 +107,7 @@ use strict;
 use warnings;
 
 use Carp;
-
+use List::Util qw(min max);
 use Data::Dumper;
 
 BEGIN {
@@ -98,24 +127,32 @@ END { }
 
 my $target = -1;
 my @lines;
-my $sep = qr/[:]/;
 
 sub expand_line {
     local $_ = shift;
-    if (/^\d+$/) {
-	$_ <= $#lines ? ($_) : ();
-    }
-    elsif (/^ ([-+]?\d*) $sep ([-+]?\d*) (?: $sep (\d*))? $/x) {
-	my($start, $end, $step) = ($1 || 1, $2 || $#lines, $3 || 1);
+    if (/^ (-\d+|\d*) ( :([-+]\d+|\d*) ( :\d* (:\d*)? )? )? $/x) {
+	my($start, $end, $step, $lines) = split /:/;
 
-	$start += $#lines if $start < 0;
-	$end += $#lines if $end < 0;
+	return () if $start =~ /\d/ and $start > $#lines;
+	$start = max(0, $start + $#lines) if $start =~ /^-\d+$/;
+	$start ||= 1;
+
+	$end //= $start;
+	$end = max(0, $end + $#lines) if $end =~ /^-/;
+	$end ||= $#lines;
 	$end += $start if $end =~ s/^\+//;
-
 	$end = $#lines if $end > $#lines;
+
+	$lines ||= 1;
+	$step  ||= $lines;
+
 	my @l;
-	for (my $i = $start; $i <= $end; $i += $step) {
-	    push @l, $i;
+	if ($step == 1) {
+	    @l = ([$start, $end]);
+	} else {
+	    for (my $i = $start; $i <= $end; $i += $step) {
+		push @l, [$i, min($#lines, $i + $lines - 1)];
+	    }
 	}
 	@l;
     }
@@ -125,29 +162,32 @@ sub expand_line {
     }
 }
 
+sub set_lines {
+    @lines = ([0, 0]);
+    my $off = 0;
+    while (/\G(.*(?:\n|\z))/mg) {
+	## never use @+ here for performance reason
+	push @lines, [ $off, $off + length $1 ];
+	$off += length $1;
+    }
+}
+
 sub line {
     my %arg = @_ ;
     my $file = delete $arg{main::FILELABEL} or die;
 
     if ($target != \$_) {
-	@lines = ([0,0]);
-	my $off = 0;
-	while (/^((.*\n|\z))/mg) {
-	    push @lines, [ $off, $off + length $2 ];
-	    $off += length $1;
-	}
+	set_lines;
 	$target = \$_ ;
     }
 
-    my %seen;
     my @result = do {
-	grep { defined }
-	map  { $lines[$_] }
-	grep { not $seen{$_}++ }
-	sort { $a <=> $b }
+	map  { [ $lines[$_->[0]]->[0], $lines[$_->[1]]->[1] ] }
+	sort { $a->[0] <=> $b->[0] }
 	map  { expand_line $_ }
 	keys %arg;
     };
+    @result;
 }
 
 1;
