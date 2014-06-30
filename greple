@@ -374,10 +374,19 @@ if ($ENV{'GREPLEOPTS'}) {
 ## Process user defined option.
 ##
 ARGV: for (my $i = 0; $i < @ARGV; $i++) {
-    my $arg = $ARGV[$i];
+    my($opt, $value) = split /=/, $ARGV[$i], 2;
     for my $rcdata (@rcdata) {
-	if (my @s = $rcdata->getopt($arg)) {
-	    splice @ARGV, $i, 1, @s;
+	if (my @s = $rcdata->getopt($opt)) {
+	    splice @ARGV, $i, 1, ($opt, $value) if defined $value;
+	    ##
+	    ## Convert $<n> and $<shift>
+	    ##
+	    my @rest = splice @ARGV, $i;
+	    s/\$<(\d+)>/$rest[$1]/ge foreach @s;
+	    shift @rest;
+	    s/\$<shift>/shift @rest/ge foreach @s;
+
+	    push @ARGV, @s, @rest;
 	    redo ARGV;
 	}
     }
@@ -2176,6 +2185,23 @@ Multiple `?' preceded tokens are treated all mixed together.  That
 means `?A|B ?C|D' is equivalent to `?A|B|C|D'.  If you want to mean
 `(A or B) and (C or D)', use AND syntax instead: `A|B C|D'.
 
+If the pattern start with ampersand (`&'), it is treated as a
+function, and the function is called instead of searching pattern.
+Function call interface is same as the one for block/region options.
+
+If you have a definition of I<odd_line> function in you F<.greplrc>,
+which is described in this manual later, you can print odd number
+lines like this:
+
+    greple -n '&odd_line' file
+
+This is the summary of start character for B<--le> option:
+
+    +  Required pattern
+    -  Negative match pattern
+    ?  Alternative pattern
+    &  Function call
+
 =item B<-e> I<pattern>, B<--and>=I<pattern>
 
 Specify positive match token.  Next two commands are equivalent.
@@ -2897,6 +2923,25 @@ with other options.
 
 If the option named B<default> is defined, it will be used as a
 default option.
+
+For the purpose to include following arguments within replaced
+strings, two special notations can be used in option definition.
+String C<$E<lt>I<n>E<gt>> is replaced by the I<n>th argument after the
+substituted option, where I<n> is number start from one.  String
+C<$E<lt>shiftE<gt>> is replaced by following command line argument and
+the argument is removed from option list.
+
+For example, when
+
+    option --line --le &line=$<shift>
+
+is defined, command
+
+    greple --line 10,20-30,40
+
+will be evaluated as this:
+
+    greple --le &line=10,20-30,40
 
 =item B<help> I<name>
 
