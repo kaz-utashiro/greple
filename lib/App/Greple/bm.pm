@@ -86,22 +86,35 @@ if ($use_json) {
     $mod_json = 0 ;
 }
 
-$mod_json or eval q{
-    sub to_json {
-	my $obj = shift ;
-	local $_ = Dumper $obj ;
-	s/\s+//g ;
-	s/'([a-zA-Z_]+)'/"$1"/g ;
-	s/'(\d+)'/$1/g ;
-	s/=>/:/g ;
-	$_ ;
-    }
-    sub from_json {
-	local $_ = shift ;
-	s/:/=>/g ;
-	eval $_ ;
-    }
-} ;
+my $simple_sane_json = qr{
+    \A { (?: "\w+" : \[ (?: \[\d+,\d+\] ,? )* \] ,? )* } \Z
+}x;
+my $j_dpair   = qr/\[\d+,\d+\]/;
+my $j_list    = qr/\[ (?: $j_dpair , )* $j_dpair ? \]/x;
+my $j_hashent = qr/"\w+" : $j_list/x;
+my $j_hash    = qr/\{ (?: $j_hashent , )* $j_hashent ? \}/x;
+my $sane_json = qr/\A $j_hash \Z/x;
+
+unless ($mod_json) {
+    eval q{
+	sub to_json {
+	    my $obj = shift;
+	    local $_ = Dumper $obj;
+	    s/\s+//g;
+	    s/'([a-zA-Z_]+)'/"$1"/g;
+	    s/'(\d+)'/$1/g;
+	    s/=>/:/g;
+	    $_;
+	}
+	sub from_json {
+	    local $_ = shift;
+	    /$sane_json/ or die "json format error";
+	    s/:/=>/g;
+	    eval;
+	}
+    };
+    die $@ if $@;
+}
 
 BEGIN {
     use Exporter   () ;
