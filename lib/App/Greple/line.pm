@@ -97,7 +97,7 @@ option to disable it.
 
 Using this module, it is impossible to give single C<L> in command
 line arguments.  Use like B<--le=L> to search C<L>.  You have a file
-named F<L>?  Say, ... F<./L>?
+named F<L>?  Stop substitution by placing C<--> before target files.
 
 =cut
 
@@ -130,8 +130,18 @@ my @lines;
 
 sub expand_line {
     local $_ = shift;
-    if (/^ (-\d+|\d*) ( :([-+]\d+|\d*) ( :\d* (:\d*)? )? )? $/x) {
-	my($start, $end, $step, $lines) = split /:/;
+    if (m{^	(?<start> -\d+ | \d* )
+		(?:
+		  (?: \.\. | : ) (?<end> [-+]\d+ | \d* )
+		  (?:
+		    : (?<step> \d* )
+		    (?:
+		      : (?<lines> \d* )
+		    )?
+		  )?
+		)?
+	$}x) {
+	my($start, $end, $step, $lines) = @+{qw(start end step lines)};
 
 	return () if $start =~ /\d/ and $start > $#lines;
 	$start = max(0, $start + $#lines) if $start =~ /^-\d+$/;
@@ -143,13 +153,11 @@ sub expand_line {
 	$end += $start if $end =~ s/^\+//;
 	$end = $#lines if $end > $#lines;
 
-	$lines ||= 1;
-	$step  ||= $lines;
-
 	my @l;
-	if ($step == 1) {
+	if (not $lines//0 + 0) {
 	    @l = ([$start, $end]);
 	} else {
+	    $step ||= $lines;
 	    for (my $i = $start; $i <= $end; $i += $step) {
 		push @l, [$i, min($#lines, $i + $lines - 1)];
 	    }
