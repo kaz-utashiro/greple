@@ -167,17 +167,25 @@ sub setdata {
     my $file = shift ;
     my $nocache = @_ ? shift : 0 ;
 
-    if (!$nocache and $use_cache and cache_valid($file)) {
-	if (my $obj = get_json(cachename($file))) {
-	    %part = %{ $obj } ;
-	    return ;
+  CACHECHECK:
+    {
+	last if $nocache;
+	last unless $use_cache;
+	last unless cache_valid($file);
+	my $obj = get_json(cachename($file)) or last;
+	if ($obj->{all} and $obj->{all}[0][1] != length) {
+	    warn "File length mismatch, cache disabled.\n";
+	    last;
 	}
+	%part = %{ $obj };
+	return;
     }
 
     %part = ( egtxt => [], jptxt => [],
 	      eg => [], jp => [],
 	      both => [],
 	      comment => [],
+	      all => [ [ 0, length ] ],
 	) ;
 
     my $lang = 'null' ;
