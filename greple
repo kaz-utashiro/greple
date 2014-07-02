@@ -374,6 +374,7 @@ if ($ENV{'GREPLEOPTS'}) {
 ## Process user defined option.
 ##
 ARGV: for (my $i = 0; $i < @ARGV; $i++) {
+    last if $ARGV[$i] eq '--';
     my($opt, $value) = split /=/, $ARGV[$i], 2;
     for my $rcdata (@rcdata) {
 	if (my @s = $rcdata->getopt($opt)) {
