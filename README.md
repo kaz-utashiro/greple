@@ -7,7 +7,7 @@ greple - grep with multiple keywords
 **greple** \[**-M**_module_\] \[ **-options** \] pattern \[ file... \]
 
     PATTERN
-      pattern              'positive +must -negative ?alternative'
+      pattern              'and +must -not ?alternative &function'
       -e pattern           regex pattern match across line boundary
       -r pattern           regex pattern cannot be compromised
       -v pattern           regex pattern not to be matched
@@ -46,7 +46,7 @@ greple - grep with multiple keywords
       --[no]256            use ANSI 256 colors
       --regioncolor        use different color for inside/outside regions
       --random             random color
-      --face
+      --face               set/unset vidual effects
     BLOCK
       -p                   paragraph mode
       --all                print whole data
@@ -149,8 +149,8 @@ in the bare or **--le** pattern.
 
 ## PATTERNS
 
-If specific option is not provided, **greple** takes the first argument
-as a search pattern specified by **-le** option.  All of these patterns
+If no specific option is given, **greple** takes the first argument as
+a search pattern specified by **--le** option.  All of these patterns
 can be specified multiple times.
 
 Command itself is written in Perl, and any kind of Perl style regular
@@ -162,7 +162,7 @@ it.
 
 Order of capture group in the pattern is not guaranteed.  Please avoid
 to use direct index, and use relative or named capture group instead.
-For example, repated character can be written as `(\w)\g{-1}`
+For example, repeated character can be written as `(\w)\g{-1}`
 or `(?<c>\w)\g{c}`.
 
 - **--le**=_pattern_
@@ -743,8 +743,10 @@ or `(?<c>\w)\g{c}`.
 For these run-time functions, optional argument list can be set in the
 form of `key` or `key=value`, connected by comma.  These arguments
 will be passed to the funciton in key => value list.  Sole key will
-have the value one.  Also processing file name is passed with "file"
-key.  As a result, the option in the next form:
+have the value one.  Also processing file name is passed with the key
+of `FILELABEL` constant defined in `main` package.  Use as
+`main::FILELABEL` from modules.  As a result, the option in the next
+form:
 
     --print|call function(key1,key=val2)
     --print|call function=key1,key=val2
@@ -754,18 +756,20 @@ key.  As a result, the option in the next form:
 
 will be transformed into following function call:
 
-    function(file => "filename", key1 => 1, key2 => "val2")
+    function(FILELABEL => "filename", key1 => 1, key2 => "val2")
 
 The function can be defined in `.greplerc` or modules.  Assign the
 arguments into hash, then you can access argument list as member of
-the hash.  Content of the target file can be accessed by `$_`.
+the hash.  It's safe to delete FILELABEL key if you expect random
+parameter is given.  Content of the target file can be accessed by
+`$_`.
 
     sub function {
         my %arg = @_;
-        $arg{file};    # "filename"
-        $arg{key1};    # 1
-        $arg{key2};    # "val2"
-        $_;            # contents
+        my $filename = delete $arg{main::FILELABEL} or die;
+        $arg{key1};             # 1
+        $arg{key2};             # "val2"
+        $_;                     # contents
     }
 
 ## PGP
@@ -826,7 +830,7 @@ on user's home directory.  Following directives can be used.
 
     For the purpose to include following arguments within replaced
     strings, two special notations can be used in option definition.
-    String `$<_n_>` is replaced by the _n_th argument after the
+    String `$<n>` is replaced by the _n_th argument after the
     substituted option, where _n_ is number start from one.  String
     `$<shift>` is replaced by following command line argument and
     the argument is removed from option list.
