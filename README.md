@@ -45,7 +45,8 @@ greple - grep with multiple keywords
       --colorful           use default multiple colors
       --[no]256            use ANSI 256 colors
       --regioncolor        use different color for inside/outside regions
-      --random             random color
+      --uniqcolor          use different color for unique string
+      --random             use random color each time
       --face               set/unset vidual effects
     BLOCK
       -p                   paragraph mode
@@ -487,6 +488,21 @@ or `(?<c>\w)\g{c}`.
 - **--regioncolor**
 
     Use different colors for each **--inside**/**outside** regions.
+    Disabled by default.
+
+- **--uniqcolor**
+
+    Use different colors for different string matched.
+    Disabled by default.
+
+    Next example prints all words start by \`color' and display them all in
+    different colors.
+
+        greple --uniqcolor 'colou?r\w*'
+
+- **--random**
+
+    Use random selected color to display matched string each time.
     Disabled by default.
 
 - **--face**=\[-+\]_effect_

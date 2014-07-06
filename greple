@@ -84,7 +84,8 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --colorful           use default multiple colors
     --[no]256            use ANSI 256 colors
     --regioncolor        use different color for inside/outside regions
-    --random             random color
+    --uniqcolor          use different color for unique string
+    --random             use random color each time
     --face               set/unset vidual effects
   BLOCK
     -p                   paragraph mode
@@ -148,6 +149,7 @@ my $opt_256 = 1;
 my @opt_colormap;
 my $opt_colorful = 1;
 my @opt_face;
+my $opt_uniqcolor;
 my $opt_random;
 my $opt_regioncolor;
 my $opt_icode;
@@ -250,6 +252,7 @@ my @optargs = (
     'nocolor|nocolour'   => sub { $opt_color = 'never' },
     'colorful!'          => \$opt_colorful,
     'face=s'             => \@opt_face,
+    'uniqcolor|uc!'      => \$opt_uniqcolor,
     'random!'            => \$opt_random,
     '256!'               => \$opt_256,
     'regioncolor|rc!'    => \$opt_regioncolor,
@@ -847,6 +850,10 @@ MAIN: {
     }
 }
 
+if ($opt_uniqcolor and $opt_d{m}) {
+    dump_uniqcolor();
+}
+
 ## show statistic info
 if ($opt_d{s}) {
     $stat{time_end} = [times];
@@ -1137,7 +1144,14 @@ sub do_grep {
 
 	    my $s = substr($block, $ms, $me - $ms);
 
-	    $pi = rand(@colors) if $opt_random;
+	    # --random
+	    if ($opt_random) {
+		$pi = rand(@colors);
+	    }
+	    # --uniqcolor
+	    elsif ($opt_uniqcolor) {
+		$pi = uniqcolor($s);
+	    }
 
 	    if ($opt_join) {
 		if ($opt_n and $opt_linestyle eq 'line') {
@@ -1180,6 +1194,21 @@ sub _file     { unshift @_, 'FILE'     ; goto &color }
 sub _line     { unshift @_, 'LINE'     ; goto &color }
 sub _delim    { unshift @_, 'DELIM'    ; goto &color }
 sub _blockend { unshift @_, 'BLOCKEND' ; goto &color }
+
+my %uniqcolor;
+my @uniqcolor;
+sub uniqcolor {
+    (my $p = shift) =~ s/\n//g;
+    $uniqcolor{$p} // do {
+	push @uniqcolor, $p;
+	$uniqcolor{$p} = $#uniqcolor;
+    };
+}
+sub dump_uniqcolor {
+    for my $i (0 .. $#uniqcolor) {
+	warn sprintf("%d %s\n", $i, index_color($uniqcolor[$i], $i));
+    }
+}
 
 ######################################################################
 
@@ -2531,6 +2560,21 @@ Set/unset ANSI 256 color mode.  Enabled by default.
 =item B<--regioncolor>
 
 Use different colors for each B<--inside>/B<outside> regions.
+Disabled by default.
+
+=item B<--uniqcolor>
+
+Use different colors for different string matched.
+Disabled by default.
+
+Next example prints all words start by `color' and display them all in
+different colors.
+
+    greple --uniqcolor 'colou?r\w*'
+
+=item B<--random>
+
+Use random selected color to display matched string each time.
 Disabled by default.
 
 =item B<--face>=[-+]I<effect>
