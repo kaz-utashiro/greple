@@ -435,6 +435,10 @@ option --exfigure  --exclude &part(figure)	// exclude figure
 option --exexample --exclude &part(example)	// exclude example
 option --excomment --exclude &part(comment)	// exclude comment
 
+define (#quot)     ^(?!※)(.+\n)+\n+(※.*(ママ|3010).*\n)(.+\n)*
+option --exquot    --exclude (#quot)
+option --quot      --re (#quot) --cm X --blockend=--
+
 define (#nev) (?=never)match
 option --cache-auto   --call bmcache(update)	// automatic cache update
 option --cache-create --re (#nev) --call bmcache(create)	// create cache
