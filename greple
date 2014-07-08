@@ -1199,9 +1199,9 @@ my %uniqcolor;
 my @uniqcolor;
 sub uniqcolor {
     (my $p = shift) =~ s/\n//g;
-    $uniqcolor{$p} // do {
+    $uniqcolor{$p} //= do {
 	push @uniqcolor, $p;
-	$uniqcolor{$p} = $#uniqcolor;
+	$#uniqcolor;
     };
 }
 sub dump_uniqcolor {
@@ -1816,14 +1816,9 @@ sub index_color {
 sub color {
     my($color, $text) = @_;
     return $text unless $need_color and $color;
-    unless ($colorcache{$color}) {
-	my $mode = exists $colormap{$color} ? $colormap{$color} : $color;
-	$colorcache{$color} = [ colorseq($mode) ];
-    }
+    $colorcache{$color} //= [ colorseq($colormap{$color} // $color) ];
     my($s, $e) = @{$colorcache{$color}};
-    if ($s ne "") {
-	$text =~ s/(^|$reset_re)([^\e\r\n]+)/$1$s$2$e/mg;
-    }
+    $text =~ s/(^|$reset_re)([^\e\r\n]+)/$1$s$2$e/mg if $s ne "";
     $text;
 }
 
