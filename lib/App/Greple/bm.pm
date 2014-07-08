@@ -435,9 +435,9 @@ option --exfigure  --exclude &part(figure)	// exclude figure
 option --exexample --exclude &part(example)	// exclude example
 option --excomment --exclude &part(comment)	// exclude comment
 
-define (#quot)     ^(?!※)(.+\n)+\n+(※.*(ママ|3010).*\n)(.+\n)*
-option --exquot    --exclude (#quot)
-option --quot      --re (#quot) --cm X --blockend=--
+define (#quote)    ^(?!※)(.+\n)+\n+(※.*(ママ|3010).*\n)(.+\n)*
+option --exquote   --exclude (#quote)
+option --quote     --re (#quote) --cm X --blockend=--
 
 define (#nev) (?=never)match
 option --cache-auto   --call bmcache(update)	// automatic cache update
@@ -457,3 +457,8 @@ option --join-block --call join_block()		// join block into single line
 option --oldcite --re '\[([\w.]+\s+)+\d{2}\]'	// old style 2digit citation
 option --newcite --re '\[([\w.]+\s+)+\d{4}\]'	// new style 4digit citation
 option --cite --re '\[([\w.]+\s+)+\d{2,4}\]'	// citacion
+
+option	--wordcheck \
+	-f $ENV{SCCC2DIR}/Edit/ERROR_WORDS \
+	--excomment --exquote \
+	-n --uniqcolor
