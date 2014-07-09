@@ -1630,7 +1630,7 @@ sub blocknize {
     for (my $c = $opt_A + 1; $c; $c--) {
 	pos($_) = $start;
 	if ($opt_p) {
-	    if (/\G(?:.+\n)*(\n+)/g) {
+	    if (/\G \n?+ (?:.+\n)* (\n+)/gx) {
 		$start = pos();
 		$end = $start - length $1;
 		next;
