@@ -26,6 +26,7 @@ use Getopt::Long qw(GetOptionsFromArray GetOptionsFromString);
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
 use List::Util qw(min max first sum);
+use Cwd qw(getcwd abs_path);
 use Data::Dumper;
 use Carp;
 
@@ -302,6 +303,15 @@ sub greplerc {
 	s/\\\n//g;
     }
     push @rcdata, new RcData($arg->{Title})->parsetext($rc);
+}
+
+##
+## Setup greple/lib to be a module directory if exists.
+##
+if ((my $greple = abs_path($0)) =~ m/\/\w+$/p) {
+    my $dir = ${^PREMATCH};
+    my $lib = "$dir/lib";
+    push @INC, $lib if -d $lib;
 }
 
 ##
@@ -668,7 +678,6 @@ my $start_directory;
 my $need_filename = ($opt_H or $opt_l);
 my $current_file;
 
-use Cwd;
 if (@opt_chdir) {
     $start_directory = getcwd;
     @opt_chdir = uniq(map { glob $_ } @opt_chdir);
