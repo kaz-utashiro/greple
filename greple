@@ -308,10 +308,8 @@ sub greplerc {
 ##
 ## Setup greple/lib to be a module directory if exists.
 ##
-if ((my $greple = abs_path($0)) =~ m/\/\w+$/p) {
-    my $dir = ${^PREMATCH};
-    my $lib = "$dir/lib";
-    push @INC, $lib if -d $lib;
+if ((my $lib = abs_path($0)) =~ s{/ \K \w+ $}{lib}x) {
+    push @INC, $lib if -d "$lib/App/Greple";
 }
 
 ##
@@ -456,6 +454,7 @@ if ($opt_man or $opt_show) {
 	my @perldocopt = $opt_show ? '-m' : () ;
 	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
 	my $perldoc = $jp ? "perldocjp" : "perldoc";
+	$ENV{PERL5LIB} = join ':', @INC;
 	exec "$perldoc @perldocopt App::Greple::$mod";
     }
     pod2usage({-verbose => 2});
