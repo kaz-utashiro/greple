@@ -1617,9 +1617,7 @@ sub blocknize {
 
     my $delim = $opt_p ? "\n\n" : "\n";
 
-    my($begin, $end);
-
-    $begin = $from;
+    my $begin = $from;
     for (my $c = $opt_B + 1; $c; $c--) {
 	if ($opt_p) {
 	    $begin-- while substr($_, $begin, 2) eq "\n\n";
@@ -1633,27 +1631,24 @@ sub blocknize {
 	$begin += length $delim;
     }
 
-    my $start = $to;
-    if (substr($matched, -(length $delim)) eq $delim) {
-	$start -= length $delim;
-    }
+    ##
+    ## This decision is quite difficult when the matched strings
+    ## contains multiple newlines at the end.  I'm not sure what
+    ## behavior is most intuitive.
+    ##
+    $to -= length $1 if $matched =~ /(\n{1,1})\z/;
+    pos($_) = $to;
+
+    my $end;
     for (my $c = $opt_A + 1; $c; $c--) {
-	pos($_) = $start;
-	if ($opt_p) {
-	    if (/\G \n?+ (?:.+\n)* (\n+)/gx) {
-		$start = pos();
-		$end = $start - length $1;
-		next;
-	    }
-	} else {
-	    if (/\G.*\n/g) {
-		$end = $start = pos();
-		next;
-	    }
+	if ($opt_p ? /\G \n?+ (?:.+\n)* (\n+)/gx : /\G.*\n()/g) {
+	    $end = pos() - length $1;
+	    next;
 	}
 	$end = length $_;
 	last;
     }
+    $end // die;
 
     ($begin, $end);
 }
