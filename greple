@@ -732,8 +732,10 @@ my @default_color =
 	 D/455 D/545 D/554
 	 D/543 D/453 D/435
 	 D/534 D/354 D/345
+	 D/444
 	 D/433 D/343 D/334
-	 D/344 D/434 D/443)
+	 D/344 D/434 D/443
+	 D/333)
     : qw(RD GD BD CD MD YD);
 
 if (@colors == 0) {
