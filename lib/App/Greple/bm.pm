@@ -458,7 +458,9 @@ option --oldcite --re '\[([\w.]+\s+)+\d{2}\]'	// old style 2digit citation
 option --newcite --re '\[([\w.]+\s+)+\d{4}\]'	// new style 4digit citation
 option --cite --re '\[([\w.]+\s+)+\d{2,4}\]'	// citacion
 
+option	--puretxt --excomment --exquote
+
 option	--wordcheck \
 	-f $ENV{SCCC2DIR}/Edit/ERROR_WORDS \
-	--excomment --exquote \
+	--puretxt \
 	-n --uniqcolor
