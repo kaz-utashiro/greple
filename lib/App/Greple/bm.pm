@@ -131,7 +131,7 @@ BEGIN {
     $VERSION = sprintf "%d.%03d", q$Revision: 1.1 $ =~ /(\d+)/g;
 
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(&part &bmcache &join_block);
+    @EXPORT      = qw(&part &bmcache &join_block &tag);
     %EXPORT_TAGS = ( );
     @EXPORT_OK   = qw();
 }
@@ -254,6 +254,21 @@ sub setdata {
 	my $pos = pos();
 	push @{$part{$2}}, [ $pos - length($1), $pos ];
     }
+}
+
+sub tag {
+    my %arg = @_;
+    my $file = delete $arg{main::FILELABEL} or die;
+    my $tag = join '|', keys %arg;
+    my $re = qr{
+	<(?<tag>$tag)\b[^>]*>
+	(?(?=\n\n) #if
+	  \n{2,} <\g{tag}\b[^>]*> (?s:.*?) </\g{tag}>\n{2,}</\g{tag}>\n
+	  |
+	  (?s:.*?) </\g{tag}>
+	)
+    }x;
+    main::match_regions(pattern => $re);
 }
 
 sub bmcache {
@@ -437,7 +452,11 @@ option --excomment --exclude &part(comment)	// exclude comment
 
 define (#quote)    ^(?!※)(.+\n)+\n+(※.*(ママ|3010).*\n)(.+\n)*
 option --exquote   --exclude (#quote)
-option --quote     --re (#quote) --cm X --blockend=--
+option --quote     --re (#quote) --cm 0 --blockend=--
+
+define (#cert-c-std-title)	「[A-Z]{3}\d\d-[A-Z]\.[^「」]*」
+option --exstd	--exclude (#cert-c-std-title)
+option --std	--re (#cert-c-std-title)
 
 define (#nev) (?=never)match
 option --cache-auto   --call bmcache(update)	// automatic cache update
@@ -445,6 +464,10 @@ option --cache-create --re (#nev) --call bmcache(create)	// create cache
 option --cache-clean  --re (#nev) --call bmcache(clean)	// remove cache
 option --cache-update --re (#nev) --call bmcache(force,update) \
 						// force to update cache
+
+define (#list)	^<blockquote>\n<pre>\n(?s:.*?)\n</pre>\n</blockquote>\n
+option --exlist --exclude (#list)
+
 option --nocache      --call bmcache(nocache)	// disable cache
 
 option --cache        --cache-auto	// ignore
@@ -454,13 +477,20 @@ option --cache_update --cache-update	// ignore
 
 option --join-block --call join_block()		// join block into single line
 
-option --oldcite --re '\[([\w.]+\s+)+\d{2}\]'	// old style 2digit citation
-option --newcite --re '\[([\w.]+\s+)+\d{4}\]'	// new style 4digit citation
-option --cite --re '\[([\w.]+\s+)+\d{2,4}\]'	// citacion
+define (#oldcite) \[(?:[\w.]+\s+)+\d{2}\]
+define (#newcite) \[(?:[\w.]+\s+)+\d{4}\]
+define (#cite)    \[(?:[\w.]+\s+)+\d{2}(?:\d{2})?\]
+defopt (#citepair) ((#cite))\n?+(?:.+\n)+(?:\n.+)*\g{-1}
+defopt (#citeunpair) ((#cite))\n?+(?:.+\n)+(?!(?:\n.+)*\g{-1})
+
+option --oldcite --re (#oldcite)	// old style 2digit citation
+option --newcite --re (#newcite)	// new style 4digit citation
+option --cite --re (#cite)		// citacion
 
 option	--puretxt --excomment --exquote
 
 option	--wordcheck \
 	-f $ENV{SCCC2DIR}/Edit/ERROR_WORDS \
 	--puretxt \
+	--exstd \
 	-n --uniqcolor
