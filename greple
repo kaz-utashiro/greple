@@ -710,8 +710,18 @@ my %colormap = (
 my @colors;
 
 if (@opt_colormap) {
+    my $re_field = qr/[\w\*\?]+/;
     map {
-	my $c = pop @$_;
+	my $spec = pop @$_;
+	my @spec;
+	while ($spec =~ s/\&(\w+);?//) {	# &func
+	    push @spec, callfuncp($1);
+	}
+	if ($spec =~ s/\b(sub\s*{.*)//) {	# sub { ... }
+	    push @spec, parse_func($1)->[0];
+	}
+	push @spec, $spec if $spec ne "";
+	my $c = @spec > 1 ? [ @spec ] : $spec[0];
 	if (@$_ == 0) {
 	    push @colors, $c;
 	}
@@ -721,8 +731,8 @@ if (@opt_colormap) {
 	    @$_;
 	}
     }
-    map { [ split /=/, $_, -1 ] }
-    map { split /[,\s]\s*/ }
+    map { [ /(?| ($re_field)= | (.+) )/gx ] }
+    map { /( (?:$re_field=)* (?: sub\s*{.* | [^,\s]+ ) )/gx }
     @opt_colormap;
 }
 
@@ -1664,6 +1674,14 @@ sub callfunc {
     goto &$name;
 }
 
+sub callfuncp {
+    my $name = shift;
+    sub {
+	no strict 'refs';
+	goto &$name;
+    }
+}
+
 ##
 ## sub { ... }
 ## funcname(arg1,arg2,arg3=val3)
@@ -1813,21 +1831,36 @@ BEGIN {
 
 sub index_color {
     my $text = shift;
-    return $text unless $need_color;
-    if (@colors) {
-	my $index = @_ ? shift(@_) % @colors : 0;
-	$text = color($colors[$index], $text);
+    my $index = @_ ? shift : 0;
+    if ($need_color and @colors) {
+	$text = color($colors[$index % @colors], $text, $index);
     }
     $text;
 }
 
 sub color {
-    my($color, $text) = @_;
-    return $text unless $need_color and $color;
-    $colorcache{$color} //= [ colorseq($colormap{$color} // $color) ];
+    goto &__color if ref $_[0] ne 'ARRAY';
+    my @speclist = @{+shift};
+    local $_ = shift;
+    for my $color (@speclist) {
+	$_ = __color($color, $_);
+    }
+    $_;
+}
+
+sub __color {
+    my $color = shift;
+    local $_ = shift;
+
+    my $c = exists $colormap{$color} ? $colormap{$color} : $color;
+
+    return $c->($_) if ref $c eq 'CODE';
+    return $_ unless $need_color and $color;
+
+    $colorcache{$color} //= [ colorseq($c) ];
     my($s, $e) = @{$colorcache{$color}};
-    $text =~ s/(^|$reset_re)([^\e\r\n]+)/$1$s$2$e/mg if $s ne "";
-    $text;
+    s/(^|$reset_re)([^\e\r\n]+)/$1$s$2$e/mg if $s ne "";
+    $_;
 }
 
 ######################################################################
@@ -2549,6 +2582,33 @@ Another form of colormap option to specify the color for fields:
     FILE      File name
     LINE      Line number
     BLOCKEND  Block end mark
+
+=item B<--colormap>=I<&func> B<--colormap>=I<sub{...}>
+
+You can also set the name of perl subroutine name or definition to be
+called handling matched words.  Target word is passed as variable
+C<$_>, and the return value of the subroutine will be displayed.
+
+Next command convert all words in C comment to upper case.
+
+    greple --all --include '/\*(?s:.*?)\*/' '\w+' --cm 'sub{uc}'
+
+Note that the form of I<&func> can be used just in the same way as
+other color specifications. However, if it start with I<sub{> pattern,
+all the rest of the argument is taken as a part of subroutine
+definition.  So, it can not be combined with other color definitions.
+
+It is possible to use this definition with field names.  Next example
+print line numbers in seven digits.
+
+    greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
+
+Experimentally, these function can be combined with other normal color
+specifications.  Also the form I<&func;> can be repeated.
+
+    greple --cm 'BF/544;sub{uc}'
+
+    greple --cm 'R;&func1;&func2;&func3'
 
 =item B<--[no]colorful>
 
