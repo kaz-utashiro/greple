@@ -714,11 +714,11 @@ if (@opt_colormap) {
     map {
 	my $spec = pop @$_;
 	my @spec;
-	while ($spec =~ s/\&(\w+);?//) {	# &func
-	    push @spec, callfuncp($1);
+	while ($spec =~ s/\&(\w+ (?: \( [^)]* \) )? ) ;?//x) { # &func
+	    push @spec, parse_func({ pointer => 1 }, $1);
 	}
-	if ($spec =~ s/\b(sub\s*{.*)//) {	# sub { ... }
-	    push @spec, parse_func($1)->[0];
+	if ($spec =~ s/\b(sub\s*{.*)//) { # sub { ... }
+	    push @spec, parse_func({ pointer => 1 }, $1);
 	}
 	push @spec, $spec if $spec ne "";
 	my $c = @spec > 1 ? [ @spec ] : $spec[0];
@@ -732,7 +732,13 @@ if (@opt_colormap) {
 	}
     }
     map { [ /(?| ($re_field)= | (.+) )/gx ] }
-    map { /( (?:$re_field=)* (?: sub\s*{.* | [^,\s]+ ) )/gx }
+    map {
+	m/( (?:$re_field=)*
+	    (?: sub\s*\{.*
+	      | (?: \([^)]*\) | [^,\s] )+
+	    )
+	  )/gx;
+    }
     @opt_colormap;
 }
 
@@ -800,11 +806,11 @@ my %stat = (
 for my $set (
     [ "print"  , \@opt_print  , 0 ],
     [ "call"   , \@opt_call   , 0 ],
-    [ "block"  , \@opt_block  , 1 ],
-    [ "inside" , \@opt_inside , 1 ],
-    [ "outside", \@opt_outside, 1 ],
-    [ "include", \@opt_include, 1 ],
-    [ "exclude", \@opt_exclude, 1 ],
+    [ "block"  , \@opt_block  , 1 ], # need &
+    [ "inside" , \@opt_inside , 1 ], # need &
+    [ "outside", \@opt_outside, 1 ], # need &
+    [ "include", \@opt_include, 1 ], # need &
+    [ "exclude", \@opt_exclude, 1 ], # need &
     ) {
     my($cat, $opt, $pattern) = @$set;
     for (@{$opt}) {
@@ -1264,7 +1270,11 @@ sub grep_pattern {
 	my($func, @args) = do {
 	    if (ref $regex eq 'ARRAY') {
 		@$regex;
-	    } else {
+	    }
+	    elsif (ref $regex eq 'CODE') {
+		($regex);
+	    }
+	    else {
 		(\&match_regions, pattern => $regex);
 	    }
 	};
@@ -1676,8 +1686,10 @@ sub callfunc {
 
 sub callfuncp {
     my $name = shift;
+    my @argv = @_;
     sub {
 	no strict 'refs';
+	unshift @_, @argv;
 	goto &$name;
     }
 }
@@ -1688,8 +1700,10 @@ sub callfuncp {
 ## funcname=arg1,arg2,arg3=val3
 ##
 sub parse_func {
+    my $arg = ref $_[0] eq 'HASH' ? shift : {};
     local $_ = shift;
-    my $noinline = @_ ? shift : 0;
+    my $noinline = $arg->{noinline};
+    my $pointer = $arg->{pointer};
 
     if (not $noinline and /^sub\s*{/) {
 	my $sub = eval $_;
@@ -1698,7 +1712,7 @@ sub parse_func {
 	    die $@;
 	}
 	if (ref $sub eq 'CODE') {
-	    [ $sub ];
+	    $pointer ? callfuncp($sub) : [ $sub ];
 	} else {
 	    die "Unexpected result from eval.\n";
 	}
@@ -1713,7 +1727,9 @@ sub parse_func {
 	  )?
 	$
     }x) {
-	[ $+{name}, arg2kvlist($+{arg}) ];
+	$pointer
+	    ? callfuncp($+{name}, arg2kvlist($+{arg}))
+	    : [ $+{name}, arg2kvlist($+{arg}) ];
     }
     else {
 	undef;
@@ -1854,7 +1870,7 @@ sub __color {
 
     my $c = exists $colormap{$color} ? $colormap{$color} : $color;
 
-    return $c->($_) if ref $c eq 'CODE';
+    return $c->() if ref $c eq 'CODE';
     return $_ unless $need_color and $color;
 
     $colorcache{$color} //= [ colorseq($c) ];
