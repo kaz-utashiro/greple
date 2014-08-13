@@ -459,23 +459,23 @@ option --exstd	--exclude (#cert-c-std-title)
 option --std	--re (#cert-c-std-title)
 
 define (#nev) (?=never)match
-option --cache-auto   --call bmcache(update)	// automatic cache update
-option --cache-create --re (#nev) --call bmcache(create)	// create cache
-option --cache-clean  --re (#nev) --call bmcache(clean)	// remove cache
-option --cache-update --re (#nev) --call bmcache(force,update) \
+option --cache-auto   --begin bmcache(update)	// automatic cache update
+option --cache-create --re (#nev) --begin bmcache(create)	// create cache
+option --cache-clean  --re (#nev) --begin bmcache(clean)	// remove cache
+option --cache-update --re (#nev) --begin bmcache(force,update) \
 						// force to update cache
 
 define (#list)	^<blockquote>\n<pre>\n(?s:.*?)\n</pre>\n</blockquote>\n
 option --exlist --exclude (#list)
 
-option --nocache      --call bmcache(nocache)	// disable cache
+option --nocache      --begin bmcache(nocache)	// disable cache
 
 option --cache        --cache-auto	// ignore
 option --cache_create --cache-create	// ignore
 option --cache_clean  --cache-clean	// ignore
 option --cache_update --cache-update	// ignore
 
-option --join-block --call join_block()		// join block into single line
+option --join-block --begin join_block()	// join block into single line
 
 define (#oldcite) \[(?:[\w.]+\s+)+\d{2}\]
 define (#newcite) \[(?:[\w.]+\s+)+\d{4}\]

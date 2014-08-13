@@ -109,7 +109,8 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
   RUNTIME FUNCTION
     --print=func         print function
     --continue           continue after print function
-    --call=func          call function before search
+    --begin=func         call function before search
+    --end=func           call function after search
   PGP
     --[no]pgp            decrypt and find PGP file (Default: false)
     --pgppass=phrase     pgp passphrase
@@ -141,7 +142,8 @@ my @opt_outside;
 my @opt_include;
 my @opt_exclude;
 my @opt_chdir;
-my @opt_call;
+my @opt_begin;
+my @opt_end;
 my $opt_noif;
 my $opt_all;
 my $opt_blockend;
@@ -241,7 +243,8 @@ my @optargs = (
     'strict!'            => \$opt_strict,
     'chdir=s'            => \@opt_chdir,
     'glob=s'             => \@opt_glob,
-    'call=s'             => \@opt_call,
+    'begin=s'            => \@opt_begin,
+    'end=s'              => \@opt_end,
     'clean!'             => \$opt_clean,
     'quote=s'            => sub {
 	$opt_color = 'always';
@@ -364,7 +367,7 @@ sub load_module {
     local *data = "${module}::DATA";
     greplerc({Title => $mod}, (not eof *data) ? <data> : ());
     if ($call) {
-	push @opt_call, "${module}::${call}";
+	push @opt_begin, "${module}::${call}";
     }
 }
 sub module_list {
@@ -805,7 +808,8 @@ my %stat = (
 ##
 for my $set (
     [ "print"  , \@opt_print  , 0 ],
-    [ "call"   , \@opt_call   , 0 ],
+    [ "begin"  , \@opt_begin  , 0 ],
+    [ "end"    , \@opt_end    , 0 ],
     [ "block"  , \@opt_block  , 1 ], # need &
     [ "inside" , \@opt_inside , 1 ], # need &
     [ "outside", \@opt_outside, 1 ], # need &
@@ -1087,13 +1091,20 @@ sub grep_data {
     local *_ = shift;
 
     ##
-    ## --call
+    ## --begin
     ##
-    for my $f (@opt_call) {
+    for my $f (@opt_begin) {
 	callfunc(@$f, FILELABEL, $current_file);
     }
 
     my $matched = do_grep($current_file, *_);
+
+    ##
+    ## --end
+    ##
+    for my $f (@opt_end) {
+	callfunc(@$f, FILELABEL, $current_file);
+    }
 
     s/./\000/gs if $opt_clean;
 
@@ -2930,11 +2941,11 @@ result returned from print function and finish the cycle.  Option
 B<--continue> forces to continue normal printing process after print
 function called.  So please be sure that all data being consistent.
 
-=item B<--call>=I<function>(I<...>), B<--call>=I<function>=I<...>
+=item B<--begin>=I<function>(I<...>), B<--begin>=I<function>=I<...>
 
 =item B<-M>I<module>::I<function(...)>, B<-M>I<module>::I<function=...>
 
-Option B<--call> specify the function executed at the beginning of
+Option B<--begin> specify the function executed at the beginning of
 each file processing.  This I<function> have to be called from B<main>
 package.  So if you define the function in the module package, use the
 full package name or export properly.
@@ -2942,6 +2953,11 @@ full package name or export properly.
 It can be set with module option, following module name.  In this
 form, the function will be called with module package name.  So you
 don't have to export it.
+
+=item B<--end>=I<function>(I<...>), B<--end>=I<function>=I<...>
+
+Option B<--end> is almost same as B<--begin>, except that the function
+is called after the file processing.
 
 =back
 
@@ -2953,8 +2969,8 @@ of C<FILELABEL> constant defined in C<main> package.  Use as
 C<main::FILELABEL> from modules.  As a result, the option in the next
 form:
 
-    --print|call function(key1,key=val2)
-    --print|call function=key1,key=val2
+    --begin function(key1,key=val2)
+    --begin function=key1,key=val2
 
     -Mmodule::function(key1,key=val2)
     -Mmodule::function=key1,key=val2
