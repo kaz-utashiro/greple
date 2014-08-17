@@ -727,7 +727,13 @@ if (@opt_colormap) {
 	    @$_;
 	}
     }
-    map { [ /(?| ($re_field)= | (.*) )/gx ] }
+    map {
+	if (my @field = /\G($re_field)=/gp) {
+	    [ @field, ${^POSTMATCH} ];
+	} else {
+	    [ $_ ];
+	}
+    }
     map {
 	m/( (?:$re_field=)*
 	    (?: sub\s*\{.*
