@@ -609,6 +609,7 @@ for my $p (@opt_fe) {
 ## setup input/output filter
 ##
 my @filter;
+my @filter_static;
 
 unless ($opt_noif) {
     push(@filter,
@@ -623,14 +624,14 @@ for my $if (@opt_if) {
 	if (@f > 1) {
 	    push @filter, [ splice(@f, 0, 2) ];
 	} else {
-	    push @filter, [ 1, shift(@f) ];
+	    push @filter_static, shift(@f);
 	}
     }
 }
 
 sub filter {
     my $file = shift;
-    local($_) = $file;
+    local $_ = $file;
 
     my @f;
     for (my $remember = ""; $remember ne $_; ) {
@@ -639,9 +640,12 @@ sub filter {
 	    my($exp, $command) = @$p;
 	    if (ref $exp eq 'CODE' ? &$exp : eval $exp) {
 		push @f, $command;
+		last if $_ ne $remember;
 	    }
 	}
     }
+
+    push @f, @filter_static;
 
     my $filter = join " | ", @f;
     $filter =~ s/{}/$file/g;
