@@ -665,26 +665,6 @@ if ($opt_pgp) {
     push @filter, [ sub { s/\.(pgp|gpg|asc)// }, $pgp->_decrypt_command ];
 }
 
-# open output filter
-if (@opt_of) {
-    for my $filter (@opt_of) {
-	if ($opt_d{m}) {
-	    warn "Push output Filter: \"$filter\"\n";
-	}
-	my $pid = open(STDOUT, '|-') // die "$filter: $!\n";
-	if ($pid == 0) {
-	    if ($filter =~ /^&/ and my $f = parse_func($filter)) {
-		local @ARGV;
-		callfunc(@$f);
-	    } else {
-		do { exec $filter } ;
-		warn $@ if $@;
-	    }
-	    exit;
-	}
-    }
-}
-
 ##------------------------------------------------------------
 ## miscellaneous setups
 ##
@@ -931,6 +911,12 @@ exit($stat{match_effective} == 0);
 sub main {
     while (defined($current_file = open_nextfile())) {
 
+	# open output filter
+	if (@opt_of) {
+	    open SAVESTDOUT, '>&', \*STDOUT or die "open: $!";
+	    push_output_filter(\*STDOUT, @opt_of);
+	}
+
 	my $content = do { local $/; <STDIN> };
 
 	warn $current_file, ":\n" if $opt_d{f};
@@ -943,10 +929,34 @@ sub main {
 	$stat{match_effective} += $matched;
 	$stat{files}++;
     } continue {
+	if (@opt_of) {
+	    close STDOUT;
+	    open STDOUT, '>&', \*SAVESTDOUT or die "open: $!";
+	}
 	close STDIN; # wait;	# wait for 4.019 or earlier?
 	# recover STDIN for opening '-' and some weird command which needs
 	# STDIN opened (like unzip)
 	open STDIN, '<&', \*SAVESTDIN or die "open: $!";
+    }
+}
+
+sub push_output_filter {
+    my $fh = shift;
+    for my $filter (@_) {
+	if ($opt_d{m}) {
+	    warn "Push output Filter: \"$filter\"\n";
+	}
+	my $pid = open($fh, '|-') // die "$filter: $!\n";
+	if ($pid == 0) {
+	    if ($filter =~ /^&/ and my $f = parse_func($filter)) {
+		local @ARGV;
+		callfunc(@$f);
+	    } else {
+		do { exec $filter } ;
+		warn $@ if $@;
+	    }
+	    exit;
+	}
     }
 }
 
@@ -2908,9 +2918,10 @@ be decompressed automatically.
 
 Specify output filter which process the output of B<greple> command.
 Filter command can be specified in multiple times, and they are
-invoked only once for each command execution.  So even multiple files
-are given to the command, all the output is processed by same seriese
-of filters.
+invoked for each file to be processed.  So next command reset the line
+number for each files.
+
+    greple --of 'cat -n' string file1 file2 ...
 
 If the filter start with C<&>, perl subroutine is called instead of
 external command.  You can define the subroutine in F<.greplrc> or
