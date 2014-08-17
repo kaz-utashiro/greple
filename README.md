@@ -69,7 +69,8 @@ greple - grep with multiple keywords
     RUNTIME FUNCTION
       --print=func         print function
       --continue           continue after print function
-      --call=func          call function before search
+      --begin=func         call function before search
+      --end=func           call function after search
     PGP
       --[no]pgp            decrypt and find PGP file (Default: false)
       --pgppass=phrase     pgp passphrase
@@ -475,6 +476,33 @@ or `(?<c>\w)\g{c}`.
         LINE      Line number
         BLOCKEND  Block end mark
 
+- **--colormap**=_&func_ **--colormap**=_sub{...}_
+
+    You can also set the name of perl subroutine name or definition to be
+    called handling matched words.  Target word is passed as variable
+    `$_`, and the return value of the subroutine will be displayed.
+
+    Next command convert all words in C comment to upper case.
+
+        greple --all --include '/\*(?s:.*?)\*/' '\w+' --cm 'sub{uc}'
+
+    Note that the form of _&func_ can be used just in the same way as
+    other color specifications. However, if it start with _sub{_ pattern,
+    all the rest of the argument is taken as a part of subroutine
+    definition.  So, it can not be combined with other color definitions.
+
+    It is possible to use this definition with field names.  Next example
+    print line numbers in seven digits.
+
+        greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
+
+    Experimentally, these function can be combined with other normal color
+    specifications.  Also the form _&func;_ can be repeated.
+
+        greple --cm 'BF/544;sub{uc}'
+
+        greple --cm 'R;&func1;&func2;&func3'
+
 - **--\[no\]colorful**
 
     Shortcut for **--colormap**='_RD GD BD CD MD YD_' in ANSI 16 colors
@@ -699,9 +727,18 @@ or `(?<c>\w)\g{c}`.
     Disable default input filter.  Which means compressed files will not
     be decompressed automatically.
 
-- **--of**=_filter_
+- **--of**=_filter_, **--of**=_&func_
 
-    Specify output filter commands.
+    Specify output filter which process the output of **greple** command.
+    Filter command can be specified in multiple times, and they are
+    invoked for each file to be processed.  So next command reset the line
+    number for each files.
+
+        greple --of 'cat -n' string file1 file2 ...
+
+    If the filter start with `&`, perl subroutine is called instead of
+    external command.  You can define the subroutine in `.greplrc` or
+    modules.
 
 ## RUNTIME FUNCTIONS
 
@@ -744,10 +781,10 @@ or `(?<c>\w)\g{c}`.
     **--continue** forces to continue normal printing process after print
     function called.  So please be sure that all data being consistent.
 
-- **--call**=_function_(_..._), **--call**=_function_=_..._
+- **--begin**=_function_(_..._), **--begin**=_function_=_..._
 - **-M**_module_::_function(...)_, **-M**_module_::_function=..._
 
-    Option **--call** specify the function executed at the beginning of
+    Option **--begin** specify the function executed at the beginning of
     each file processing.  This _function_ have to be called from **main**
     package.  So if you define the function in the module package, use the
     full package name or export properly.
@@ -755,6 +792,11 @@ or `(?<c>\w)\g{c}`.
     It can be set with module option, following module name.  In this
     form, the function will be called with module package name.  So you
     don't have to export it.
+
+- **--end**=_function_(_..._), **--end**=_function_=_..._
+
+    Option **--end** is almost same as **--begin**, except that the function
+    is called after the file processing.
 
 For these run-time functions, optional argument list can be set in the
 form of `key` or `key=value`, connected by comma.  These arguments
@@ -764,8 +806,8 @@ of `FILELABEL` constant defined in `main` package.  Use as
 `main::FILELABEL` from modules.  As a result, the option in the next
 form:
 
-    --print|call function(key1,key=val2)
-    --print|call function=key1,key=val2
+    --begin function(key1,key=val2)
+    --begin function=key1,key=val2
 
     -Mmodule::function(key1,key=val2)
     -Mmodule::function=key1,key=val2
@@ -936,7 +978,7 @@ can be implemented both in function and macro.
         use Exporter   ();
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.22 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 6.23 $ =~ /(\d+)/g;
     
         @ISA         = qw(Exporter);
         @EXPORT      = qw(&pod &comment &podcomment);
