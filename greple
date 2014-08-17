@@ -703,7 +703,6 @@ elsif (@opt_glob) {
     push @ARGV, map(glob, @opt_glob);
 }
 
-open(SAVESTDIN, '<&STDIN');
 push(@ARGV, '-') unless @ARGV || @argv_files || @opt_glob || $opt_readlist;
 if ((@ARGV > 1 or $opt_readlist) and not $opt_h) {
     $need_filename++;
@@ -876,6 +875,7 @@ if ($opt_d{s}) {
 
 $SIG{'QUIT'} = 'QUIT';
 sub QUIT { die "Interrupted\n"; }
+open SAVESTDIN,  '<&', \*STDIN or die "open: $!";
 MAIN: {
     eval { &main };
     if ($@) {
@@ -885,7 +885,7 @@ MAIN: {
 	    warn "$current_file: $@";
 	}
 	close STDIN; # wait;
-	open STDIN, '<&SAVESTDIN';
+	open STDIN, '<&', \*SAVESTDIN or die "open: $!\n";
 	redo MAIN;
     }
 }
@@ -942,7 +942,7 @@ sub main {
 	close STDIN; # wait;	# wait for 4.019 or earlier?
 	# recover STDIN for opening '-' and some weird command which needs
 	# STDIN opened (like unzip)
-	open STDIN, '<&SAVESTDIN';
+	open STDIN, '<&', \*SAVESTDIN or die "open: $!";
     }
 }
 
