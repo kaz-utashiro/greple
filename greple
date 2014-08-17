@@ -734,7 +734,7 @@ if (@opt_colormap) {
 	    @$_;
 	}
     }
-    map { [ /(?| ($re_field)= | (.+) )/gx ] }
+    map { [ /(?| ($re_field)= | (.*) )/gx ] }
     map {
 	m/( (?:$re_field=)*
 	    (?: sub\s*\{.*
@@ -1799,7 +1799,7 @@ use Term::ANSIColor qw(:constants);
 use constant { FG => 'fg', BG => 'bg' } ;
 
 sub colorseq {
-    my $colormode = shift;
+    my $colormode = shift // '';
 
     my($start, $end) = ('', '');
     if ($colormode =~ /:/) {
