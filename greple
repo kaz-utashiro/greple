@@ -663,11 +663,21 @@ if ($opt_pgp) {
 
 # open output filter
 if (@opt_of) {
-    my $of = join ' | ', @opt_of;
-    open(STDOUT, "| $of") || die "$of: $!\n";
-    $| = 1;
-    if ($opt_d{m}) {
-	warn "Output Filter:\n  \"$of\"\n";
+    for my $filter (@opt_of) {
+	if ($opt_d{m}) {
+	    warn "Push output Filter: \"$filter\"\n";
+	}
+	my $pid = open(STDOUT, '|-') // die "$filter: $!\n";
+	if ($pid == 0) {
+	    if ($filter =~ /^&/ and my $f = parse_func($filter)) {
+		local @ARGV;
+		callfunc(@$f);
+	    } else {
+		do { exec $filter } ;
+		warn $@ if $@;
+	    }
+	    exit;
+	}
     }
 }
 
@@ -2890,9 +2900,17 @@ B<--noif> option is given.  Default action is like this:
 Disable default input filter.  Which means compressed files will not
 be decompressed automatically.
 
-=item B<--of>=I<filter>
+=item B<--of>=I<filter>, B<--of>=I<&func>
 
-Specify output filter commands.
+Specify output filter which process the output of B<greple> command.
+Filter command can be specified in multiple times, and they are
+invoked only once for each command execution.  So even multiple files
+are given to the command, all the output is processed by same seriese
+of filters.
+
+If the filter start with C<&>, perl subroutine is called instead of
+external command.  You can define the subroutine in F<.greplrc> or
+modules.
 
 =back
 
