@@ -1129,7 +1129,20 @@ sub grep_data {
 	callfunc(@$f, &FILELABEL => $current_file);
     }
 
-    my $matched = do_grep($current_file, *_);
+    my @result = grep_pattern(\$_, \@xpattern);
+
+    my $matched = sum 0, map { @{$_} - 1 } @result;
+
+    if ($opt_l) {
+	print "$current_file\n" if $matched;
+    }
+    elsif ($opt_c) {
+	print "$current_file:" if $need_filename;
+	print scalar @result, "\n";
+    }
+    else {
+	display_result($current_file, \@result);
+    }
 
     ##
     ## --end
@@ -1143,26 +1156,12 @@ sub grep_data {
     $matched;
 }
 
-sub do_grep {
+sub display_result {
     my $file = shift;
-    local *_ = shift;
-    my @result = grep_pattern(\$_, \@xpattern);
-    my $matched_count = sum 0, map { @{$_} - 1 } @result;
-
-    if ($opt_l) {
-	print "$current_file\n" if $matched_count;
-	return $matched_count;
-    }
-
-    if ($opt_c) {
-	printf "%s%d\n", $need_filename ? "$file:" : "", scalar(@result);
-	return $matched_count;
-    }
-
-    return 0 if @result == 0;
+    my @result = @{+shift} or return;
 
     if ($need_filename and $opt_filestyle eq 'once') {
-	print $current_file, ":\n";
+	print $file, ":\n";
     }
 
     my $need_blockend =
@@ -1258,8 +1257,6 @@ sub do_grep {
 	print "\n" if $need_newline;
 	print _blockend($blockend) if $need_blockend;
     }
-
-    $matched_count;
 }
 
 sub _file     { unshift @_, 'FILE'     ; goto &color }
