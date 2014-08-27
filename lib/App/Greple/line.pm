@@ -153,11 +153,13 @@ sub expand_line {
 	$end += $start if $end =~ s/^\+//;
 	$end = $#lines if $end > $#lines;
 
+	$lines ||= 1;
+	$step  ||= $lines;
+
 	my @l;
-	if (not $lines//0 + 0) {
+	if ($step == 1) {
 	    @l = ([$start, $end]);
 	} else {
-	    $step ||= $lines;
 	    for (my $i = $start; $i <= $end; $i += $step) {
 		push @l, [$i, min($#lines, $i + $lines - 1)];
 	    }
