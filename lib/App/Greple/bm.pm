@@ -454,7 +454,10 @@ define (#quote)    ^(?!※)(.+\n)+\n+(※.*(ママ|3010).*\n)(.+\n)*
 option --exquote   --exclude (#quote)
 option --quote     --re (#quote) --cm 0 --blockend=--
 
-define (#cert-c-std-title)	「[A-Z]{3}\d\d-[A-Z]\.[^「」]*」
+define (#cert-c-std-mark)	[A-Z]{3}\d\d-[A-Z]\.
+define (#cert-c-std-title-1)	「(#cert-c-std-mark)[^「」]*
+define (#cert-c-std-title-2)	^(#cert-c-std-mark).*
+define (#cert-c-std-title)	(#cert-c-std-title-1)|(#cert-c-std-title-2)
 option --exstd	--exclude (#cert-c-std-title)
 option --std	--re (#cert-c-std-title)
 
