@@ -85,6 +85,8 @@ use Data::Dumper;
 use Carp;
 use File::stat;
 
+use App::Greple::Common;
+
 my $use_json = 0;
 my $mod_json;
 if ($use_json) {
@@ -154,7 +156,7 @@ my $wchar_re = qr{
 
 sub part {
     my %arg = @_;
-    my $file = delete $arg{main::FILELABEL} or die;
+    my $file = delete $arg{&FILELABEL} or die;
 
     if ($target != \$_) {
 	setdata($file);
@@ -258,7 +260,7 @@ sub setdata {
 
 sub tag {
     my %arg = @_;
-    my $file = delete $arg{main::FILELABEL} or die;
+    my $file = delete $arg{&FILELABEL} or die;
     my $tag = join '|', keys %arg;
     my $re = qr{
 	<(?<tag>$tag)\b[^>]*>
@@ -273,7 +275,7 @@ sub tag {
 
 sub bmcache {
     my %arg = @_;
-    my $file = delete $arg{main::FILELABEL} or die;
+    my $file = delete $arg{&FILELABEL} or die;
     my $cache_file = cachename($file);
 
     if ($arg{list}) {

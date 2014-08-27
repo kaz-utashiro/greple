@@ -34,6 +34,17 @@ use utf8;
 use Encode;
 use Encode::Guess;
 
+##
+## Setup greple/lib to be a module directory if exists.
+##
+BEGIN {
+    if ((my $lib = abs_path($0)) =~ s{/ \K \w+ $}{lib}x) {
+	push @INC, $lib if -d "$lib/App/Greple";
+    }
+}
+
+use App::Greple::Common;
+
 
 =head1 NAME
 
@@ -121,8 +132,6 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 =cut
-
-use constant FILELABEL => '__file__';
 
 my @opt_e;
 my @opt_v;
@@ -306,13 +315,6 @@ sub greplerc {
 	s/\\\n//g;
     }
     push @rcdata, new RcData($arg->{Title})->parsetext($rc);
-}
-
-##
-## Setup greple/lib to be a module directory if exists.
-##
-if ((my $lib = abs_path($0)) =~ s{/ \K \w+ $}{lib}x) {
-    push @INC, $lib if -d "$lib/App/Greple";
 }
 
 ##
@@ -1124,7 +1126,7 @@ sub grep_data {
     ## --begin
     ##
     for my $f (@opt_begin) {
-	callfunc(@$f, FILELABEL, $current_file);
+	callfunc(@$f, &FILELABEL => $current_file);
     }
 
     my $matched = do_grep($current_file, *_);
@@ -1133,7 +1135,7 @@ sub grep_data {
     ## --end
     ##
     for my $f (@opt_end) {
-	callfunc(@$f, FILELABEL, $current_file);
+	callfunc(@$f, &FILELABEL => $current_file);
     }
 
     s/./\000/gs if $opt_clean;
@@ -1181,7 +1183,7 @@ sub do_grep {
 
 	for my $func (@opt_print) {
 	    for ($block) {
-		$_ = callfunc(@$func, FILELABEL, $file, matched => $result);
+		$_ = callfunc(@$func, &FILELABEL => $file, matched => $result);
 	    }
 	}
 	if (@opt_print and not $opt_continue) {
@@ -1319,7 +1321,7 @@ sub grep_pattern {
 		(\&match_regions, pattern => $regex);
 	    }
 	};
-	my @p = callfunc($func, @args, FILELABEL, $current_file);
+	my @p = callfunc($func, @args, &FILELABEL => $current_file);
 	if (@p) {
 	    if ($sw eq MATCH_MUST or $sw eq MATCH_POSITIVE) {
 		push @blocks, map { [ @$_ ] } @p;
@@ -1607,7 +1609,7 @@ sub get_regions {
 
     ## function array
     if (ref $pattern eq 'ARRAY') {
-	callfunc(@$pattern, FILELABEL, $current_file);
+	callfunc(@$pattern, &FILELABEL => $current_file);
     }
     ## pattern
     else {
@@ -3004,9 +3006,7 @@ For these run-time functions, optional argument list can be set in the
 form of C<key> or C<key=value>, connected by comma.  These arguments
 will be passed to the funciton in key => value list.  Sole key will
 have the value one.  Also processing file name is passed with the key
-of C<FILELABEL> constant defined in C<main> package.  Use as
-C<main::FILELABEL> from modules.  As a result, the option in the next
-form:
+of C<FILELABEL> constant.  As a result, the option in the next form:
 
     --begin function(key1,key=val2)
     --begin function=key1,key=val2
@@ -3016,17 +3016,18 @@ form:
 
 will be transformed into following function call:
 
-    function(FILELABEL => "filename", key1 => 1, key2 => "val2")
+    function(&FILELABEL => "filename", key1 => 1, key2 => "val2")
 
 The function can be defined in F<.greplerc> or modules.  Assign the
 arguments into hash, then you can access argument list as member of
 the hash.  It's safe to delete FILELABEL key if you expect random
 parameter is given.  Content of the target file can be accessed by
-C<$_>.
+C<$_>.  Ampersand (C<&>) is required to avoid the hash key is
+interpreted as a bare word.
 
     sub function {
 	my %arg = @_;
-	my $filename = delete $arg{main::FILELABEL} or die;
+	my $filename = delete $arg{&FILELABEL} or die;
 	$arg{key1};             # 1
 	$arg{key2};             # "val2"
 	$_;                     # contents

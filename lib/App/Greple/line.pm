@@ -110,6 +110,8 @@ use Carp;
 use List::Util qw(min max);
 use Data::Dumper;
 
+use App::Greple::Common;
+
 BEGIN {
     use Exporter   ();
     our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
@@ -184,7 +186,7 @@ sub set_lines {
 
 sub line {
     my %arg = @_ ;
-    my $file = delete $arg{main::FILELABEL} or die;
+    my $file = delete $arg{&FILELABEL} or die;
 
     if ($target != \$_) {
 	set_lines;

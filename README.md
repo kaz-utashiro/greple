@@ -802,9 +802,7 @@ For these run-time functions, optional argument list can be set in the
 form of `key` or `key=value`, connected by comma.  These arguments
 will be passed to the funciton in key => value list.  Sole key will
 have the value one.  Also processing file name is passed with the key
-of `FILELABEL` constant defined in `main` package.  Use as
-`main::FILELABEL` from modules.  As a result, the option in the next
-form:
+of `FILELABEL` constant.  As a result, the option in the next form:
 
     --begin function(key1,key=val2)
     --begin function=key1,key=val2
@@ -814,17 +812,18 @@ form:
 
 will be transformed into following function call:
 
-    function(FILELABEL => "filename", key1 => 1, key2 => "val2")
+    function(&FILELABEL => "filename", key1 => 1, key2 => "val2")
 
 The function can be defined in `.greplerc` or modules.  Assign the
 arguments into hash, then you can access argument list as member of
 the hash.  It's safe to delete FILELABEL key if you expect random
 parameter is given.  Content of the target file can be accessed by
-`$_`.
+`$_`.  Ampersand (`&`) is required to avoid the hash key is
+interpreted as a bare word.
 
     sub function {
         my %arg = @_;
-        my $filename = delete $arg{main::FILELABEL} or die;
+        my $filename = delete $arg{&FILELABEL} or die;
         $arg{key1};             # 1
         $arg{key2};             # "val2"
         $_;                     # contents
