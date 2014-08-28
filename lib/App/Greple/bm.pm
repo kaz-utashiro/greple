@@ -81,6 +81,11 @@ use utf8;
 use strict;
 use warnings;
 
+use Exporter 'import';
+our @EXPORT      = qw(part bmcache join_block tag);
+our %EXPORT_TAGS = ( );
+our @EXPORT_OK   = qw();
+
 use Data::Dumper;
 use Carp;
 use File::stat;
@@ -96,14 +101,13 @@ if ($use_json) {
     $mod_json = 0;
 }
 
-my $simple_sane_json = qr{
-    \A { (?: "\w+" : \[ (?: \[\d+,\d+\] ,? )* \] ,? )* } \Z
-}x;
-my $j_dpair   = qr/\[\d+,\d+\]/;
-my $j_list    = qr/\[ (?: $j_dpair , )* $j_dpair ? \]/x;
-my $j_hashent = qr/"\w+" : $j_list/x;
-my $j_hash    = qr/\{ (?: $j_hashent , )* $j_hashent ? \}/x;
-my $sane_json = qr/\A $j_hash \Z/x;
+my $sane_json = do {
+    my $dpair   = qr/\[\d+,\d+\]/;
+    my $list    = qr/\[ (?: $dpair , )* $dpair ? \]/x;
+    my $hashent = qr/"\w+" : $list/x;
+    my $hash    = qr/\{ (?: $hashent , )* $hashent ? \}/x;
+    qr/\A $hash \Z/x;
+};
 
 unless ($mod_json) {
     eval q{
@@ -125,21 +129,6 @@ unless ($mod_json) {
     };
     die $@ if $@;
 }
-
-BEGIN {
-    use Exporter   ();
-    our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
-
-    $VERSION = sprintf "%d.%03d", q$Revision: 1.1 $ =~ /(\d+)/g;
-
-    @ISA         = qw(Exporter);
-    @EXPORT      = qw(&part &bmcache &join_block &tag);
-    %EXPORT_TAGS = ( );
-    @EXPORT_OK   = qw();
-}
-our @EXPORT_OK;
-
-END { }
 
 my $target = -1;
 my %part;
