@@ -2166,13 +2166,14 @@ sub _openfh {
 }
 
 sub _readphrase {
-    my($passphrase_r) = @_;
+    use Term::ReadKey;
+
+    my $passphrase_r = shift;
 
     print STDERR "Enter PGP Passphrase> ";
-    system "stty -echo";
-    $$passphrase_r = <STDIN>;
-    system "stty echo";
-    chomp($$passphrase_r);
+    ReadMode 'noecho';
+    chomp($$passphrase_r = ReadLine);
+    ReadMode 'restore';
     print STDERR "\n";
 
     $passphrase_r;
