@@ -359,19 +359,19 @@ sub join_block {
 }
 
 sub remove_newlines {
-    my $_ = shift;
+    local $_ = shift;
 
-    my @list = split(/($skip_re)/, $_);
+    my @list = split /($skip_re)/;
 
     for my $line (grep !/$skip_re/, @list) {
 	my $buf = '';
-	for (split(/\n/, $line)) {
+	for (split /\n/, $line) {
 	    $buf = append_line($buf, $_);
 	}
 	$line = $buf;
     }
 
-    $_ = join('', @list);
+    $_ = join '', @list;
     $_ .= "\n" unless /\n\z/;
     $_;
 }
