@@ -1096,11 +1096,6 @@ sub open_nextfile {
 	   defined($file = $opt_readlist && <SAVESTDIN>)) {
 	$file =~ s/\n+$//;
 
-	my $file_st = stat($file);
-	if (-p _ || -c _ || -b _) {	# skip FIFO and device files
-	    next;
-	}
-
 	if (0) {}
 	elsif ($file =~ /^http:\/\//) {
 	    open(STDIN, '-|') || exec("w3m -dump $file") || die "w3m: $!\n";
