@@ -277,10 +277,17 @@ my @optargs = (
     },
 );
 
-binmode STDERR, ":encoding(utf8)";
-
 sub add_option {
     push @optargs, @_;
+}
+
+binmode STDERR, ":encoding(utf8)";
+
+##
+## Decode @ARGV
+##
+foreach (@ARGV) {
+    $_ = decode 'utf8', $_ unless utf8::is_utf8($_);
 }
 
 ##
@@ -407,13 +414,6 @@ ARGV: for (my $i = 0; $i < @ARGV; $i++) {
 	    redo ARGV;
 	}
     }
-}
-
-##
-## Decode @ARGV
-##
-foreach (@ARGV) {
-    $_ = decode 'utf8', $_ unless utf8::is_utf8($_); # XXX
 }
 
 my @SAVEDARGV = @ARGV;
