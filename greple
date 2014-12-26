@@ -619,6 +619,8 @@ unless ($opt_noif) {
 	 [ sub { s/\.g?z$// }, 'gunzip -c' ],
 	 [ sub { m/\.pdf$/i }, 'pdftotext -nopgbrk - -' ],
 	);
+    push(@filter,
+	 [ sub { s/\.gpg$// }, 'gpg --quiet --decrypt' ]) unless $opt_pgp;
 }
 for my $if (@opt_if) {
     my @f = split /:/, $if;
