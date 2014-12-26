@@ -310,7 +310,7 @@ my @rcdata;
 if ($opt_rc &&
     open(GREPLERC, "<:encoding(utf8)", "$ENV{HOME}/.greplerc")) { # XXX
     my $rc = do { local $/; <GREPLERC> };
-    greplerc({Title => "main"}, $rc);
+    push @rcdata, greplerc({Title => "main"}, $rc);
     close GREPLERC;
 }
 
@@ -322,38 +322,43 @@ sub greplerc {
 	s/^\s*(?:#.*)?\n//mg;
 	s/\\\n//g;
     }
-    push @rcdata, new RcData($arg->{Title})->parsetext($rc);
+    new RcData($arg->{Title})->parsetext($rc);
 }
 
 ##
 ## Process special options before using Getopt.
 ##
-while (@ARGV) {
-    if ($ARGV[0] =~ /^-M(.*)/) {
-	shift @ARGV;
-	my $module = $1 || shift or do {
-	    warn "Option M requires an argument.\n";
-	    if (my @modules = uniq(module_list())) {
-		warn "\nAvailable modules:\n";
-		warn "\t", join("\n\t", @modules), "\n";
-	    }
-	    exit -1;
-	};
-	load_module($module);
-	next;
+@ARGV = module_opt(@ARGV);
+
+sub module_opt {
+    my @defaults;
+    while (@_) {
+	if ($_[0] =~ /^-M(.*)/) {
+	    shift;
+	    my $module = $1 || shift or do {
+		warn "Option M requires an argument.\n";
+		if (my @modules = uniq(module_list())) {
+		    warn "\nAvailable modules:\n";
+		    warn "\t", join("\n\t", @modules), "\n";
+		}
+		exit -1;
+	    };
+	    push @defaults, module_opt(load_module($module));
+	    next;
+	}
+	last;
     }
-    last;
+    (@defaults, @_);
 }
 sub load_module {
     my $mod = shift;
-    my $module = $mod;
     my $base = "App::Greple";
     my $call;
 
     ##
     ## Check -Mmod::func(arg) or -Mmod::func=arg
     ##
-    if ($module =~ s{
+    if ($mod =~ s{
 	^ (?<name> .* ) ::
 	  (?<call>
 		\w+
@@ -365,6 +370,7 @@ sub load_module {
 	$call = $+{call};
     }
 
+    my $module = $mod;
     if (-f $module) {
 	require $module;
     } else {
@@ -375,21 +381,23 @@ sub load_module {
 	die "$mod: Module error ($@)\n";
     }
     local *data = "${module}::DATA";
-    greplerc({Title => $mod}, (not eof *data) ? <data> : ());
+    my $rc = greplerc({Title => $mod}, (not eof *data) ? <data> : ());
+    push @rcdata, $rc;
     if ($call) {
 	push @opt_begin, "${module}::${call}";
     }
+    $rc->default;
 }
 sub module_list {
-    map { /(\w+)\.pm$/ }
-    map { glob "$_/App/Greple/*.pm" }
+    grep { /^[a-z]/ }
+    map  { /(\w+)\.pm$/ }
+    map  { glob "$_/App/Greple/*.pm" }
     @INC;
 }
 
 ##
 ## Handle default option and ENG{GREPLEOPTS}
 ##
-unshift @ARGV, map { $_->default() } @rcdata;
 if ($ENV{'GREPLEOPTS'}) {
     unshift @ARGV, shellwords($ENV{'GREPLEOPTS'});
 }
@@ -402,6 +410,7 @@ ARGV: for (my $i = 0; $i < @ARGV; $i++) {
     my($opt, $value) = split /=/, $ARGV[$i], 2;
     for my $rcdata (@rcdata) {
 	if (my @s = $rcdata->getopt($opt)) {
+	    @s = module_opt(@s);
 	    splice @ARGV, $i, 1, ($opt, $value) if defined $value;
 	    ##
 	    ## Convert $<n> and $<shift>
