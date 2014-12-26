@@ -44,6 +44,7 @@ BEGIN {
 }
 
 use App::Greple::Common;
+use App::Greple::Colorize qw(colorize);
 
 
 =head1 NAME
@@ -1281,6 +1282,37 @@ sub dump_uniqcolor {
     }
 }
 
+sub index_color {
+    my $text = shift;
+    my $index = @_ ? shift : 0;
+    if ($need_color and @colors) {
+	$text = color($colors[$index % @colors], $text, $index);
+    }
+    $text;
+}
+
+sub color {
+    goto &_color if ref $_[0] ne 'ARRAY';
+    my @speclist = @{+shift};
+    local $_ = shift;
+    for my $color (@speclist) {
+	$_ = _color($color, $_);
+    }
+    $_;
+}
+
+sub _color {
+    my $color = shift;
+    local $_ = shift;
+
+    my $c = exists $colormap{$color} ? $colormap{$color} : $color;
+
+    return $c->() if ref $c eq 'CODE';
+    return $_ unless $need_color and $c;
+
+    colorize($c, $_);
+}
+
 ######################################################################
 
 use constant {
@@ -1820,105 +1852,6 @@ sub match_glob {
     s/\*/.*/g;
     my $regex = qr/^$_$/;
     grep { $_ =~ $regex } @_;
-}
-
-######################################################################
-## colors
-######################################################################
-use Term::ANSIColor qw(:constants);
-
-use constant { FG => 'fg', BG => 'bg' } ;
-
-sub colorseq {
-    my $colormode = shift // '';
-
-    my($start, $end) = ('', '');
-    if ($colormode =~ /:/) {
-	($start, $end) = split(/:/, $colormode, 2);
-    } else {
-	map {
-	    while ($opt_256 and s/(\/?)((?:[\da-f]{6})|[0-5][0-5][0-5])//i) {
-		$start .= ansi256($2, $1 ? BG : FG);
-	    }
-	    $start .= UNDERLINE if /U/;
-	    $start .= REVERSE   if /S/;
-	    $start .= BOLD      if /D/;
-	    $start .= BLINK     if /F/;
-	    $start .= RED       if /R/; $start .= ON_RED       if /r/;
-	    $start .= GREEN     if /G/; $start .= ON_GREEN     if /g/;
-	    $start .= BLUE      if /B/; $start .= ON_BLUE      if /b/;
-	    $start .= CYAN      if /C/; $start .= ON_CYAN      if /c/;
-	    $start .= MAGENTA   if /M/; $start .= ON_MAGENTA   if /m/;
-	    $start .= YELLOW    if /Y/; $start .= ON_YELLOW    if /y/;
-	    $start .= BLACK     if /K/; $start .= ON_BLACK     if /k/;
-	    $start .= WHITE     if /W/; $start .= ON_WHITE     if /w/;
-	} $colormode if $colormode;
-	$end = RESET if $start;
-	$start =~ s/m\e\[/;/g;
-    }
-    ($start, $end);
-}
-
-sub ansi256 {
-    my($code, $fg_or_bg) = @_;
-    my($r, $g, $b);
-    if ($code =~ /^([0-5])([0-5])([0-5])$/) {
-	($r, $g, $b) = ($1, $2, $3);
-    }
-    elsif ($code =~ /^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i) {
-	$r = int(5 * hex($1) / 255);
-	$g = int(5 * hex($2) / 255);
-	$b = int(5 * hex($3) / 255);
-    }
-    else {
-	croak "Color format error.\n";
-    }
-    sprintf("\e[%d;%d;%dm",
-	    $fg_or_bg eq BG ? 48 : 38,
-	    5,
-	    16 + ($r * 36) + ($g * 6) + $b
-	);
-}
-
-my %colorcache;
-my $reset_re;
-BEGIN {
-    my $reset = RESET;
-    $reset_re = qr/\Q$reset/;
-}
-
-sub index_color {
-    my $text = shift;
-    my $index = @_ ? shift : 0;
-    if ($need_color and @colors) {
-	$text = color($colors[$index % @colors], $text, $index);
-    }
-    $text;
-}
-
-sub color {
-    goto &__color if ref $_[0] ne 'ARRAY';
-    my @speclist = @{+shift};
-    local $_ = shift;
-    for my $color (@speclist) {
-	$_ = __color($color, $_);
-    }
-    $_;
-}
-
-sub __color {
-    my $color = shift;
-    local $_ = shift;
-
-    my $c = exists $colormap{$color} ? $colormap{$color} : $color;
-
-    return $c->() if ref $c eq 'CODE';
-    return $_ unless $need_color and $color;
-
-    $colorcache{$color} //= [ colorseq($c) ];
-    my($s, $e) = @{$colorcache{$color}};
-    s/(^|$reset_re)([^\e\r\n]+)/$1$s$2$e/mg if $s ne "";
-    $_;
 }
 
 ######################################################################
