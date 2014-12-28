@@ -133,4 +133,4 @@ option --simple \
 	--all --print print_simple
 
 option --detail \
-	--all --print print_detail --of 'sort | tr \\015 \\012'
+	--all --print print_detail --pf 'sort | tr \\015 \\012'

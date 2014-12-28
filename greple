@@ -115,8 +115,9 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --icode=name         specify file encoding
     --ocode=name         specify output encoding
   FILTER
-    --if=filter          set filter command
+    --if=filter          input filter command
     --of=filter          output filter command
+    --pf=filter          post process filter command
     --noif               disable default input filter
   RUNTIME FUNCTION
     --print=func         print function
@@ -144,6 +145,7 @@ my @opt_or;
 
 my @opt_if;
 my @opt_of;
+my @opt_pf;
 my @opt_glob;
 my @opt_icode;
 my @opt_block;
@@ -241,6 +243,7 @@ my @optargs = (
     'joinby=s'           => \$opt_joinby,
     'if=s'               => \@opt_if,
     'of=s'               => \@opt_of,
+    'pf=s'               => \@opt_pf,
     'noif'               => \$opt_noif,
     'pgp!'               => \$opt_pgp,
     'pgppass=s'          => \$opt_pgppass,
@@ -875,6 +878,11 @@ if ($opt_d{m}) {
 ## record start time
 if ($opt_d{s}) {
     $stat{time_start} = [times];
+}
+
+## push post-process filter
+if (@opt_pf) {
+    push_output_filter(\*STDOUT, @opt_pf);
 }
 
 $SIG{'QUIT'} = 'QUIT';
@@ -2874,6 +2882,11 @@ number for each files.
 If the filter start with C<&>, perl subroutine is called instead of
 external command.  You can define the subroutine in F<.greplrc> or
 modules.
+
+=item B<--pf>=I<filter>, B<--pf>=I<&func>
+
+Similar to B<--of> filter but invoked just once and takes care of
+entire output from B<greple> command.
 
 =back
 
