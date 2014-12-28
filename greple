@@ -970,7 +970,7 @@ sub main {
 
 sub push_output_filter {
     my $fh = shift;
-    for my $filter (@_) {
+    for my $filter (reverse @_) {
 	if ($opt_d{m}) {
 	    warn "Push output Filter: \"$filter\"\n";
 	}
