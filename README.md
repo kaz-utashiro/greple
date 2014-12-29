@@ -63,8 +63,9 @@ greple - grep with multiple keywords
       --icode=name         specify file encoding
       --ocode=name         specify output encoding
     FILTER
-      --if=filter          set filter command
+      --if=filter          input filter command
       --of=filter          output filter command
+      --pf=filter          post process filter command
       --noif               disable default input filter
     RUNTIME FUNCTION
       --print=func         print function
@@ -739,6 +740,15 @@ or `(?<c>\w)\g{c}`.
     If the filter start with `&`, perl subroutine is called instead of
     external command.  You can define the subroutine in `.greplrc` or
     modules.
+
+    Output filter command is executed only when matched string exists to
+    avoid invoking many unnecessary processes.  No effect for option
+    **-c**.
+
+- **--pf**=_filter_, **--pf**=_&func_
+
+    Similar to **--of** filter but invoked just once and takes care of
+    entire output from **greple** command.
 
 ## RUNTIME FUNCTIONS
 
