@@ -346,7 +346,7 @@ sub module_opt {
 		}
 		exit -1;
 	    };
-	    push @defaults, module_opt(load_module($module));
+	    push @defaults, module_opt(load_module($module, \@_));
 	    next;
 	}
 	last;
@@ -355,6 +355,7 @@ sub module_opt {
 }
 sub load_module {
     my $mod = shift;
+    my $argref = shift;
     my $base = "App::Greple";
     my $call;
 
@@ -389,6 +390,16 @@ sub load_module {
     if ($call) {
 	push @opt_begin, "${module}::${call}";
     }
+
+    ##
+    ## If &getopt is defined in module, call it and replace @ARGV.
+    ##
+    my $getopt = "${module}::getopt";
+    if (defined &$getopt) {
+	no strict 'refs';
+	@$argref = &$getopt(@$argref);
+    }
+
     $rc->default;
 }
 sub module_list {
@@ -2505,6 +2516,10 @@ searches string from files modified within 7 days:
 
     find . -mtime -7 -print | greple --readlist pattern
 
+Using B<find> module, this can be done like:
+
+    greple -Mfind . -mtime -7 -- pattern
+
 =back
 
 
@@ -3233,6 +3248,11 @@ You can use the module like this:
     greple -Mperl --pod default greple
 
     greple -Mperl --colorful --code --comment --pod default greple
+
+If special subroutine B<getopt()> is defined in the module, it is
+called at the beginning with C<@ARGV> contents.  Actual C<@ARGV> is
+replaced by the result of B<getopt()>.  See B<find> module as a
+sample.
 
 
 =head1 HISTORY

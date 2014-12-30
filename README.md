@@ -398,6 +398,10 @@ or `(?<c>\w)\g{c}`.
 
         find . -mtime -7 -print | greple --readlist pattern
 
+    Using **find** module, this can be done like:
+
+        greple -Mfind . -mtime -7 -- pattern
+
 ## COLORS
 
 - **--color**=_auto_|_always_|_never_, **--nocolor**
@@ -1043,6 +1047,11 @@ You can use the module like this:
     greple -Mperl --pod default greple
 
     greple -Mperl --colorful --code --comment --pod default greple
+
+If special subroutine **getopt()** is defined in the module, it is
+called at the beginning with `@ARGV` contents.  Actual `@ARGV` is
+replaced by the result of **getopt()**.  See **find** module as a
+sample.
 
 # HISTORY
 
