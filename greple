@@ -233,7 +233,7 @@ my @optargs = (
     'all'                => \$opt_all,
     'f|file=s'           => \@opt_f,
     'rc!'                => \$opt_rc,
-    'readlist'           => \$opt_readlist,
+    'readlist!'          => \$opt_readlist,
     'd=s'                => \@opt_d,
     'man'                => \$opt_man,
     'show'               => \$opt_show,
