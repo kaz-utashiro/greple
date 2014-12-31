@@ -310,10 +310,12 @@ my @rcdata;
 ##
 ## Read .greplerc file
 ##
+my $greplerc;
 if ($opt_rc &&
     open(GREPLERC, "<:encoding(utf8)", "$ENV{HOME}/.greplerc")) { # XXX
     my $rc = do { local $/; <GREPLERC> };
-    push @rcdata, greplerc({Title => "main"}, $rc);
+    $greplerc = greplerc({Title => "main"}, $rc);
+    push @rcdata, $greplerc;
     close GREPLERC;
 }
 
@@ -331,7 +333,7 @@ sub greplerc {
 ##
 ## Process special options before using Getopt.
 ##
-@ARGV = module_opt(@ARGV);
+@ARGV = (module_opt($greplerc->default), module_opt(@ARGV));
 
 sub module_opt {
     my @defaults;
