@@ -34,6 +34,8 @@ use strict;
 use warnings;
 use Carp;
 
+use App::Greple::Common qw(setopt);
+
 sub getopt {
     my @find;
     while (@_) {
@@ -42,7 +44,7 @@ sub getopt {
 	push @find, $arg;
     }
     if (@find) {
-	push @_, '--readlist';
+	setopt(readlist => 1);
 	my $pid = open STDIN, '-|';
 	croak "process fork failed" if not defined $pid;
 	if ($pid == 0) {

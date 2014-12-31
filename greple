@@ -285,6 +285,34 @@ sub add_option {
     push @optargs, @_;
 }
 
+my %optargs;
+sub setopt {
+    unless (%optargs) {
+	for (my $i = 0; $i <= $#optargs; $i += 2) {
+	    my($spec, $ref) = @optargs[$i, $i + 1];
+	    while ($spec =~ /\G(\w+)\|?/g) {
+		$optargs{$1} = $ref;
+	    }
+	}
+    }
+    my $name = shift;
+    if (exists $optargs{$name}) {
+	my $ref = $optargs{$name};
+	if (ref $ref eq 'ARRAY') {
+	    @$ref = @_;
+	}
+	elsif (ref $ref eq 'CODE') {
+	    &$ref($name, @_);
+	}
+	elsif (ref $ref eq 'SCALAR') {
+	    $$ref = shift;
+	}
+	else {
+	    die "Object error.";
+	}
+    }
+}
+
 binmode STDERR, ":encoding(utf8)";
 
 ##
