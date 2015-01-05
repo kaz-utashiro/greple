@@ -140,18 +140,28 @@ sub _openfh {
     return $fh;
 }
 
+my $noecho;
+my $restore;
+BEGIN {
+    eval 'use Term::ReadKey';
+    ($noecho, $restore) = do {
+	$@  ? (sub { system 'stty -echo' }, sub { system 'stty echo' })
+	    : (sub { ReadMode('noecho') },  sub { ReadMode('restore') });
+    };
+}
+
 sub _readphrase {
     use Term::ReadKey;
 
     my $passphrase_r = shift;
 
     print STDERR "Enter PGP Passphrase> ";
-    ReadMode 'noecho';
+    $noecho->();
     if (defined (my $pass = ReadLine)) {
 	chomp($$passphrase_r = $pass);
 	print "--- ", $$passphrase_r, "\n";
     }
-    ReadMode 'restore';
+    $restore->();
     print STDERR "\n";
 
     $passphrase_r;

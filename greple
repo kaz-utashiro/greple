@@ -45,7 +45,6 @@ BEGIN {
 
 use App::Greple::Common;
 use App::Greple::Colorize qw(colorize);
-use App::Greple::PgpDecryptor;
 
 
 =head1 NAME
@@ -713,6 +712,8 @@ sub filter {
 
 my $pgp;
 if ($opt_pgp) {
+    eval { require App::Greple::PgpDecryptor };
+    die $@ if $@;
     $pgp = new App::Greple::PgpDecryptor;
     if ($opt_pgppass) {
 	$pgp->initialize({passphrase => $opt_pgppass});
