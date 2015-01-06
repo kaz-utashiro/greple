@@ -2,7 +2,7 @@
 ##
 ## greple: grep with multiple keywords
 ##
-## Copyright (c) 1991-2014 Kazumasa Utashiro
+## Copyright (c) 1991-2015 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
 ;; my $rcsid = q$Id: greple,v 6.24 2014/12/31 15:15:47 utashiro Exp $;
@@ -125,9 +125,6 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --continue           continue after print function
     --begin=func         call function before search
     --end=func           call function after search
-  PGP
-    --[no]pgp            decrypt and find PGP file (Default: false)
-    --pgppass=phrase     pgp passphrase
   OTHER
     --norc               skip reading startup file
     --man                display command or module manual page
@@ -172,9 +169,6 @@ my $opt_icode;
 my $opt_ocode;
 my $opt_man;
 my $opt_show;
-my $opt_pgp;
-my $opt_pgppass;
-my $opt_passphrase_fd;
 my $opt_join;
 my $opt_joinby = "";
 my $opt_clean;
@@ -246,8 +240,6 @@ my @optargs = (
     'of=s'               => \@opt_of,
     'pf=s'               => \@opt_pf,
     'noif'               => \$opt_noif,
-    'pgp!'               => \$opt_pgp,
-    'pgppass=s'          => \$opt_pgppass,
     'block=s'            => \@opt_block,
     'blockend:s'         => \$opt_blockend,
     'inside=s'           => \@opt_inside,
@@ -282,7 +274,7 @@ my @optargs = (
     },
 );
 
-sub add_option {
+sub newopt {
     push @optargs, @_;
 }
 
@@ -668,15 +660,6 @@ for my $p (@opt_fe) {
 my @filter;
 my @filter_static;
 
-unless ($opt_noif) {
-    push(@filter,
-	 [ sub { s/\.Z$//   }, 'zcat' ],
-	 [ sub { s/\.g?z$// }, 'gunzip -c' ],
-	 [ sub { m/\.pdf$/i }, 'pdftotext -nopgbrk - -' ],
-	);
-    push(@filter,
-	 [ sub { s/\.gpg$// }, 'gpg --quiet --decrypt' ]) unless $opt_pgp;
-}
 for my $if (@opt_if) {
     my @f = split /:/, $if;
     while (@f) {
@@ -686,6 +669,13 @@ for my $if (@opt_if) {
 	    push @filter_static, shift(@f);
 	}
     }
+}
+unless ($opt_noif) {
+    push(@filter,
+	 [ sub { s/\.Z$//   }, 'zcat' ],
+	 [ sub { s/\.g?z$// }, 'gunzip -c' ],
+	 [ sub { m/\.pdf$/i }, 'pdftotext -nopgbrk - -' ],
+	 [ sub { s/\.gpg$// }, 'gpg --quiet --no-mdc-warning --decrypt ' ]);
 }
 
 sub filter {
@@ -709,21 +699,6 @@ sub filter {
     my $filter = join " | ", @f;
     $filter =~ s/{}/$file/g;
     $filter;
-}
-
-my $pgp;
-if ($opt_pgp) {
-    eval { require App::Greple::PgpDecryptor };
-    die $@ if $@;
-    $pgp = new App::Greple::PgpDecryptor;
-    if ($opt_pgppass) {
-	$pgp->initialize({passphrase => $opt_pgppass});
-    } elsif ($opt_passphrase_fd) {
-	$pgp->initialize({passphrase_fd => $opt_passphrase_fd});
-    } else {
-	$pgp->initialize();
-    }
-    push @filter, [ sub { s/\.(pgp|gpg|asc)// }, $pgp->decrypt_command ];
 }
 
 ##------------------------------------------------------------
@@ -983,7 +958,6 @@ sub main {
 	my $content = do { local $/; <STDIN> };
 
 	warn $current_file, ":\n" if $opt_d{f};
-	$pgp->reset if $pgp;
 	defined $content or next;
 
 	my $matched = grep_data(\$content);
@@ -2599,6 +2573,10 @@ B<--noif> option is given.  Default action is like this:
 
     greple --if='s/\.Z$//:zcat:s/\.g?z$//:gunzip -c'
 
+File with I<.gpg> suffix is filtered by B<gpg> command.  In that case,
+passphrase is asked for each file.  If you want to input passphrase
+only once to find from multiple files, use B<-Mpgp> module.
+
 =item B<--noif>
 
 Disable default input filter.  Which means compressed files will not
@@ -2723,25 +2701,6 @@ interpreted as a bare word.
 	$arg{key2};             # "val2"
 	$_;                     # contents
     }
-
-
-=head2 PGP
-
-
-=over 7
-
-=item B<--pgp>
-
-Invoke PGP decrypt command for files end with I<.pgp>, I<.gpg> or
-I<.asc>.  PGP passphrase is asked only once at the beginning of
-command execution.
-
-=item B<--pgppass>=I<phrase>
-
-You can specify PGP passphrase by this option.  Generally, it is not
-recommended to use.
-
-=back
 
 
 =head2 OTHERS
@@ -3001,7 +2960,7 @@ L<github|http://kaz-utashiro.github.io/greple/>
 =head1 LICENSE
 
 
-Copyright (c) 1991-2014 Kazumasa Utashiro
+Copyright (c) 1991-2015 Kazumasa Utashiro
 
 Use and redistribution for ANY PURPOSE are granted as long as all
 copyright notices are retained.  Redistribution with modification is

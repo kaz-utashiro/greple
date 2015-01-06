@@ -67,8 +67,8 @@ sub initialize {
 	if (not defined $obj->fh) {
 	    $obj->fh(_openfh());
 	}
-	if (defined $obj->{passphrase}) {
-	    $passphrase = $obj->{passphrase};
+	if (defined $opt->{passphrase}) {
+	    $passphrase = $opt->{passphrase};
 	} else {
 	    _readphrase(\$passphrase);
 	}
@@ -93,6 +93,16 @@ sub setphrase {
     $obj->reset;
     $fh->syswrite($$passphrase_r, length($$passphrase_r));
     $obj->reset;
+}
+
+sub getphrase {
+    my $obj = shift;
+    my $fh = $obj->fh;
+
+    $obj->reset;
+    my $phrase = $fh->getline;
+    $obj->reset;
+    $phrase;
 }
 
 sub fh {
@@ -159,7 +169,6 @@ sub _readphrase {
     $noecho->();
     if (defined (my $pass = ReadLine)) {
 	chomp($$passphrase_r = $pass);
-	print "--- ", $$passphrase_r, "\n";
     }
     $restore->();
     print STDERR "\n";

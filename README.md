@@ -72,9 +72,6 @@ greple - grep with multiple keywords
       --continue           continue after print function
       --begin=func         call function before search
       --end=func           call function after search
-    PGP
-      --[no]pgp            decrypt and find PGP file (Default: false)
-      --pgppass=phrase     pgp passphrase
     OTHER
       --norc               skip reading startup file
       --man                display command or module manual page
@@ -727,6 +724,10 @@ or `(?<c>\w)\g{c}`.
 
         greple --if='s/\.Z$//:zcat:s/\.g?z$//:gunzip -c'
 
+    File with _.gpg_ suffix is filtered by **gpg** command.  In that case,
+    passphrase is asked for each file.  If you want to input passphrase
+    only once to find from multiple files, use **-Mpgp** module.
+
 - **--noif**
 
     Disable default input filter.  Which means compressed files will not
@@ -842,19 +843,6 @@ interpreted as a bare word.
         $arg{key2};             # "val2"
         $_;                     # contents
     }
-
-## PGP
-
-- **--pgp**
-
-    Invoke PGP decrypt command for files end with _.pgp_, _.gpg_ or
-    _.asc_.  PGP passphrase is asked only once at the beginning of
-    command execution.
-
-- **--pgppass**=_phrase_
-
-    You can specify PGP passphrase by this option.  Generally, it is not
-    recommended to use.
 
 ## OTHERS
 
@@ -1073,7 +1061,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright (c) 1991-2014 Kazumasa Utashiro
+Copyright (c) 1991-2015 Kazumasa Utashiro
 
 Use and redistribution for ANY PURPOSE are granted as long as all
 copyright notices are retained.  Redistribution with modification is
