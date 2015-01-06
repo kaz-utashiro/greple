@@ -702,14 +702,13 @@ or `(?<c>\w)\g{c}`.
 
 ## FILTER
 
-- **--if**=_filter_, **--if**=_EXP_:_filter_:_EXP_:_filter_:...
+- **--if**=_filter_, **--if**=_EXP_:_filter_
 
     You can specify filter command which is applied to each files before
     search.  If only one filter command is specified, it is applied to all
-    files.  If filter information include multiple fields separated by
-    colons, first field will be perl expression to check the filename
-    saved in variable $\_.  If it successes, next filter command is pushed.
-    These expression and command list can be repeated.
+    files.  If filter information include colon, first field will be perl
+    expression to check the filename saved in variable $\_.  If it
+    successes, next filter command is pushed.
 
         greple --if=rev perg
         greple --if='/\.tar$/:tar tvf -'
@@ -722,11 +721,16 @@ or `(?<c>\w)\g{c}`.
     Filters for compressed and gzipped file is set by default unless
     **--noif** option is given.  Default action is like this:
 
-        greple --if='s/\.Z$//:zcat:s/\.g?z$//:gunzip -c'
+        greple --if='s/\.Z$//:zcat --if='s/\.g?z$//:gunzip -c'
 
     File with _.gpg_ suffix is filtered by **gpg** command.  In that case,
     passphrase is asked for each file.  If you want to input passphrase
     only once to find from multiple files, use **-Mpgp** module.
+
+    If the filter start with `&`, perl subroutine is called instead of
+    external command.  You can define the subroutine in `.greplrc` or
+    modules.  **Greple** simply call the subroutine, so it should be
+    responsible for process control.
 
 - **--noif**
 

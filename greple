@@ -288,11 +288,16 @@ sub setopt {
 	    }
 	}
     }
+    my $opt = ref $_[0] eq 'HASH' ? shift : {};
     my $name = shift;
     if (exists $optargs{$name}) {
 	my $ref = $optargs{$name};
 	if (ref $ref eq 'ARRAY') {
-	    @$ref = @_;
+	    if ($opt->{append}) {
+		push @$ref, @_;
+	    } else {
+		@$ref = @_;
+	    }
 	}
 	elsif (ref $ref eq 'CODE') {
 	    &$ref($name, @_);
@@ -657,48 +662,35 @@ for my $p (@opt_fe) {
 ##
 ## setup input/output filter
 ##
-my @filter;
-my @filter_static;
-
-for my $if (@opt_if) {
-    my @f = split /:/, $if;
-    while (@f) {
-	if (@f > 1) {
-	    push @filter, [ splice(@f, 0, 2) ];
-	} else {
-	    push @filter_static, shift(@f);
-	}
-    }
-}
+my @filter = map { /([^:]+):(.*)/ ? [ $1, $2 ] : $_ } @opt_if;
 unless ($opt_noif) {
     push(@filter,
 	 [ sub { s/\.Z$//   }, 'zcat' ],
 	 [ sub { s/\.g?z$// }, 'gunzip -c' ],
 	 [ sub { m/\.pdf$/i }, 'pdftotext -nopgbrk - -' ],
-	 [ sub { s/\.gpg$// }, 'gpg --quiet --no-mdc-warning --decrypt ' ]);
+	 [ sub { s/\.gpg$// }, 'gpg --quiet --no-mdc-warning --decrypt' ]);
 }
-
-sub filter {
-    my $file = shift;
-    local $_ = $file;
+sub filters {
+    my $filename = shift;
+    local $_ = $filename;
 
     my @f;
     for (my $remember = ""; $remember ne $_; ) {
 	$remember = $_;
 	for my $p (@filter) {
-	    my($exp, $command) = @$p;
-	    if (ref $exp eq 'CODE' ? &$exp : eval $exp) {
-		push @f, $command;
-		last if $_ ne $remember;
+	    if (ref $p eq 'ARRAY') {
+		my($exp, $command) = @$p;
+		if (ref $exp eq 'CODE' ? &$exp : eval $exp) {
+		    $command =~ s/{}/$filename/g;
+		    push @f, $command;
+		    last if $_ ne $remember;
+		}
+	    } else {
+		push @f, $p;
 	    }
 	}
     }
-
-    push @f, @filter_static;
-
-    my $filter = join " | ", @f;
-    $filter =~ s/{}/$file/g;
-    $filter;
+    @f;
 }
 
 ##------------------------------------------------------------
@@ -976,9 +968,7 @@ sub main {
 sub push_output_filter {
     my $fh = shift;
     for my $filter (reverse @_) {
-	if ($opt_d{m}) {
-	    warn "Push output Filter: \"$filter\"\n";
-	}
+	$opt_d{m} and warn "Push output Filter: \"$filter\"\n";
 	my $pid = open($fh, '|-') // die "$filter: $!\n";
 	if ($pid == 0) {
 	    if ($filter =~ /^&/ and my $f = parse_func($filter)) {
@@ -990,6 +980,25 @@ sub push_output_filter {
 		warn $@ if $@;
 	    }
 	    exit;
+	}
+    }
+}
+
+sub push_input_filter {
+    for my $filter (@_) {
+	$opt_d{m} and warn "Push input Filter: \"$filter\"\n";
+	if ($filter =~ /^&/ and my $f = parse_func($filter)) {
+	    ##
+	    ## intput filter function is responsible for process fork
+	    ##
+	    callfunc(@$f);
+	} else {
+	    my $pid = open(STDIN, '-|') // die "$filter: $!\n";
+	    if ($pid == 0) {
+		do { exec $filter } ;
+		warn $@ if $@;
+		exit;
+	    }
 	}
     }
 }
@@ -1121,14 +1130,8 @@ sub open_nextfile {
 	    };
 	}
 
-	my $input_filter;
-	if (defined(&filter) && ($input_filter = &filter($file))) {
-	    open(STDIN, '-|') || exec($input_filter)
-		|| die "$input_filter: $!\n";
-	    if ($opt_d{m}) {
-		printf(STDERR "Input Filter:\n  \"$input_filter\" < %s\n",
-		       $file);
-	    }
+	if (my @filters = filters($file)) {
+	    push_input_filter(@filters);
 	}
 
 	binmode STDIN, ":encoding($file_code)";
@@ -1827,6 +1830,7 @@ sub parseline {
     my $obj = shift;
     my $line = shift;
     my($arg0, $arg1, $rest) = split(' ', $line, 3);
+    $rest //= "";
 
     ##
     ## in-line help document after //
@@ -2551,14 +2555,13 @@ Specify output code.  Default is utf8.
 
 =over 7
 
-=item B<--if>=I<filter>, B<--if>=I<EXP>:I<filter>:I<EXP>:I<filter>:...
+=item B<--if>=I<filter>, B<--if>=I<EXP>:I<filter>
 
 You can specify filter command which is applied to each files before
 search.  If only one filter command is specified, it is applied to all
-files.  If filter information include multiple fields separated by
-colons, first field will be perl expression to check the filename
-saved in variable $_.  If it successes, next filter command is pushed.
-These expression and command list can be repeated.
+files.  If filter information include colon, first field will be perl
+expression to check the filename saved in variable $_.  If it
+successes, next filter command is pushed.
 
     greple --if=rev perg
     greple --if='/\.tar$/:tar tvf -'
@@ -2571,11 +2574,16 @@ may be able to use special device:
 Filters for compressed and gzipped file is set by default unless
 B<--noif> option is given.  Default action is like this:
 
-    greple --if='s/\.Z$//:zcat:s/\.g?z$//:gunzip -c'
+    greple --if='s/\.Z$//:zcat --if='s/\.g?z$//:gunzip -c'
 
 File with I<.gpg> suffix is filtered by B<gpg> command.  In that case,
 passphrase is asked for each file.  If you want to input passphrase
 only once to find from multiple files, use B<-Mpgp> module.
+
+If the filter start with C<&>, perl subroutine is called instead of
+external command.  You can define the subroutine in F<.greplrc> or
+modules.  B<Greple> simply call the subroutine, so it should be
+responsible for process control.
 
 =item B<--noif>
 

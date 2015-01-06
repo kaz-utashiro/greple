@@ -16,7 +16,7 @@ execution.
 
 =over 7
 
-=item B<--pass> I<phrase>
+=item B<--pgppass> I<passphrase>
 
 You can specify PGP passphrase by this option.  Generally, it is not
 recommended to use.
@@ -31,26 +31,45 @@ use strict;
 use warnings;
 use Carp;
 
-use App::Greple::Common;
+use App::Greple::Common qw(setopt newopt);
 use App::Greple::PgpDecryptor;
 
-my $pgp = new App::Greple::PgpDecryptor;
+my $pgp;
+my %pgpopt;
+my $decrypt;
+my $opt_pgppass;
 
 sub getopt {
-    return @_ if @_ == 0 or $_[0] =~ /^--(man|show)/;
-    my %opt;
-    if (@_ >= 2 and $_[0] =~ /^--pass (?: =(?<phrase>.*) )? $/x) {
-	shift;
-	$opt{passphrase} = $+{phrase} // shift;
-    }
-    $pgp->initialize(\%opt);
-    ('--if'  => sprintf('s/\.(pgp|gpg|asc)//:%s', $pgp->decrypt_command),
-     '--end' => __PACKAGE__ . '::reset'),
+    my $pkg = __PACKAGE__;
+    newopt("pgppass=s" => \$opt_pgppass);
+    setopt({ append => 1 }, end => "&${pkg}::reset");
+    setopt({ append => 1 }, if  => "s/\.(pgp|gpg|asc)//:&${pkg}::filter");
     @_;
 }
 
+sub filter {
+    unless ($pgp) {
+	$pgp = new App::Greple::PgpDecryptor;
+	if ($opt_pgppass) {
+	    $pgpopt{passphrase} = $opt_pgppass;
+	}
+	$decrypt = $pgp->initialize(\%pgpopt)->decrypt_command;
+    }
+    my $pid = open(STDIN, '-|') // croak "process fork failed";
+    if ($pid == 0) {
+	local @ARGV;
+	exec $decrypt or die $!;
+    }
+    $pid;
+}
+
 sub reset {
-    $pgp->reset;
+    $pgp->reset if defined $pgp;
 }
 
 1;
+
+__DATA__
+
+option --pgppass
+help   --pgppass pgp passphrase

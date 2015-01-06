@@ -127,6 +127,7 @@ sub decrypt_command {
 
 sub reset {
     my $obj = shift;
+    defined $obj->fh or return;
     $obj->fh->sysseek(0, 0) or die;
 }
 
@@ -155,8 +156,8 @@ my $restore;
 BEGIN {
     eval 'use Term::ReadKey';
     ($noecho, $restore) = do {
-	$@  ? (sub { system 'stty -echo' }, sub { system 'stty echo' })
-	    : (sub { ReadMode('noecho') },  sub { ReadMode('restore') });
+	$@  ? (sub {system 'stty -echo'},    sub {system 'stty echo'})
+	    : (sub {ReadMode('noecho', @_)}, sub {ReadMode('restore', @_)});
     };
 }
 
@@ -166,11 +167,13 @@ sub _readphrase {
     my $passphrase_r = shift;
 
     print STDERR "Enter PGP Passphrase> ";
-    $noecho->();
-    if (defined (my $pass = ReadLine)) {
+    open TTY, "/dev/tty" or die;
+    $noecho->(*TTY);
+    if (defined (my $pass = ReadLine(0, *TTY))) {
 	chomp($$passphrase_r = $pass);
     }
-    $restore->();
+    $restore->(*TTY);
+    close TTY;
     print STDERR "\n";
 
     $passphrase_r;
