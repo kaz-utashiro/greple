@@ -34,17 +34,16 @@ use strict;
 use warnings;
 use Carp;
 
-use App::Greple::Common qw(setopt);
-
 sub getopt {
+    my $rc = shift;
     my @find;
     while (@_) {
+	last if $_[0] =~ /^--(man|show)$/;
 	my $arg = shift;
 	last if $arg eq '--';
 	push @find, $arg;
     }
     if (@find) {
-	setopt(readlist => 1);
 	my $pid = open STDIN, '-|';
 	croak "process fork failed" if not defined $pid;
 	if ($pid == 0) {
@@ -59,3 +58,5 @@ sub getopt {
 1;
 
 __DATA__
+
+option default --readlist

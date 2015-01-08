@@ -44,7 +44,7 @@ BEGIN {
 }
 
 use App::Greple::Common;
-use App::Greple::RC;
+use App::Greple::RC qw(@rcdata);
 use App::Greple::Regions;
 use App::Greple::Colorize qw(colorize);
 
@@ -184,6 +184,7 @@ my @opt_print;
 my $opt_continue;
 my $opt_filestyle = 'line';
 my $opt_linestyle = 'line';
+my $opt_usage;
 
 my $opt_c;
 my @opt_d = ();
@@ -269,6 +270,7 @@ my @optargs = (
     'regioncolor|rc!'    => \$opt_regioncolor,
     'print=s'            => \@opt_print,
     'continue!'          => \$opt_continue,
+    'usage:s'            => \$opt_usage,
     'module|M:s'         => sub {
 	warn "Use -M option before other options.\n";
 	exit 2;
@@ -330,20 +332,15 @@ if (@ARGV and $ARGV[0] eq "--norc") {
 }
 
 ##
-## User customizable option handling
-##
-my @rcdata;
-
-##
 ## Read .greplerc file
 ##
 my $greplerc;
 if ($opt_rc &&
     open(GREPLERC, "<:encoding(utf8)", "$ENV{HOME}/.greplerc")) { # XXX
     my $rc = do { local $/; <GREPLERC> };
-    $greplerc = greplerc({Title => "main"}, $rc);
-    push @rcdata, $greplerc;
     close GREPLERC;
+    $greplerc = greplerc({Module => "main"}, $rc);
+    push @rcdata, $greplerc;
 }
 
 sub greplerc {
@@ -354,7 +351,7 @@ sub greplerc {
 	s/^\s*(?:#.*)?\n//mg;
 	s/\\\n//g;
     }
-    new App::Greple::RC($arg->{Title})->parsetext($rc);
+    new App::Greple::RC($arg->{Module})->parsetext($rc);
 }
 
 ##
@@ -414,7 +411,7 @@ sub load_module {
 	die "$mod: Module error ($@)\n";
     }
     local *data = "${module}::DATA";
-    my $rc = greplerc({Title => $mod}, (not eof *data) ? <data> : ());
+    my $rc = greplerc({Module => $module}, (not eof *data) ? <data> : ());
     push @rcdata, $rc;
     if ($call) {
 	push @opt_begin, "${module}::${call}";
@@ -426,7 +423,7 @@ sub load_module {
     my $getopt = "${module}::getopt";
     if (defined &$getopt) {
 	no strict 'refs';
-	@$argref = &$getopt(@$argref);
+	@$argref = &$getopt($rc, @$argref);
     }
 
     $rc->default;
@@ -469,18 +466,11 @@ ARGV: for (my $i = 0; $i < @ARGV; $i++) {
     }
 }
 
+push @optargs, map { $_->builtin() } @rcdata;
+
 my @SAVEDARGV = @ARGV;
 Getopt::Long::Configure qw(bundling no_getopt_compat);
 GetOptions(@optargs) || pod2usage;
-
-sub set_options {
-    GetOptionsFromArray(\@_, @optargs) || pod2usage;
-}
-
-sub set_options_fromstring {
-    my $string = shift;
-    GetOptionsFromString($string, @optargs) || pod2usage;
-}
 
 my %opt_d;
 @opt_d = split(//, join('', @opt_d));
@@ -894,6 +884,8 @@ if (@opt_pf) {
     push_output_filter(\*STDOUT, @opt_pf);
 }
 
+usage() and exit if defined $opt_usage;
+
 $SIG{'QUIT'} = 'QUIT';
 sub QUIT { die "Interrupted\n"; }
 open SAVESTDIN,  '<&', \*STDIN or die "open: $!";
@@ -1016,9 +1008,9 @@ sub usage {
 	    print "    Module $title options:\n";
 	}
 	for my $name ($rcdata->options) {
-	    my $help = $rcdata->help($name) || "";
+	    my $help = $opt_usage ? "" : $rcdata->help($name) // "";
 	    next if $help eq 'ignore';
-	    my @option = $rcdata->getopt($name, DEFAULT => 1);
+	    my @option = $rcdata->getopt($name, ALL => 1);
 	    printf("        %-20s %s\n", $name,
 		   $help || join(' ', shellquote(@option)));
 	}
@@ -2574,6 +2566,15 @@ interpreted as a bare word.
 =item B<--norc>
 
 Do not read startup file: F<~/.greplerc>.
+
+=item B<--usage>
+
+B<Greple> print usage and exit with option B<--usage>, or no valid
+parameter is not specified.  In this case, module option is displayed
+with help information if available.  If you want to see how they are
+expanded, supply something not empty to B<--usage> option, like:
+
+    greple -Mmodule --usage=expand
 
 =item B<--man>
 

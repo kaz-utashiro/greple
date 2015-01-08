@@ -31,45 +31,30 @@ use strict;
 use warnings;
 use Carp;
 
-use App::Greple::Common qw(setopt newopt);
 use App::Greple::PgpDecryptor;
 
-my $pgp;
-my %pgpopt;
-my $decrypt;
-my $opt_pgppass;
+my  $pgp;
+our $opt_pgppass;
 
-sub getopt {
-    my $pkg = __PACKAGE__;
-    newopt("pgppass=s" => \$opt_pgppass);
-    setopt({ append => 1 }, end => "&${pkg}::reset");
-    setopt({ append => 1 }, if  => "s/\.(pgp|gpg|asc)//:&${pkg}::filter");
-    @_;
+sub activate {
+    ($pgp = new App::Greple::PgpDecryptor)
+	->initialize({passphrase => $opt_pgppass});
 }
 
 sub filter {
-    unless ($pgp) {
-	$pgp = new App::Greple::PgpDecryptor;
-	if ($opt_pgppass) {
-	    $pgpopt{passphrase} = $opt_pgppass;
-	}
-	$decrypt = $pgp->initialize(\%pgpopt)->decrypt_command;
-    }
+    activate if not defined $pgp;
+    $pgp->reset;
     my $pid = open(STDIN, '-|') // croak "process fork failed";
     if ($pid == 0) {
-	local @ARGV;
-	exec $decrypt or die $!;
+	exec $pgp->decrypt_command or die $!;
     }
     $pid;
-}
-
-sub reset {
-    $pgp->reset if defined $pgp;
 }
 
 1;
 
 __DATA__
 
-option --pgppass
-help   --pgppass pgp passphrase
+option default --if s/\\.(pgp|gpg|asc)$//:&App::Greple::pgp::filter
+
+builtin pgppass=s $opt_pgppass // pgp passphrase

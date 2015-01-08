@@ -119,16 +119,15 @@ sub pgppassfd {
 sub decrypt_command {
     my $obj = shift;
     my $command = "gpg";
-    my @option = ();
-    push @option, qw(--quiet --batch --decrypt);
-    push @option, qw(--no-tty --no-mdc-warning);
+    my @option = ( qw(--quiet --batch --decrypt) ,
+		   qw(--no-tty --no-mdc-warning) );
     sprintf "$command @option --passphrase-fd %d", $obj->pgppassfd;
 }
 
 sub reset {
     my $obj = shift;
     defined $obj->fh or return;
-    $obj->fh->sysseek(0, 0) or die;
+    $obj->fh->sysseek(0, 0) or die $!;
 }
 
 sub _openfh {
@@ -162,8 +161,6 @@ BEGIN {
 }
 
 sub _readphrase {
-    use Term::ReadKey;
-
     my $passphrase_r = shift;
 
     print STDERR "Enter PGP Passphrase> ";
