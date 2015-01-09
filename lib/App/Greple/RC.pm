@@ -2,28 +2,125 @@ package App::Greple::RC;
 
 use strict;
 use warnings;
+use Carp;
 
 use Exporter 'import';
 our @EXPORT      = qw();
 our %EXPORT_TAGS = ( );
-our @EXPORT_OK   = qw(@rcdata);
+our @EXPORT_OK   = qw(@rcdata $BASECLASS);
 
 use Text::ParseWords qw(shellwords);
 use List::Util qw(first);
 
+our $BASECLASS = 'App::Greple';
 our @rcdata;
 
 sub new {
     my $class = shift;
-    my $module = shift || 'main';
-    bless {
-	Module => $module,
+    my $obj = bless {
+	Module => undef,
 	Define => [],
 	Option => [],
 	Builtin => [],
+	Call => [],
 	Help => [],
     }, $class;
+
+    my %opt = @_;
+
+    if (my $file = $opt{FILE}) {
+	$obj->module('main');
+	if (open(RC, "<:encoding(utf8)", $file)) {
+	    $obj->readrc(*RC);
+	    close RC;
+	}
+    }
+    elsif (my $module = $opt{MODULE}) {
+	$module = "${BASECLASS}::${module}" if $BASECLASS;
+	$obj->module($module);
+	if (-f $module) {
+	    require $module;
+	} else {
+	    my $pkg = $opt{PACKAGE} || 'main';
+	    eval "package $pkg; use $module";
+	}
+	croak "$module: $!" if $@;
+	local *data = "${module}::DATA";
+	if (not eof *data) {
+	    $obj->readrc(*data);
+	}
+	close *data;
+    }
+    $obj;
 }
+
+sub readrc {
+    my $obj = shift;
+    my $fh = shift;
+    my $text = do { local $/; <$fh> };
+    for ($text) {
+	s/^__(?:CODE|PERL)__\s*\n(.*)//ms and eval $1;
+	s/^\s*(?:#.*)?\n//mg;
+	s/\\\n//g;
+    }
+    $obj->parsetext($text);
+}
+
+sub modopt {
+    my $argref = shift;
+    my @modules;
+    while (@$argref) {
+	if ($argref->[0] =~ /^-M(?<module>.+)/) {
+	    shift @$argref;
+	    push @modules, load_module($+{module}, $argref);
+	    next;
+	}
+	last;
+    }
+    @modules;
+}
+
+sub load_module {
+    my $mod = shift;
+    my $argref = shift;
+    my $base = $BASECLASS;
+    my $call;
+
+    ##
+    ## Check -Mmod::func(arg) or -Mmod::func=arg
+    ##
+    if ($mod =~ s{
+	^ (?<name> .* ) ::
+	  (?<call>
+		\w+
+		(?: (?<P>[(]) | = )  ## start with '(' or '='
+		(?<arg> [^)]* )      ## optional arg list
+		(?(<P>) [)] | )      ## close ')' or none
+	  ) $
+    }{$+{name}}x) {
+	$call = $+{call};
+    }
+
+    my $module = $mod;
+    my $rc = App::Greple::RC->new(MODULE => $module);
+
+    if ($call) {
+	$rc->call("${module}::${call}");
+    }
+
+    ##
+    ## If &getopt is defined in module, call it and replace @ARGV.
+    ##
+    my $getopt = "${module}::getopt";
+    if (defined &$getopt) {
+	no strict 'refs';
+	@$argref = &$getopt($rc, @$argref);
+    }
+
+    $rc;
+}
+
+############################################################
 
 sub module {
     my $obj = shift;
@@ -173,6 +270,13 @@ sub parseline {
 sub builtin {
     my $obj = shift;
     my $list = $obj->{Builtin};
+    @_  ? push @$list, @_
+	: @$list;
+}
+
+sub call {
+    my $obj = shift;
+    my $list = $obj->{Call};
     @_  ? push @$list, @_
 	: @$list;
 }

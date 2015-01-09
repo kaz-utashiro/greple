@@ -174,7 +174,6 @@ my $opt_join;
 my $opt_joinby = "";
 my $opt_clean;
 my $opt_readlist;
-my $opt_rc = 1;
 my $opt_need;
 my $opt_allow = 0;
 my @opt_need;
@@ -229,7 +228,6 @@ my @optargs = (
     'C|context:2'        => \$opt_C,
     'all'                => \$opt_all,
     'f|file=s'           => \@opt_f,
-    'rc!'                => \$opt_rc,
     'readlist!'          => \$opt_readlist,
     'd=s'                => \@opt_d,
     'man'                => \$opt_man,
@@ -324,110 +322,28 @@ foreach (@ARGV) {
 }
 
 ##
-## Process special option --norc
+## Read ~/.greplerc unless special option --norc is given
 ##
-if (@ARGV and $ARGV[0] eq "--norc") {
-    $opt_rc = 0;
-    shift @ARGV;
-}
+(@ARGV and $ARGV[0] eq "--norc" and shift) or
+    push @rcdata, App::Greple::RC->new(FILE => "$ENV{HOME}/.greplerc");
 
 ##
-## Read .greplerc file
+## Process module options before using Getopt.
 ##
-my $greplerc;
-if ($opt_rc &&
-    open(GREPLERC, "<:encoding(utf8)", "$ENV{HOME}/.greplerc")) { # XXX
-    my $rc = do { local $/; <GREPLERC> };
-    close GREPLERC;
-    $greplerc = greplerc({Module => "main"}, $rc);
-    push @rcdata, $greplerc;
+push @rcdata, App::Greple::RC::modopt(\@ARGV);
+
+if (@ARGV and $ARGV[0] =~ /^-M/) {
+    warn "Option M requires an argument.\n";
+    if (my @modules = uniq(module_list())) {
+	warn "\nAvailable modules:\n";
+	warn "\t", join("\n\t", @modules), "\n";
+    }
+    exit -1;
 }
 
-sub greplerc {
-    my $arg = ref $_[0] eq 'HASH' ? shift : {};
-    my $rc = join '', grep(/\S/, @_);
-    for ($rc) {
-	s/^__CODE__\s*\n(.*)//ms and do_eval($1);
-	s/^\s*(?:#.*)?\n//mg;
-	s/\\\n//g;
-    }
-    new App::Greple::RC($arg->{Module})->parsetext($rc);
-}
+unshift @ARGV, map { $_->default } @rcdata;
+push @opt_begin, map { $_->call } @rcdata;
 
-##
-## Process special options before using Getopt.
-##
-@ARGV = (module_opt($greplerc->default), module_opt(@ARGV));
-
-sub module_opt {
-    my @defaults;
-    while (@_) {
-	if ($_[0] =~ /^-M(.*)/) {
-	    shift;
-	    my $module = $1 || shift or do {
-		warn "Option M requires an argument.\n";
-		if (my @modules = uniq(module_list())) {
-		    warn "\nAvailable modules:\n";
-		    warn "\t", join("\n\t", @modules), "\n";
-		}
-		exit -1;
-	    };
-	    push @defaults, module_opt(load_module($module, \@_));
-	    next;
-	}
-	last;
-    }
-    (@defaults, @_);
-}
-sub load_module {
-    my $mod = shift;
-    my $argref = shift;
-    my $base = "App::Greple";
-    my $call;
-
-    ##
-    ## Check -Mmod::func(arg) or -Mmod::func=arg
-    ##
-    if ($mod =~ s{
-	^ (?<name> .* ) ::
-	  (?<call>
-		\w+
-		(?: (?<P>[(]) | = )  ## start with '(' or '='
-		(?<arg> [^)]* )      ## optional arg list
-		(?(<P>) [)] | )      ## close ')' or none
-	  ) $
-    }{$+{name}}x) {
-	$call = $+{call};
-    }
-
-    my $module = $mod;
-    if (-f $module) {
-	require $module;
-    } else {
-	$module = "${base}::${module}";
-	eval "use $module";
-    }
-    if ($@) {
-	die "$mod: Module error ($@)\n";
-    }
-    local *data = "${module}::DATA";
-    my $rc = greplerc({Module => $module}, (not eof *data) ? <data> : ());
-    push @rcdata, $rc;
-    if ($call) {
-	push @opt_begin, "${module}::${call}";
-    }
-
-    ##
-    ## If &getopt is defined in module, call it and replace @ARGV.
-    ##
-    my $getopt = "${module}::getopt";
-    if (defined &$getopt) {
-	no strict 'refs';
-	@$argref = &$getopt($rc, @$argref);
-    }
-
-    $rc->default;
-}
 sub module_list {
     grep { /^[a-z]/ }
     map  { /(\w+)\.pm$/ }
@@ -450,7 +366,8 @@ ARGV: for (my $i = 0; $i < @ARGV; $i++) {
     my($opt, $value) = split /=/, $ARGV[$i], 2;
     for my $rcdata (@rcdata) {
 	if (my @s = $rcdata->getopt($opt)) {
-	    @s = module_opt(@s);
+	    my @module = App::Greple::RC::modopt(\@s);
+	    push @rcdata, @module;
 	    splice @ARGV, $i, 1, ($opt, $value) if defined $value;
 	    ##
 	    ## Convert $<n> and $<shift>
@@ -460,7 +377,8 @@ ARGV: for (my $i = 0; $i < @ARGV; $i++) {
 	    shift @rest;
 	    s/\$<shift>/shift @rest/ge foreach @s;
 
-	    push @ARGV, @s, @rest;
+	    my @default = map { $_->default } @module;
+	    push @ARGV, @default, @s, @rest;
 	    redo ARGV;
 	}
     }
@@ -498,12 +416,14 @@ if ($opt_d{u}) {
 
 ## show man pages
 if ($opt_man or $opt_show) {
-    if (@rcdata > 1 and (my $mod = $rcdata[-1]->title) ne "main") {
+    if (@rcdata and (my $mod = $rcdata[-1]->title) ne "main") {
 	my @perldocopt = $opt_show ? '-m' : () ;
 	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
 	my $perldoc = $jp ? "perldocjp" : "perldoc";
 	$ENV{PERL5LIB} = join ':', @INC;
-	exec "$perldoc @perldocopt App::Greple::$mod";
+	my $command = "$perldoc @perldocopt App::Greple::$mod";
+	warn $command, "\n" if $opt_d{m};
+	exec $command or die $!;
     }
     pod2usage({-verbose => 2});
     die;

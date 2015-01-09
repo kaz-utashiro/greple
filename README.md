@@ -854,6 +854,15 @@ interpreted as a bare word.
 
     Do not read startup file: `~/.greplerc`.
 
+- **--usage**
+
+    **Greple** print usage and exit with option **--usage**, or no valid
+    parameter is not specified.  In this case, module option is displayed
+    with help information if available.  If you want to see how they are
+    expanded, supply something not empty to **--usage** option, like:
+
+        greple -Mmodule --usage=expand
+
 - **--man**
 
     Show manual page.
