@@ -44,7 +44,7 @@ BEGIN {
 }
 
 use App::Greple::Common;
-use App::Greple::RC qw(@rcdata);
+use App::Greple::RC::Loader;
 use App::Greple::Regions;
 use App::Greple::Colorize qw(colorize);
 
@@ -133,6 +133,9 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 =cut
+
+my $rcloader = new App::Greple::RC::Loader
+    (BASECLASS => 'App::Greple');
 
 my @opt_e;
 my @opt_v;
@@ -269,8 +272,12 @@ my @optargs = (
     'print=s'            => \@opt_print,
     'continue!'          => \$opt_continue,
     'usage:s'            => \$opt_usage,
-    'module|M:s'         => sub {
-	warn "Use -M option before other options.\n";
+    'M:s'                => sub {
+	warn "Use -M option at the beginning with module name.\n";
+	if (my @modules = uniq($rcloader->modules())) {
+	    warn "Available modules:\n";
+	    warn "\t", join("\n\t", @modules), "\n";
+	}
 	exit 2;
     },
 );
@@ -314,81 +321,30 @@ sub setopt {
 
 binmode STDERR, ":encoding(utf8)";
 
-##
-## Decode @ARGV
-##
-foreach (@ARGV) {
-    $_ = decode 'utf8', $_ unless utf8::is_utf8($_);
-}
 
 ##
-## Read ~/.greplerc unless special option --norc is given
+## @ARGV staff
 ##
+
+## decode
+map { $_ = decode 'utf8', $_ unless utf8::is_utf8($_) } @ARGV;
+
+## ~/.greplerc
 (@ARGV and $ARGV[0] eq "--norc" and shift) or
-    push @rcdata, App::Greple::RC->new(FILE => "$ENV{HOME}/.greplerc");
+    $rcloader->load(FILE => "$ENV{HOME}/.greplerc");
 
-##
-## Process module options before using Getopt.
-##
-push @rcdata, App::Greple::RC::modopt(\@ARGV);
+## modules
+$rcloader->deal_with(\@ARGV);
+push @opt_begin, $rcloader->call;
 
-if (@ARGV and $ARGV[0] =~ /^-M/) {
-    warn "Option M requires an argument.\n";
-    if (my @modules = uniq(module_list())) {
-	warn "\nAvailable modules:\n";
-	warn "\t", join("\n\t", @modules), "\n";
-    }
-    exit -1;
-}
+## ENV
+$ENV{'GREPLEOPTS'} and unshift @ARGV, shellwords($ENV{'GREPLEOPTS'});
 
-unshift @ARGV, map { $_->default } @rcdata;
-push @opt_begin, map { $_->call } @rcdata;
 
-sub module_list {
-    grep { /^[a-z]/ }
-    map  { /(\w+)\.pm$/ }
-    map  { glob "$_/App/Greple/*.pm" }
-    @INC;
-}
-
-##
-## Handle default option and ENG{GREPLEOPTS}
-##
-if ($ENV{'GREPLEOPTS'}) {
-    unshift @ARGV, shellwords($ENV{'GREPLEOPTS'});
-}
-
-##
-## Process user defined option.
-##
-ARGV: for (my $i = 0; $i < @ARGV; $i++) {
-    last if $ARGV[$i] eq '--';
-    my($opt, $value) = split /=/, $ARGV[$i], 2;
-    for my $rcdata (@rcdata) {
-	if (my @s = $rcdata->getopt($opt)) {
-	    my @module = App::Greple::RC::modopt(\@s);
-	    push @rcdata, @module;
-	    splice @ARGV, $i, 1, ($opt, $value) if defined $value;
-	    ##
-	    ## Convert $<n> and $<shift>
-	    ##
-	    my @rest = splice @ARGV, $i;
-	    s/\$<(\d+)>/$rest[$1]/ge foreach @s;
-	    shift @rest;
-	    s/\$<shift>/shift @rest/ge foreach @s;
-
-	    my @default = map { $_->default } @module;
-	    push @ARGV, @default, @s, @rest;
-	    redo ARGV;
-	}
-    }
-}
-
-push @optargs, map { $_->builtin() } @rcdata;
-
+## GetOptions
 my @SAVEDARGV = @ARGV;
 Getopt::Long::Configure qw(bundling no_getopt_compat);
-GetOptions(@optargs) || pod2usage;
+GetOptions(@optargs, $rcloader->builtin) || pod2usage;
 
 my %opt_d;
 @opt_d = split(//, join('', @opt_d));
@@ -416,6 +372,7 @@ if ($opt_d{u}) {
 
 ## show man pages
 if ($opt_man or $opt_show) {
+    my @rcdata = $rcloader->rc;
     if (@rcdata and (my $mod = $rcdata[-1]->title) ne "main") {
 	my @perldocopt = $opt_show ? '-m' : () ;
 	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
@@ -920,7 +877,7 @@ sub usage {
     pod2usage(-verbose => 0, -exitval => "NOEXIT");
 
     my $quote = qr/[\\(){}\|\*?]/;
-    for my $rcdata (@rcdata) {
+    for my $rcdata ($rcloader->rc) {
 	my $title = $rcdata->title;
 	if ($title eq "main") {
 	    print "    User defined options:\n";

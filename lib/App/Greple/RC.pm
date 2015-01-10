@@ -7,13 +7,12 @@ use Carp;
 use Exporter 'import';
 our @EXPORT      = qw();
 our %EXPORT_TAGS = ( );
-our @EXPORT_OK   = qw(@rcdata $BASECLASS);
+our @EXPORT_OK   = qw($BASECLASS);
 
 use Text::ParseWords qw(shellwords);
 use List::Util qw(first);
 
 our $BASECLASS = 'App::Greple';
-our @rcdata;
 
 sub new {
     my $class = shift;
@@ -51,6 +50,11 @@ sub new {
 	}
 	close *data;
     }
+
+    if (my $builtin = $opt{BUILTIN}) {
+	$obj->builtin(@$builtin);
+    }
+
     $obj;
 }
 
@@ -64,60 +68,6 @@ sub readrc {
 	s/\\\n//g;
     }
     $obj->parsetext($text);
-}
-
-sub modopt {
-    my $argref = shift;
-    my @modules;
-    while (@$argref) {
-	if ($argref->[0] =~ /^-M(?<module>.+)/) {
-	    shift @$argref;
-	    push @modules, load_module($+{module}, $argref);
-	    next;
-	}
-	last;
-    }
-    @modules;
-}
-
-sub load_module {
-    my $mod = shift;
-    my $argref = shift;
-    my $base = $BASECLASS;
-    my $call;
-
-    ##
-    ## Check -Mmod::func(arg) or -Mmod::func=arg
-    ##
-    if ($mod =~ s{
-	^ (?<name> .* ) ::
-	  (?<call>
-		\w+
-		(?: (?<P>[(]) | = )  ## start with '(' or '='
-		(?<arg> [^)]* )      ## optional arg list
-		(?(<P>) [)] | )      ## close ')' or none
-	  ) $
-    }{$+{name}}x) {
-	$call = $+{call};
-    }
-
-    my $module = $mod;
-    my $rc = App::Greple::RC->new(MODULE => $module);
-
-    if ($call) {
-	$rc->call("${module}::${call}");
-    }
-
-    ##
-    ## If &getopt is defined in module, call it and replace @ARGV.
-    ##
-    my $getopt = "${module}::getopt";
-    if (defined &$getopt) {
-	no strict 'refs';
-	@$argref = &$getopt($rc, @$argref);
-    }
-
-    $rc;
 }
 
 ############################################################
