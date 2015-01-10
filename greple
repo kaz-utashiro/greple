@@ -633,8 +633,8 @@ if (@opt_colormap) {
 	}
     }
     map {
-	m/( (?:$re_field=)*
-	    (?: sub\s*\{.*
+	m/( (?: $re_field= )*
+	    (?: .* \b sub \s* \{ .*
 	      | (?: \([^)]*\) | [^,\s] )+
 	    )
 	  )/gx;
