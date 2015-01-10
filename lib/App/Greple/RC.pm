@@ -63,7 +63,10 @@ sub readrc {
     my $fh = shift;
     my $text = do { local $/; <$fh> };
     for ($text) {
-	s/^__(?:CODE|PERL)__\s*\n(.*)//ms and eval $1;
+	s/^__(?:CODE|PERL)__\s*\n(.*)//ms and do {
+	    package main;
+	    eval $1;
+	};
 	s/^\s*(?:#.*)?\n//mg;
 	s/\\\n//g;
     }
