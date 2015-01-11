@@ -1032,15 +1032,14 @@ sub grep_data {
 	);
     $grepper->grep_pattern;
     my @result = $grepper->result;
-
-    my $matched = sum 0, map { @{$_} - 1 } @result;
+    my $matched = $grepper->matched;
 
     if ($opt_l) {
 	print "$current_file\n" if $matched;
     }
     elsif ($opt_c) {
 	print "$current_file:" if $need_filename;
-	print scalar @result, "\n";
+	print scalar $grepper->blocks, "\n";
     }
     elsif (@result) {
 	# open output filter

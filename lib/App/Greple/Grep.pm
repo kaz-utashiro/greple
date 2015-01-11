@@ -33,7 +33,8 @@ BEGIN {
 
 sub new {
     my $class = shift;
-    bless { @_ }, $class;
+    my $obj = bless { @_ }, $class;
+    $obj;
 }
 
 sub new_func {
@@ -47,6 +48,10 @@ sub grep_pattern {
     my @patterns = @{$self->{pattern}};
     my @blocks;
 
+    $self->{RESULT} = [];
+    $self->{BLOCKS} = [];
+    $self->{MATCHED} = 0;
+    
     ##
     ## build match result list
     ##
@@ -88,7 +93,6 @@ sub grep_pattern {
     ## optimization for zero match
     ##
     if ($required{yes} == 0 and $self->{need} > 0) {
-	$self->{result} = [];
 	return $self;
     }
 
@@ -160,6 +164,7 @@ sub grep_pattern {
 						 $textp, $_->[0], $_->[1])]}
 			      @blocks));
     }
+    $self->{BLOCKS} = \@blocks;
 
     ##
     ## build match table
@@ -179,6 +184,7 @@ sub grep_pattern {
 	    }
 	}
     }
+    $self->{MATCH_TABLE} = \@match_table;
 
     show_match_table(\@match_table) if $opt_d{v};
 
@@ -215,6 +221,7 @@ sub grep_pattern {
 				    @{$match_table[$bi][POSI_LIST]},
 				    @{$match_table[$bi][NEGA_LIST]}
 	    );
+	$self->{MATCHED} += @matched;
 	if ($self->{only}) {
 	    push @list, map({ [ $_, $_ ] } @matched);
 	} else {
@@ -226,14 +233,24 @@ sub grep_pattern {
     ## ( [ [blockstart, blockend], [start, end], [start, end], ... ],
     ##   [ [blockstart, blockend], [start, end], [start, end], ... ], ... )
     ##
-    $self->{result} = \@list;
+    $self->{RESULT} = \@list;
 
     $self;
 }
 
 sub result {
     my $obj = shift;
-    @{ $obj->{result} };
+    @{ $obj->{RESULT} };
+}
+
+sub matched {
+    my $obj = shift;
+    $obj->{MATCHED};
+}
+
+sub blocks {
+    my $obj = shift;
+    @{ $obj->{BLOCKS} };
 }
 
 BEGIN {
