@@ -141,7 +141,7 @@ sub merge_regions {
     my $option = ref $_[0] eq 'HASH' ? shift : {};
     my $nojoin = $option->{nojoin};
     my @in = @_;
-    if ($option->{sort}) {
+    unless ($option->{nosort}) {
 	@in = sort({$a->[0] <=> $b->[0] || $b->[1] <=> $a->[1]
 			||  (@$a > 2 ? $a->[2] <=> $b->[2] : 0)
 		   } @in);

@@ -1303,7 +1303,7 @@ sub grep_pattern {
 		push @{$tmp[$resi]}, @l;
 	    }
 	}
-	@result = map { [ merge_regions({sort => 1}, @$_) ] } @tmp;
+	@result = map { [ merge_regions(@$_) ] } @tmp;
     }
 
     ##
@@ -1333,7 +1333,7 @@ sub grep_pattern {
 	for my $re (@opt_block) {
 	    push @blocks, get_regions(\$_, $re);
 	}
-    	@blocks = merge_regions({nojoin => 1, sort => 1}, @blocks);
+    	@blocks = merge_regions({nojoin => 1}, @blocks);
     }
     ##
     ## build block list from matched range
@@ -1342,7 +1342,7 @@ sub grep_pattern {
 	my $textp = \$_;
 	my $sub_blocknize = optimized_blocknize();
     	@blocks =
-	    merge_regions({nojoin => 1, sort => 1},
+	    merge_regions({nojoin => 1},
 			  map({[$sub_blocknize->($textp, $_->[0], $_->[1])]}
 			      @blocks));
     }
@@ -1394,7 +1394,7 @@ sub grep_pattern {
     ##
     my @list = ();
     for my $bi (@effective_index) {
-	my @matched = merge_regions({nojoin => $opt_o, sort => 1},
+	my @matched = merge_regions({nojoin => $opt_o},
 				    @{$match_table[$bi][MUST_LIST]},
 				    @{$match_table[$bi][POSI_LIST]},
 				    @{$match_table[$bi][NEGA_LIST]}
