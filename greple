@@ -1251,6 +1251,9 @@ sub grep_pattern {
 	    if (ref $regex eq 'ARRAY') {
 		new_func(@$regex);
 	    }
+	    elsif (blessed $regex and $regex->can('call')) {
+		$regex;
+	    }
 	    elsif (ref $regex eq 'CODE') {
 		new_func($regex);
 	    }
