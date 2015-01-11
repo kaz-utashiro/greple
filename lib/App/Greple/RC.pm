@@ -43,12 +43,11 @@ sub new {
 	    my $pkg = $opt{PACKAGE} || 'main';
 	    eval "package $pkg; use $module";
 	}
-	croak "$module: $!" if $@;
+	croak "$module: $@" if $@;
 	local *data = "${module}::DATA";
 	if (not eof *data) {
 	    $obj->readrc(*data);
 	}
-	close *data;
     }
 
     if (my $builtin = $opt{BUILTIN}) {

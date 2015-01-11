@@ -22,7 +22,6 @@ sub call {
     unshift @_, @$obj;
     my $name = shift;
 
-    package main;
     no strict 'refs';
     goto &$name;
 }
@@ -31,7 +30,7 @@ sub closure {
     my $name = shift;
     my @argv = @_;
     sub {
-	package main;
+	package main; # XXX
 	no strict 'refs';
 	unshift @_, @argv;
 	goto &$name;
@@ -71,14 +70,15 @@ sub parse_func {
 	  )?
 	$
     }x) {
-	@func = ($+{name}, arg2kvlist($+{arg}));
+	my($name,$arg) = @+{"name", "arg"};
+	$name =~ s/^/${caller}::/ unless $name =~ /::/;
+	@func = ($name, arg2kvlist($arg));
     }
     else {
 	return undef;
     }
 
-    App::Greple::RC::Func->new
-	( $pointer ? closure(@func) : @func );
+    __PACKAGE__->new( $pointer ? closure(@func) : @func );
 }
 
 ##
