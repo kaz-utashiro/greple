@@ -44,11 +44,12 @@ BEGIN {
     }
 }
 
+use Getopt::RC::Loader;
+use Getopt::RC::Func qw(parse_func);
+
 use App::Greple::Common;
 use App::Greple::Util;
 use App::Greple::Grep;
-use App::Greple::RC::Loader;
-use App::Greple::RC::Func qw(parse_func);
 use App::Greple::Regions;
 use App::Greple::Colorize qw(colorize);
 
@@ -138,7 +139,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
 
 =cut
 
-my $rcloader = new App::Greple::RC::Loader
+my $rcloader = new Getopt::RC::Loader
     (BASECLASS => 'App::Greple');
 
 my @opt_e;

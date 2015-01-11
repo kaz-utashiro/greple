@@ -1,4 +1,4 @@
-package App::Greple::RC;
+package Getopt::RC;
 
 use strict;
 use warnings;
@@ -7,17 +7,16 @@ use Carp;
 use Exporter 'import';
 our @EXPORT      = qw();
 our %EXPORT_TAGS = ( );
-our @EXPORT_OK   = qw($BASECLASS);
+our @EXPORT_OK   = qw();
 
 use Text::ParseWords qw(shellwords);
 use List::Util qw(first);
-
-our $BASECLASS = 'App::Greple';
 
 sub new {
     my $class = shift;
     my $obj = bless {
 	Module => undef,
+	Base => undef,
 	Define => [],
 	Option => [],
 	Builtin => [],
@@ -27,6 +26,10 @@ sub new {
 
     my %opt = @_;
 
+    if (my $base = $opt{BASECLASS}) {
+	$obj->{Base} = $base;
+    }
+
     if (my $file = $opt{FILE}) {
 	$obj->module('main');
 	if (open(RC, "<:encoding(utf8)", $file)) {
@@ -35,7 +38,7 @@ sub new {
 	}
     }
     elsif (my $module = $opt{MODULE}) {
-	$module = "${BASECLASS}::${module}" if $BASECLASS;
+	$module = join '::', $obj->{Base}, $module if $obj->{Base};
 	$obj->module($module);
 	if (-f $module) {
 	    require $module;

@@ -1,4 +1,4 @@
-package App::Greple::RC::Func;
+package Getopt::RC::Func;
 
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ our @EXPORT_OK   = qw(parse_func);
 our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
 use Data::Dumper;
-use App::Greple::RC;
+use Getopt::RC;
 
 sub new {
     my $class = shift;

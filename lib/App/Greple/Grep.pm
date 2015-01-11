@@ -11,9 +11,10 @@ our @EXPORT_OK   = qw();
 use Data::Dumper;
 use Scalar::Util qw(blessed);
 
+use Getopt::RC::Func;
+
 use App::Greple::Common;
 use App::Greple::Regions;
-use App::Greple::RC::Func;
 
 
 use constant {
@@ -36,7 +37,7 @@ sub new {
 }
 
 sub new_func {
-    new App::Greple::RC::Func @_;
+    new Getopt::RC::Func @_;
 }
 
 sub grep_pattern {

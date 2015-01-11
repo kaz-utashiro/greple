@@ -1,4 +1,4 @@
-package App::Greple::RC::Loader;
+package Getopt::RC::Loader;
 
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ our %EXPORT_TAGS = ( );
 our @EXPORT_OK   = qw();
 
 use Data::Dumper;
-use App::Greple::RC;
+use Getopt::RC;
 
 sub new {
     my $class = shift;
@@ -18,12 +18,8 @@ sub new {
 
     my $obj = bless {
 	RC => [],
-	BASECLASS => undef,
+	BASECLASS => $opt{BASECLASS},
     }, $class;
-
-    if ($opt{BASECLASS}) {
-	$obj->{BASECLASS} = $opt{BASECLASS};
-    }
 
     $obj;
 }
@@ -46,7 +42,7 @@ sub append {
 
 sub load {
     my $obj = shift;
-    push @{$obj->{RC}}, App::Greple::RC->new(@_);
+    push @{$obj->{RC}}, Getopt::RC->new(@_, BASECLASS => $obj->baseclass);
     $obj;
 }
 
