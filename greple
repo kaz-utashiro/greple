@@ -45,6 +45,8 @@ BEGIN {
 }
 
 use App::Greple::Common;
+use App::Greple::Util;
+use App::Greple::Grep;
 use App::Greple::RC::Loader;
 use App::Greple::RC::Func qw(parse_func);
 use App::Greple::Regions;
@@ -348,7 +350,7 @@ my @SAVEDARGV = @ARGV;
 Getopt::Long::Configure qw(bundling no_getopt_compat);
 GetOptions(@optargs, $rcloader->builtin) || pod2usage;
 
-my %opt_d;
+our %opt_d;
 @opt_d = split(//, join('', @opt_d));
 @opt_d{@opt_d} = @opt_d;
 
@@ -432,11 +434,6 @@ if (@opt_f) {
 }
 
 my @xpattern;
-use constant {
-    MATCH_NEGATIVE => 0,
-    MATCH_POSITIVE => 1,
-    MATCH_MUST => 2,
-};
 
 ##
 ## --le
@@ -901,17 +898,6 @@ sub usage {
     exit 2;
 }
 
-# easy implementation. don't be serious.
-sub shellquote {
-    my $quote = qr/[\s\\(){}\|\*?]/;
-    map { /^(-+\w+=)(.*$quote.*)$/
-	      ? "$1\'$2\'"
-	      :  /^(.*$quote.*)$/
-	      ? "\'$1\'"
-	      : $_ }
-    @_;
-}
-
 sub make_pattern {
     my($p) = @_;
 
@@ -1025,7 +1011,26 @@ sub grep_data {
 	$f->call(&FILELABEL => $current_file);
     }
 
-    my @result = grep_pattern(\$_, \@xpattern);
+    my $grepper = new App::Greple::Grep (
+	text         => \$_,
+	filename     => $current_file,
+	pattern      => \@xpattern,
+	reg_union    => \@reg_union,
+	reg_clude    => \@reg_clude,
+	after        => $opt_A,
+	before       => $opt_B,
+	paragraph    => $opt_p,
+	only         => $opt_o,
+	all          => $opt_all,
+	block        => \@opt_block,
+	need         => $opt_need,
+	allow        => $opt_allow,
+	strict       => $opt_strict,
+	region_index => $opt_regioncolor,
+	stat         => \%stat,
+	);
+    $grepper->grep_pattern;
+    my @result = $grepper->result;
 
     my $matched = sum 0, map { @{$_} - 1 } @result;
 
@@ -1213,325 +1218,6 @@ sub _color {
     return $_ unless $need_color and $c;
 
     colorize($c, $_);
-}
-
-######################################################################
-
-use constant {
-    POSI_BASE => 0, POSI_POSI => 0, POSI_NEGA => 1, POSI_LIST => 2,
-    NEGA_BASE => 3, NEGA_POSI => 3, NEGA_NEGA => 4, NEGA_LIST => 5,
-    MUST_BASE => 6, MUST_POSI => 6, MUST_NEGA => 7, MUST_LIST => 8,
-    INDX_POSI => 0, INDX_NEGA => 1, INDX_LIST => 2,
-};
-
-my @match_base;
-BEGIN {
-    $match_base[MATCH_POSITIVE] = POSI_BASE;
-    $match_base[MATCH_NEGATIVE] = NEGA_BASE;
-    $match_base[MATCH_MUST] = MUST_BASE;
-}
-
-sub new_func {
-    new App::Greple::RC::Func @_;
-}
-
-sub grep_pattern {
-    local *_ = shift;
-    my @patterns = @{+shift};
-    my @blocks;
-
-    ##
-    ## build match result list
-    ##
-    my @result;
-    my %required = (yes => 0, no => 0);
-    for my $i (0 .. $#patterns) {
-	my($sw, $regex) = @{$patterns[$i]};
-	my($func, @args) = do {
-	    if (ref $regex eq 'ARRAY') {
-		new_func(@$regex);
-	    }
-	    elsif (blessed $regex and $regex->can('call')) {
-		$regex;
-	    }
-	    elsif (ref $regex eq 'CODE') {
-		new_func($regex);
-	    }
-	    else {
-		new_func(\&match_regions, pattern => $regex);
-	    }
-	};
-	my @p = $func->call(@args, &FILELABEL => $current_file);
-	if (@p) {
-	    if ($sw eq MATCH_MUST or $sw eq MATCH_POSITIVE) {
-		push @blocks, map { [ @$_ ] } @p;
-		$stat{match_positive} += @p;
-		$required{yes}++;
-	    } else {
-		$stat{match_negative} += @p;
-		$required{no}++;
-	    }
-	    map { push @$_, $i } @p;
-	}
-	push @result, \@p;
-    }
-    $stat{match_block} += @blocks;
-
-    ##
-    ## optimization for zero match
-    ##
-    if ($required{yes} == 0 and $opt_need > 0) {
-	return ();
-    }
-
-    ##
-    ## --inside, --outside
-    ##
-    if (@reg_union) {
-	my @tmp = map { [] } @result;
-	for my $regi (0 .. $#reg_union) {
-	    my($in_out, $arg) = @{$reg_union[$regi]};
-	    my @select = get_regions(\$_, $arg);
-	    next unless $in_out == REG_OUT or @select;
-	    for my $resi (0 .. $#result) {
-		my $r = $result[$resi];
-		my @l = select_regions({ strict => $opt_strict },
-				       $r, \@select, $in_out);
-		if ($opt_regioncolor or @result == 1) {
-		    map { $_->[2] = $regi } @l;
-		}
-		push @{$tmp[$resi]}, @l;
-	    }
-	}
-	@result = map { [ merge_regions(@$_) ] } @tmp;
-    }
-
-    ##
-    ## --include, --exclude
-    ##
-    for my $region (@reg_clude) {
-	my($in_out, $arg) = @$region;
-	my @select = get_regions(\$_, $arg);
-	next unless $in_out == REG_IN or @select;
-	for my $r (@result) {
-	    @$r = select_regions({ strict => $opt_strict },
-				 $r, \@select, $in_out);
-	}
-    }
-
-    ##
-    ## --all
-    ##
-    if ($opt_all) {
-	@blocks = ( [ 0, length $_ ] );
-    }
-    ##
-    ## --block
-    ##
-    elsif (@opt_block) {
-	@blocks = ();
-	for my $re (@opt_block) {
-	    push @blocks, get_regions(\$_, $re);
-	}
-    	@blocks = merge_regions({nojoin => 1}, @blocks);
-    }
-    ##
-    ## build block list from matched range
-    ##
-    elsif (@blocks) {
-	my $textp = \$_;
-	my $sub_blocknize = optimized_blocknize();
-    	@blocks =
-	    merge_regions({nojoin => 1},
-			  map({[$sub_blocknize->($textp, $_->[0], $_->[1])]}
-			      @blocks));
-    }
-
-    ##
-    ## build match table
-    ##
-    my @match_table = map { [ 0, 0, [], 0, 0, [], 0, 0, [] ] } @blocks;
-    for my $i (0 .. $#result) {
-	my $base = $match_base[$patterns[$i][0]];
-	my @b = classify_regions({ strict => $opt_strict },
-				 $result[$i], \@blocks);
-	for my $bi (0 .. $#b) {
-	    my $te = $match_table[$bi];
-	    if (@{$b[$bi]}) {
-		${$te}[$base + INDX_POSI]++;
-		push @{$te->[$base + INDX_LIST]}, @{$b[$bi]};
-	    } else {
-		${$te}[$base + INDX_NEGA]++;
-	    }
-	}
-    }
-
-    show_match_table(\@match_table) if $opt_d{v};
-
-    ##
-    ## now it is quite easy to get effective blocks
-    ##
-    my @effective_index = grep(
-	$match_table[$_][MUST_NEGA] == 0 &&
-	$match_table[$_][POSI_POSI] >= $opt_need &&
-	$match_table[$_][NEGA_POSI] <= $opt_allow,
-	0 .. $#blocks);
-
-    ##
-    ## --block with -ABC option
-    ##
-    if (@opt_block and ($opt_A or $opt_B)) {
-	my %mark;
-	for my $i (@effective_index) {
-	    map($mark{$_} = 1,
-		max($i - $opt_B, 0) .. min($i + $opt_A, $#blocks));
-	}
-	@effective_index = sort { $a <=> $b } map { int $_ } keys %mark;
-    }
-
-    ##
-    ## compose the result
-    ##
-    my @list = ();
-    for my $bi (@effective_index) {
-	my @matched = merge_regions({nojoin => $opt_o},
-				    @{$match_table[$bi][MUST_LIST]},
-				    @{$match_table[$bi][POSI_LIST]},
-				    @{$match_table[$bi][NEGA_LIST]}
-	    );
-	if ($opt_o) {
-	    push @list, map({ [ $_, $_ ] } @matched);
-	} else {
-	    push @list, [ $blocks[$bi], @matched ];
-	}
-    }
-
-    ##
-    ## ( [ [blockstart, blockend], [start, end], [start, end], ... ],
-    ##   [ [blockstart, blockend], [start, end], [start, end], ... ], ... )
-    ##
-    return @list;
-}
-
-BEGIN {
-    $Data::Dumper::Terse = 1;
-}
-sub show_match_table {
-    my $i = 0;
-    for my $t (@{+shift}) {
-	my $m = Dumper($t);
-	$m =~ s/\s+(?!$)/ /gs;
-	printf STDERR "%d %s", $i++, $m;
-    }
-}
-
-sub get_regions {
-    local *_ = shift;
-    my $pattern = shift;
-
-    ## func object
-    if (blessed $pattern and $pattern->can('call')) {
-	$pattern->call(&FILELABEL => $current_file);
-    }
-    ## pattern
-    else {
-	match_regions(pattern => $pattern);
-    }
-}
-
-sub optimized_blocknize {
-    my($begin, $end) = (-1, -1);
-    if ($opt_p or $opt_A or $opt_B) {
-	\&blocknize;
-    } else {
-	sub {
-	    if ($begin <= $_[1] and $_[2] < $end) {
-		;
-	    } else {
-		($begin, $end) = &blocknize;
-	    }
-	    ($begin, $end);
-	}
-    }
-}
-
-sub blocknize {
-    local *_ = shift;		# text
-    my($from, $to) = @_;	# range
-    my $matched = substr($_, $from, $to - $from);
-
-    my $delim = $opt_p ? "\n\n" : "\n";
-
-    my $begin = $from;
-    for (my $c = $opt_B + 1; $c; $c--) {
-	if ($opt_p) {
-	    $begin-- while substr($_, $begin, 2) eq "\n\n";
-	}
-	$begin = rindex($_, $delim, $begin - length $delim);
-	last if $begin < 0;
-    }
-    if ($begin < 0) {
-	$begin = 0;
-    } else {
-	$begin += length $delim;
-    }
-
-    ##
-    ## This decision is quite difficult when the matched strings
-    ## contains multiple newlines at the end.  I'm not sure what
-    ## behavior is most intuitive.
-    ##
-    $to -= length $1 if $matched =~ /(\n{1,1})\z/;
-    pos($_) = $to;
-
-    my $end;
-    for (my $c = $opt_A + 1; $c; $c--) {
-	if ($opt_p ? /\G \n?+ (?:.+\n)* (\n+)/gx : /\G.*\n()/g) {
-	    $end = pos() - length $1;
-	    next;
-	}
-	$end = length $_;
-	last;
-    }
-    $end // die;
-
-    ($begin, $end);
-}
-
-######################################################################
-
-sub do_eval {
-    my($prog, $debug) = @_;
-    if ($debug || $opt_d{e}) {
-	print STDERR &unctrl($prog), "\n" x ($prog !~ /\n$/);
-    }
-    eval $prog;
-    if ($@) {
-	die sprintf("eval failed in file %s on line %s\n$@",
-		    (caller)[1, 2]);
-    }
-}
-
-sub unctrl {
-    local($_) = shift;
-    s/([\000-\010\013-\037])/'^' . pack('c', ord($1)|0100)/ge;
-    $_;
-}
-
-sub uniq {
-    my %seen;
-    grep { not $seen{$_}++ } @_;
-}
-
-##
-## Implement minimum function because Text::Glob is not in standard library
-##
-sub match_glob {
-    local $_ = shift;
-    s/\?/./g;
-    s/\*/.*/g;
-    my $regex = qr/^$_$/;
-    grep { $_ =~ $regex } @_;
 }
 
 ######################################################################
