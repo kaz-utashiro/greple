@@ -428,18 +428,9 @@ my $FLAG_BASE = FLAG_NONE;
 $FLAG_BASE |= FLAG_IGNORECASE if $opt_i;
 
 if (@opt_f) {
-    my @patterns;
     for my $opt_f (@opt_f) {
-	open my $fh, '<:encoding(utf8)', $opt_f or die "$opt_f: $!\n";
-	my @p = do {
-	    map  { chomp ; s{\s*//.*}{} ; $_ }
-	    grep { not m{^\s*(?:#|//|$)} }
-	    <$fh>
-	};
-	close $fh;
-	$pat_holder->append
-	    ({ flag => $FLAG_BASE | FLAG_REGEX | FLAG_COOK | FLAG_OR },
-	     @p);
+	$pat_holder->append({ flag => $FLAG_BASE, type => 'file' },
+			    $opt_f);
     }
 } else {
     if (@opt_le + @opt_re + @opt_fe + @opt_or + @opt_e + @opt_r == 0) {
@@ -457,7 +448,8 @@ for ([ \@opt_r,  FLAG_REGEX | FLAG_COOK | FLAG_REQUIRED ],
      [ \@opt_fe, FLAG_NONE                              ])
 {
     my($opt, $flag) = @$_;
-    $pat_holder->append({ flag => $FLAG_BASE | $flag }, @$opt) if @$opt;
+    $pat_holder->append({ flag => $FLAG_BASE | $flag, type => 'pattern' },
+			@$opt) if @$opt;
 }
 
 ##

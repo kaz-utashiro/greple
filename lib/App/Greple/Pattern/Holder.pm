@@ -23,6 +23,13 @@ sub append {
 
     return $obj unless @_;
 
+    $arg->{type} //= 'pattern';
+
+    if ($arg->{type} eq 'file') {
+	$obj->load_file($arg, @_);
+	return $obj;
+    }
+
     if ($arg->{flag} & FLAG_LEXICAL) {
 	$arg->{flag} &= ~FLAG_LEXICAL;
 	for (@_) {
@@ -83,6 +90,25 @@ sub lexical_opt {
     if (@or) {
 	my $flag = $arg->{flag} | FLAG_OR;
 	$obj->append({ flag => $flag }, @or);
+    }
+}
+
+sub load_file {
+    my $obj = shift;
+    my $arg = ref $_[0] eq 'HASH' ? shift : {};
+
+    $arg->{type} = 'pattern';
+    my $flag = ( $arg->{flag} // 0 ) | FLAG_REGEX | FLAG_COOK | FLAG_OR;
+
+    for my $file (@_) {
+	open my $fh, '<:encoding(utf8)', $file or die "$file: $!\n";
+	my @p = do {
+	    map  { chomp ; s{\s*//.*}{} ; $_ }
+	    grep { not m{^\s*(?:#|//|$)} }
+	    <$fh>
+	};
+	close $fh;
+	$obj->append({ flag => $flag }, @p);
     }
 }
 

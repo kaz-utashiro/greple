@@ -48,7 +48,7 @@ sub new {
 	FUNCTION => undef,
     }, $class;
 
-    $obj->setup(@_) if @_;
+    setup $obj @_ if @_;
 
     $obj;
 }
