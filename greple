@@ -46,6 +46,7 @@ BEGIN {
 
 use Getopt::RC::Loader;
 use Getopt::RC::Func qw(parse_func);
+use Getopt::RC::LabeledParam;
 
 use App::Greple::Common;
 use App::Greple::Util;
@@ -573,44 +574,13 @@ my %colormap = (
 
 my @colors;
 
-if (@opt_colormap) {
-    my $re_field = qr/[\w\*\?]+/;
-    map {
-	my $spec = pop @$_;
-	my @spec;
-	while ($spec =~ s/\&(\w+ (?: \( [^)]* \) )? ) ;?//x) { # &func
-	    push @spec, parse_func($1);
-	}
-	if ($spec =~ s/\b(sub\s*{.*)//) { # sub { ... }
-	    push @spec, parse_func($1);
-	}
-	push @spec, $spec if $spec ne "";
-	my $c = @spec > 1 ? [ @spec ] : $spec[0];
-	if (@$_ == 0) {
-	    push @colors, $c;
-	}
-	else {
-	    map { $colormap{$_} = $c }
-	    map { match_glob($_, keys %colormap) }
-	    @$_;
-	}
-    }
-    map {
-	if (my @field = /\G($re_field)=/gp) {
-	    [ @field, ${^POSTMATCH} ];
-	} else {
-	    [ $_ ];
-	}
-    }
-    map {
-	m/( (?: $re_field= )*
-	    (?: .* \b sub \s* \{ .*
-	      | (?: \([^)]*\) | [^,\s] )+
-	    )
-	  )/gx;
-    }
-    @opt_colormap;
-}
+my $cmap = new Getopt::RC::LabeledParam
+    newlabel => 0,
+    HASH => \%colormap,
+    LIST => \@colors,
+    ;
+
+$cmap->append(@opt_colormap);
 
 my @default_color =
     $opt_256
