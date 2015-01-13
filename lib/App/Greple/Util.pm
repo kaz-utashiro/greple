@@ -44,3 +44,47 @@ sub match_glob {
 }
 
 1;
+
+
+package UniqIndex;
+
+use strict;
+use warnings;
+
+sub new {
+    my $class = shift;
+    my $obj = bless {
+	HASH => {},
+	LIST => [],
+    }, $class;
+    configure $obj @_ if @_;
+    $obj;
+}
+
+sub hash { shift->{HASH} }
+sub list { shift->{LIST} }
+
+sub configure {
+    my $obj = shift;
+    while (@_ >= 2) {
+	$obj->{$_[0]} = $_[1];
+	splice @_, 0, 2;
+    }
+}
+
+sub index {
+    my $opt = ref $_[0] eq 'HASH' ? shift : {};
+    my $obj = shift;
+    local $_ = shift;
+
+    s/\n+//g if $obj->{ignore_newline};
+    s/\s+//g if $obj->{ignore_space};
+
+    $obj->{HASH}->{$_} //= do {
+	my $list = $obj->{LIST};
+	push @$list, $_;
+	$#{ $list };
+    };
+}
+
+1;

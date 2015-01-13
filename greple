@@ -594,6 +594,53 @@ if ($opt_d{c}) {
     warn 'colors = ', $dump->(\@colors);
 }
 
+sub index_color {
+    my $text = shift;
+    my $index = @_ ? shift : 0;
+    if ($need_color and @colors) {
+	$text = color($colors[$index % @colors], $text, $index);
+    }
+    $text;
+}
+
+sub _file     { unshift @_, 'FILE'     ; goto &color }
+sub _line     { unshift @_, 'LINE'     ; goto &color }
+sub _delim    { unshift @_, 'DELIM'    ; goto &color }
+sub _blockend { unshift @_, 'BLOCKEND' ; goto &color }
+
+sub color {
+    goto &_color if ref $_[0] ne 'ARRAY';
+    my @speclist = @{+shift};
+    local $_ = shift;
+    for my $color (@speclist) {
+	$_ = _color($color, $_);
+    }
+    $_;
+}
+
+sub _color {
+    my $color = shift;
+    local $_ = shift;
+
+    my $c = exists $colormap{$color} ? $colormap{$color} : $color;
+
+    return $c->call if blessed $c and ref $c->can('call');
+    return $_ unless $need_color and $c;
+
+    colorize($c, $_);
+}
+
+my $uniq_color = new UniqIndex
+    ignore_newline => 1;
+
+sub dump_uniqcolor {
+    my $list = $uniq_color->list;
+    for my $i (0 .. $#{ $list }) {
+	warn sprintf "%d %s\n", $i, index_color($list->[$i], $i);
+    }
+}
+
+
 my $blockend = "--\n";
 if (defined $opt_blockend) {
     ($blockend = $opt_blockend) =~ s/(?<=.)$/\n/;
@@ -936,7 +983,7 @@ sub display_result {
 	    }
 	    # --uniqcolor
 	    elsif ($opt_uniqcolor) {
-		$pi = uniqcolor($s);
+		$pi = $uniq_color->index($s);
 	    }
 
 	    if ($opt_join) {
@@ -972,57 +1019,6 @@ sub display_result {
 	print "\n" if $need_newline;
 	print _blockend($blockend) if $need_blockend;
     }
-}
-
-sub _file     { unshift @_, 'FILE'     ; goto &color }
-sub _line     { unshift @_, 'LINE'     ; goto &color }
-sub _delim    { unshift @_, 'DELIM'    ; goto &color }
-sub _blockend { unshift @_, 'BLOCKEND' ; goto &color }
-
-my %uniqcolor;
-my @uniqcolor;
-sub uniqcolor {
-    (my $p = shift) =~ s/\n//g;
-    $uniqcolor{$p} //= do {
-	push @uniqcolor, $p;
-	$#uniqcolor;
-    };
-}
-sub dump_uniqcolor {
-    for my $i (0 .. $#uniqcolor) {
-	warn sprintf("%d %s\n", $i, index_color($uniqcolor[$i], $i));
-    }
-}
-
-sub index_color {
-    my $text = shift;
-    my $index = @_ ? shift : 0;
-    if ($need_color and @colors) {
-	$text = color($colors[$index % @colors], $text, $index);
-    }
-    $text;
-}
-
-sub color {
-    goto &_color if ref $_[0] ne 'ARRAY';
-    my @speclist = @{+shift};
-    local $_ = shift;
-    for my $color (@speclist) {
-	$_ = _color($color, $_);
-    }
-    $_;
-}
-
-sub _color {
-    my $color = shift;
-    local $_ = shift;
-
-    my $c = exists $colormap{$color} ? $colormap{$color} : $color;
-
-    return $c->call if blessed $c and ref $c->can('call');
-    return $_ unless $need_color and $c;
-
-    colorize($c, $_);
 }
 
 ######################################################################
