@@ -55,6 +55,7 @@ use App::Greple::Regions;
 use App::Greple::Pattern;
 use App::Greple::Pattern::Holder;
 use App::Greple::Colorize qw(colorize);
+use App::Greple::Filter;
 
 
 =head1 NAME
@@ -503,35 +504,14 @@ for ([ \@opt_r,  FLAG_REGEX | FLAG_COOK | FLAG_REQUIRED ],
 ##
 ## setup input/output filter
 ##
-my @filter = map { /([^:]+):(.*)/ ? [ $1, $2 ] : $_ } @opt_if;
+my $filter_d = new App::Greple::Filter;
+$filter_d->parse(@opt_if);
 unless ($opt_noif) {
-    push(@filter,
-	 [ sub { s/\.Z$//   }, 'zcat' ],
-	 [ sub { s/\.g?z$// }, 'gunzip -c' ],
-	 [ sub { m/\.pdf$/i }, 'pdftotext -nopgbrk - -' ],
-	 [ sub { s/\.gpg$// }, 'gpg --quiet --no-mdc-warning --decrypt' ]);
-}
-sub filters {
-    my $filename = shift;
-    local $_ = $filename;
-
-    my @f;
-    for (my $remember = ""; $remember ne $_; ) {
-	$remember = $_;
-	for my $p (@filter) {
-	    if (ref $p eq 'ARRAY') {
-		my($exp, $command) = @$p;
-		if (ref $exp eq 'CODE' ? &$exp : eval $exp) {
-		    $command =~ s/{}/$filename/g;
-		    push @f, $command;
-		    last if $_ ne $remember;
-		}
-	    } else {
-		push @f, $p;
-	    }
-	}
-    }
-    @f;
+    $filter_d->append(
+	[ sub { s/\.Z$//   }, 'zcat' ],
+	[ sub { s/\.g?z$// }, 'gunzip -c' ],
+	[ sub { m/\.pdf$/i }, 'pdftotext -nopgbrk - -' ],
+	[ sub { s/\.gpg$// }, 'gpg --quiet --no-mdc-warning --decrypt' ]);
 }
 
 ##------------------------------------------------------------
@@ -768,44 +748,6 @@ sub main {
     }
 }
 
-sub push_output_filter {
-    my $fh = shift;
-    for my $filter (reverse @_) {
-	$opt_d{m} and warn "Push output Filter: \"$filter\"\n";
-	my $pid = open($fh, '|-') // die "$filter: $!\n";
-	if ($pid == 0) {
-	    if ($filter =~ /^&/ and my $f = parse_func($filter)) {
-		local @ARGV;
-		open STDIN, '<&', 0 if eof STDIN;
-		$f->call;
-	    } else {
-		do { exec $filter } ;
-		warn $@ if $@;
-	    }
-	    exit;
-	}
-    }
-}
-
-sub push_input_filter {
-    for my $filter (@_) {
-	$opt_d{m} and warn "Push input Filter: \"$filter\"\n";
-	if ($filter =~ /^&/ and my $f = parse_func($filter)) {
-	    ##
-	    ## intput filter function is responsible for process fork
-	    ##
-	    $f->call;
-	} else {
-	    my $pid = open(STDIN, '-|') // die "$filter: $!\n";
-	    if ($pid == 0) {
-		do { exec $filter } ;
-		warn $@ if $@;
-		exit;
-	    }
-	}
-    }
-}
-
 sub usage {
     pod2usage(-verbose => 0, -exitval => "NOEXIT");
 
@@ -861,7 +803,7 @@ sub open_nextfile {
 	    };
 	}
 
-	if (my @filters = filters($file)) {
+	if (my @filters = $filter_d->get_filters($file)) {
 	    push_input_filter(@filters);
 	}
 
