@@ -10,7 +10,7 @@ our @EXPORT_OK   = qw();
 our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
 use Data::Dumper;
-use Getopt::RC::Data;
+use Getopt::RC::Container;
 use Getopt::RC::Func qw(parse_func);
 
 sub new {

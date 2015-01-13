@@ -1,4 +1,4 @@
-package Getopt::RC::Data;
+package Getopt::RC::Container;
 
 use strict;
 use warnings;
