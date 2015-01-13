@@ -10,7 +10,7 @@ our %EXPORT_TAGS = ( );
 our @EXPORT_OK   = qw();
 
 use Data::Dumper;
-use Getopt::RC;
+use Getopt::RC::Data;
 
 sub new {
     my $class = shift;
@@ -42,7 +42,8 @@ sub append {
 
 sub load {
     my $obj = shift;
-    push @{$obj->{RC}}, Getopt::RC->new(@_, BASECLASS => $obj->baseclass);
+    push @{$obj->{RC}}, Getopt::RC::Data->new(@_,
+					      BASECLASS => $obj->baseclass);
     $obj;
 }
 

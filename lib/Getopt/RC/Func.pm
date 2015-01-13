@@ -10,7 +10,7 @@ our @EXPORT_OK   = qw(parse_func);
 our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
 use Data::Dumper;
-use Getopt::RC;
+use Getopt::RC::Data;
 
 sub new {
     my $class = shift;
