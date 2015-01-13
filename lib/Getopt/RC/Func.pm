@@ -43,10 +43,10 @@ sub closure {
 ## funcname=arg1,arg2,arg3=val3
 ##
 sub parse_func {
-    my $arg = ref $_[0] eq 'HASH' ? shift : {};
+    my $opt = ref $_[0] eq 'HASH' ? shift : {};
     local $_ = shift;
-    my $noinline = $arg->{noinline};
-    my $pointer = $arg->{pointer};
+    my $noinline = $opt->{noinline};
+    my $pointer = $opt->{pointer};
     my $caller = caller;
 
     my @func;
@@ -70,8 +70,9 @@ sub parse_func {
 	  )?
 	$
     }x) {
-	my($name,$arg) = @+{"name", "arg"};
-	$name =~ s/^/${caller}::/ unless $name =~ /::/;
+	my($name, $arg) = @+{"name", "arg"};
+	my $pkg = $opt->{PACKAGE} || $caller;
+	$name =~ s/^/${pkg}::/ unless $name =~ /::/;
 	@func = ($name, arg2kvlist($arg));
     }
     else {

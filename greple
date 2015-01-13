@@ -51,6 +51,8 @@ use App::Greple::Common;
 use App::Greple::Util;
 use App::Greple::Grep;
 use App::Greple::Regions;
+use App::Greple::Pattern;
+use App::Greple::Pattern::Holder;
 use App::Greple::Colorize qw(colorize);
 
 
@@ -414,19 +416,29 @@ else {
     $file_code = $default_icode;
 }
 
-## make search pattern
+##
+## Patterns
+##
+
+my $pat_holder = new App::Greple::Pattern::Holder;
+
+my $FLAG_BASE = FLAG_NONE;
+$FLAG_BASE |= FLAG_IGNORECASE if $opt_i;
+
 if (@opt_f) {
     my @patterns;
     for my $opt_f (@opt_f) {
 	open my $fh, '<:encoding(utf8)', $opt_f or die "$opt_f: $!\n";
-	push @patterns, [
+	my @p = do {
 	    map  { chomp ; s{\s*//.*}{} ; $_ }
 	    grep { not m{^\s*(?:#|//|$)} }
 	    <$fh>
-	] ;
+	};
 	close $fh;
+	$pat_holder->append
+	    ({ flag => $FLAG_BASE | FLAG_REGEX | FLAG_COOK | FLAG_OR },
+	     @p);
     }
-    unshift @opt_re, map { join '|', map { make_pattern($_) } @$_ } @patterns;
 } else {
     if (@opt_le + @opt_re + @opt_fe + @opt_or + @opt_e + @opt_r == 0) {
 	&usage if @ARGV == 0;
@@ -434,65 +446,25 @@ if (@opt_f) {
     }
 }
 
-my @xpattern;
-
-##
-## --le
-##
-for (@opt_le) {
-    for my $p (split /(?<!\\) +/, $_) {
-	next if $p eq "";
-	if ($p =~ /^\&/ and my $f = parse_func($p)) {	# &func(...)
-	    push @xpattern, [MATCH_POSITIVE, $f ];
-	}
-	elsif ($p =~ s/^-//) {				# -pattern
-	    push @opt_v, $p;
-	}
-	elsif ($p =~ s/^\?//) {				# ?pattern
-	    push @opt_or, $p;
-	}
-	elsif ($p =~ s/^\+//) {				# +pattern
-	    push @opt_r, $p;
-	}
-	else {
-	    push @opt_e, $p;
-	}
-    }
-}
-
-for my $p (@opt_r) {
-    $p = make_pattern($p);
-    push @xpattern, [MATCH_MUST, qr/$p/m];
-}
-for my $p (@opt_e) {
-    $p = make_pattern($p);
-    push @xpattern, [MATCH_POSITIVE, qr/$p/m];
-}
-for my $p (@opt_v) {
-    $p = make_pattern($p);
-    push @xpattern, [MATCH_NEGATIVE, qr/$p/m];
-}
-if (@opt_or) {
-    my $p = join('|', map { &make_pattern($_) } @opt_or);
-    push @xpattern, [MATCH_POSITIVE, qr/$p/m];
-}
-
-for my $p (@opt_re) {
-    $p = "(?i)$p" if $opt_i;
-    push @xpattern, [MATCH_POSITIVE, qr/$p/m];
-}
-for my $p (@opt_fe) {
-    $p = "(?i)$p" if $opt_i;
-    push @xpattern, [MATCH_POSITIVE, qr/\Q$p/];
+for ([ \@opt_r,  FLAG_REGEX | FLAG_COOK | FLAG_REQUIRED ],
+     [ \@opt_v,  FLAG_REGEX | FLAG_COOK | FLAG_NEGATIVE ],
+     [ \@opt_le, FLAG_REGEX | FLAG_COOK | FLAG_LEXICAL  ],
+     [ \@opt_or, FLAG_REGEX | FLAG_COOK | FLAG_OR       ],
+     [ \@opt_e,  FLAG_REGEX | FLAG_COOK                 ],
+     [ \@opt_re, FLAG_REGEX                             ],
+     [ \@opt_fe, FLAG_NONE                              ])
+{
+    my($opt, $flag) = @$_;
+    $pat_holder->append({ flag => $FLAG_BASE | $flag }, @$opt) if @$opt;
 }
 
 ##
 ## set $opt_need and $opt_alow
 ##
 {
-    my $must = grep { $_->[0] == MATCH_MUST } @xpattern;
-    my $posi = grep { $_->[0] == MATCH_POSITIVE } @xpattern;
-    my $nega = grep { $_->[0] == MATCH_NEGATIVE } @xpattern;
+    my $must = grep({ $_->is_required } $pat_holder->patterns);
+    my $posi = grep({ $_->is_positive } $pat_holder->patterns) - $must;
+    my $nega = grep({ $_->is_negative } $pat_holder->patterns);
 
     $opt_need = $must ? 0 : $posi;
     for (@opt_need) {
@@ -725,28 +697,19 @@ my @reg_clude = (map({ [ REG_IN,  $_ ] } @opt_include),
 
 ##------------------------------------------------------------
 
-## patterns
 if ($opt_d{m}) {
     warn "Search pattern:\n";
-    for my $i (0 .. $#xpattern) {
-	my($mode, $p) = @{$xpattern[$i]};
+    my $i;
+    for my $pat ($pat_holder->patterns) {
 	my $type =
-	    $mode == MATCH_POSITIVE ? 'and ' :
-	    $mode == MATCH_NEGATIVE ? 'not ' :
-	    $mode == MATCH_MUST ? 'must' :
-	    'unknown';
-	my $target = do {
-	    if (ref $p and ref $p ne 'Regexp') {
-		local $_ = Dumper $p;
-		chomp;
-		s/\n\s*/ /g;
-		$_;
-	    } else {
-		"/$p/";
-	    }
-	};
-	warn sprintf("  %s %s\n", $type,
-		     @colors > 1 ? index_color($target, $i) : $target);
+	    $pat->is_function ? 'func' :
+	    $pat->is_required ? 'must' :
+	    $pat->is_negative ? 'not ' :
+	    $pat->is_positive ? 'and ' : 'unknown';
+	my $target = $pat->cooked;
+	warn sprintf("  %s %s\n",
+		     $type,
+		     @colors > 1 ? index_color($target, $i++) : $target);
     }
     warn sprintf "need = %d, allow = %d\n", $opt_need, $opt_allow;
 }
@@ -899,67 +862,6 @@ sub usage {
     exit 2;
 }
 
-sub make_pattern {
-    my($p) = @_;
-
-    my $wchar_re = qr{
-	[\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]
-    }x;
-
-    if ($p =~ s/^\\Q//) {
-	$p = quotemeta($p);
-    } else {
-	$p =~ s{
-	    (
-	     \[[^\]]*\] [\?\*]?	# character-class
-	     |
-	     \(\?[=!][^\)]*\)	# look-ahead pattern
-	     |
-	     \(\?\<[=!][^\)]*\)	# look-behind pattern
-	    )
-	    |
-	    ($wchar_re+)
-	    |
-	    (\w+|.)
-	}{
-	    if (defined $1) {
-		$1;
-	    } elsif (defined $2) {
-		join('\s*', split(//, $2));
-	    } elsif (defined $3) {
-		$3;
-	    } else {
-		die;
-	    }
-	}egx;
-
-	# ( [
-	$p =~ s/($wchar_re)([\(\[]+)/$1\\s*$2/g;
-
-	# ) ]
-	$p =~ s{
-	    (
-	     \(\?<?[=!][^\)]*\)	# look-ahead/behind pattern
-	    )
-	    |
-	    (
-		$wchar_re[\)\]]+[?]?)(?![|]|$
-	    )
-	}{
-	    if (defined $1) {
-		$1;
-	    } else {
-		$2 . "\\s*";
-	    }
-	}egx;
-
-	# remove \s* arround space
-	$p =~ s/(?:\\s\*)?\\? +(?:\\s\*)?/\\s+/g;
-    }
-
-    length($p) ? ($opt_i ? "(?i)$p" : $p) : undef;
-}
-
 sub open_nextfile {
 
     ##
@@ -1015,7 +917,7 @@ sub grep_data {
     my $grepper = new App::Greple::Grep (
 	text         => \$_,
 	filename     => $current_file,
-	pattern      => \@xpattern,
+	pattern      => $pat_holder,
 	reg_union    => \@reg_union,
 	reg_clude    => \@reg_clude,
 	after        => $opt_A,
@@ -1030,8 +932,7 @@ sub grep_data {
 	region_index => $opt_regioncolor,
 	stat         => \%stat,
 	);
-    $grepper->grep_pattern;
-    my @result = $grepper->result;
+    my @result = $grepper->grep->result;
     my $matched = $grepper->matched;
 
     if ($opt_l) {

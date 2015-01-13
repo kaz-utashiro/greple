@@ -15,7 +15,18 @@ use Getopt::RC::Func;
 
 use App::Greple::Common;
 use App::Greple::Regions;
+use App::Greple::Pattern;
 
+use constant {
+    MATCH_NEGATIVE => 0,
+    MATCH_POSITIVE => 1,
+    MATCH_MUST     => 2,
+};
+push @EXPORT, qw(
+    MATCH_NEGATIVE
+    MATCH_POSITIVE
+    MATCH_MUST
+);
 
 use constant {
     POSI_BASE => 0, POSI_POSI => 0, POSI_NEGA => 1, POSI_LIST => 2,
@@ -31,6 +42,14 @@ BEGIN {
     $match_base[MATCH_MUST] = MUST_BASE;
 }
 
+sub category {
+    my $obj = shift;
+    return MATCH_MUST     if $obj->is_required;
+    return MATCH_NEGATIVE if $obj->is_negative;
+    return MATCH_POSITIVE;
+}
+
+
 sub new {
     my $class = shift;
     my $obj = bless { @_ }, $class;
@@ -41,11 +60,11 @@ sub new_func {
     new Getopt::RC::Func @_;
 }
 
-sub grep_pattern {
+sub grep {
     my $self = shift;
 
     local *_ = $self->{text};
-    my @patterns = @{$self->{pattern}};
+    my $pat_holder = $self->{pattern};
     my @blocks;
 
     $self->{RESULT} = [];
@@ -57,25 +76,19 @@ sub grep_pattern {
     ##
     my @result;
     my %required = (yes => 0, no => 0);
-    for my $i (0 .. $#patterns) {
-	my($sw, $regex) = @{$patterns[$i]};
+    my @patlist = $pat_holder->patterns;
+    for my $i (0 .. $#patlist) {
+	my $pat = $patlist[$i];
 	my($func, @args) = do {
-	    if (ref $regex eq 'ARRAY') {
-		new_func(@$regex);
-	    }
-	    elsif (blessed $regex and $regex->can('call')) {
-		$regex;
-	    }
-	    elsif (ref $regex eq 'CODE') {
-		new_func($regex);
-	    }
-	    else {
-		new_func(\&match_regions, pattern => $regex);
+	    if ($pat->is_function) {
+		$pat->function;
+	    } else {
+		new_func(\&match_regions, pattern => $pat->regex);
 	    }
 	};
 	my @p = $func->call(@args, &FILELABEL => $self->{filename});
 	if (@p) {
-	    if ($sw eq MATCH_MUST or $sw eq MATCH_POSITIVE) {
+	    if ($pat->is_positive) {
 		push @blocks, map { [ @$_ ] } @p;
 		$self->{stat}->{match_positive} += @p;
 		$required{yes}++;
@@ -164,16 +177,17 @@ sub grep_pattern {
 						 $textp, $_->[0], $_->[1])]}
 			      @blocks));
     }
-    $self->{BLOCKS} = \@blocks;
+
+    my $bp = $self->{BLOCKS} = \@blocks;
 
     ##
     ## build match table
     ##
-    my @match_table = map { [ 0, 0, [], 0, 0, [], 0, 0, [] ] } @blocks;
+    my @match_table = map { [ 0, 0, [], 0, 0, [], 0, 0, [] ] } @$bp;
     for my $i (0 .. $#result) {
-	my $base = $match_base[$patterns[$i][0]];
+	my $base = $match_base[category($patlist[$i])];
 	my @b = classify_regions({ strict => $self->{strict} },
-				 $result[$i], \@blocks);
+				 $result[$i], $bp);
 	for my $bi (0 .. $#b) {
 	    my $te = $match_table[$bi];
 	    if (@{$b[$bi]}) {
@@ -184,18 +198,19 @@ sub grep_pattern {
 	    }
 	}
     }
-    $self->{MATCH_TABLE} = \@match_table;
 
     show_match_table(\@match_table) if $opt_d{v};
+
+    my $mp = $self->{MATCH_TABLE} = \@match_table;
 
     ##
     ## now it is quite easy to get effective blocks
     ##
     my @effective_index = grep(
-	$match_table[$_][MUST_NEGA] == 0 &&
-	$match_table[$_][POSI_POSI] >= $self->{need} &&
-	$match_table[$_][NEGA_POSI] <= $self->{allow},
-	0 .. $#blocks);
+	$mp->[$_][MUST_NEGA] == 0 &&
+	$mp->[$_][POSI_POSI] >= $self->{need} &&
+	$mp->[$_][NEGA_POSI] <= $self->{allow},
+	0 .. $#{$bp});
 
     ##
     ## --block with -ABC option
@@ -206,7 +221,7 @@ sub grep_pattern {
 	    map($mark{$_} = 1,
 		max($i - $self->{before}, 0)
 		..
-		min($i + $self->{after}, $#blocks));
+		min($i + $self->{after}, $#{$bp}));
 	}
 	@effective_index = sort { $a <=> $b } map { int $_ } keys %mark;
     }
@@ -217,15 +232,15 @@ sub grep_pattern {
     my @list = ();
     for my $bi (@effective_index) {
 	my @matched = merge_regions({nojoin => $self->{only}},
-				    @{$match_table[$bi][MUST_LIST]},
-				    @{$match_table[$bi][POSI_LIST]},
-				    @{$match_table[$bi][NEGA_LIST]}
+				    @{$mp->[$bi][MUST_LIST]},
+				    @{$mp->[$bi][POSI_LIST]},
+				    @{$mp->[$bi][NEGA_LIST]}
 	    );
 	$self->{MATCHED} += @matched;
 	if ($self->{only}) {
 	    push @list, map({ [ $_, $_ ] } @matched);
 	} else {
-	    push @list, [ $blocks[$bi], @matched ];
+	    push @list, [ $bp->[$bi], @matched ];
 	}
     }
 
