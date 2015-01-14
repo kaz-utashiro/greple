@@ -68,20 +68,20 @@ sub lexical_opt {
 	my $flag = $arg->{flag};
 
 	if (s/^\&//) {					# &func(...)
-	    $flag |= FLAG_REGEX | FLAG_FUNCTION,
+	    $flag |= FLAG_FUNCTION;
 	}
 	elsif (s/^-//) {				# -pattern
-	    $flag |= FLAG_REGEX | FLAG_NEGATIVE,
+	    $flag |= FLAG_REGEX | FLAG_NEGATIVE;
 	}
 	elsif (s/^\?//) {				# ?pattern
 	    push @or, $_;
 	    $_ = '';
 	}
 	elsif (s/^\+//) {				# +pattern
-	    $flag |= FLAG_REGEX | FLAG_REQUIRED,
+	    $flag |= FLAG_REGEX | FLAG_REQUIRED;
 	}
 	else {						# else
-	    $flag = FLAG_REGEX,
+	    $flag |= FLAG_REGEX;
 	}
 
 	$obj->append({ flag => $flag }, $_) if $_ ne '';
