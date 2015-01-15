@@ -679,10 +679,18 @@ for my $set (
     }
 }
 
-my @reg_union = (map({ [ REG_IN,  $_ ] } @opt_inside),
-		 map({ [ REG_OUT, $_ ] } @opt_outside));
-my @reg_clude = (map({ [ REG_IN,  $_ ] } @opt_include),
-		 map({ [ REG_OUT, $_ ] } @opt_exclude));
+my $regions = new App::Greple::Regions::Holder;
+for my $set (
+    [ \@opt_inside,  REGION_INSIDE  | REGION_UNION     ],
+    [ \@opt_outside, REGION_OUTSIDE | REGION_UNION     ],
+    [ \@opt_include, REGION_INSIDE  | REGION_INTERSECT ],
+    [ \@opt_exclude, REGION_OUTSIDE | REGION_INTERSECT ])
+{
+    my($opt, $flag) = @$set;
+    for my $spec (@$opt) {
+	append $regions FLAG => $flag, SPEC => $spec;
+    }
+}
 
 ##------------------------------------------------------------
 
@@ -860,8 +868,7 @@ sub grep_data {
 	text         => \$_,
 	filename     => $current_file,
 	pattern      => $pat_holder,
-	reg_union    => \@reg_union,
-	reg_clude    => \@reg_clude,
+	regions      => $regions,
 	after        => $opt_A,
 	before       => $opt_B,
 	paragraph    => $opt_p,

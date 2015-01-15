@@ -51,15 +51,10 @@ sub category {
     return MATCH_POSITIVE;
 }
 
-
 sub new {
     my $class = shift;
     my $obj = bless { @_ }, $class;
     $obj;
-}
-
-sub new_func {
-    new Getopt::RC::Func @_;
 }
 
 sub grep {
@@ -85,7 +80,7 @@ sub grep {
 	    if ($pat->is_function) {
 		$pat->function;
 	    } else {
-		new_func(\&match_regions, pattern => $pat->regex);
+		new Getopt::RC::Func \&match_regions, pattern => $pat->regex;
 	    }
 	};
 	my @p = $func->call(@args, &FILELABEL => $self->{filename});
@@ -114,17 +109,17 @@ sub grep {
     ##
     ## --inside, --outside
     ##
-    my @reg_union = @{$self->{reg_union}};
+    my @reg_union = $self->{regions}->union;
     if (@reg_union) {
 	my @tmp = map { [] } @result;
 	for my $regi (0 .. $#reg_union) {
-	    my($in_out, $arg) = @{$reg_union[$regi]};
-	    my @select = get_regions($self->{filename}, \$_, $arg);
-	    next unless $in_out == REG_OUT or @select;
+	    my $reg = $reg_union[$regi];
+	    my @select = get_regions($self->{filename}, \$_, $reg->spec);
+	    @select or next if $reg->is_inside;
 	    for my $resi (0 .. $#result) {
 		my $r = $result[$resi];
 		my @l = select_regions({ strict => $self->{strict} },
-				       $r, \@select, $in_out);
+				       $r, \@select, $reg->flag);
 		if ($self->{region_index} or @result == 1) {
 		    map { $_->[2] = $regi } @l;
 		}
@@ -137,14 +132,12 @@ sub grep {
     ##
     ## --include, --exclude
     ##
-    my @reg_clude = @{$self->{reg_clude}};
-    for my $region (@reg_clude) {
-	my($in_out, $arg) = @$region;
-	my @select = get_regions($self->{filename}, \$_, $arg);
-	next unless $in_out == REG_IN or @select;
+    for my $reg ($self->{regions}->intersect) {
+	my @select = get_regions($self->{filename}, \$_, $reg->spec);
+	@select or next if not $reg->is_outside;
 	for my $r (@result) {
 	    @$r = select_regions({ strict => $self->{strict} },
-				 $r, \@select, $in_out);
+				 $r, \@select, $reg->flag);
 	}
     }
 

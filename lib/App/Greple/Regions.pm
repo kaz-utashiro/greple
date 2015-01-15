@@ -5,7 +5,8 @@ use warnings;
 use Carp;
 
 use Exporter 'import';
-our @EXPORT      = qw(REG_IN REG_OUT
+our @EXPORT      = qw(REGION_INSIDE REGION_OUTSIDE
+		      REGION_UNION  REGION_INTERSECT
 		      match_regions
 		      classify_regions
 		      select_regions
@@ -16,8 +17,70 @@ our %EXPORT_TAGS = ( );
 our @EXPORT_OK   = qw();
 
 use constant {
-    REG_IN => 1, REG_OUT => 0,
+
+    REGION_AREA_MASK  => 1,
+    REGION_INSIDE     => 1,
+    REGION_OUTSIDE    => 0,
+
+    REGION_SET_MASK   => 2,
+    REGION_UNION      => 2,
+    REGION_INTERSECT  => 0,
 };
+
+sub new {
+    my $class = shift;
+
+    my $obj = bless {
+	FLAG => undef,
+	SPEC => undef,
+    }, $class;
+
+    configure $obj @_ if @_;
+
+    $obj;
+}
+
+sub spec         { shift -> {SPEC} }
+sub flag         { shift -> {FLAG} }
+sub is_union     { shift->flag & REGION_UNION  }
+sub is_intersect { not (shift -> is_union)     }
+sub is_inside    { shift->flag & REGION_INSIDE }
+sub is_outside   { not (shift -> is_inside)    }
+
+{
+    package App::Greple::Regions::Holder;
+
+    sub new {
+	my $class = shift;
+	bless [], $class;
+    }
+
+    sub append {
+	my $obj = shift;
+	push @$obj, App::Greple::Regions->new(@_);
+    }
+
+    sub regions {
+	my $obj = shift;
+	@$obj;
+    }
+
+    sub union {
+	grep { $_->is_union } shift->regions;
+    }
+
+    sub intersect {
+	grep { $_->is_intersect } shift->regions;
+    }
+}
+
+sub configure {
+    my $obj = shift;
+    while (@_ >= 2) {
+	$obj->{$_[0]} = $_[1];
+	splice @_, 0, 2;
+    }
+}
 
 sub match_regions {
     my %arg = @_;
@@ -85,7 +148,7 @@ sub select_regions {
 
     my @list = @{+shift};
     my @by = @{+shift};
-    my $in_out = shift;
+    my $flag = shift;
 
     my(@outside, @inside);
 
@@ -108,13 +171,13 @@ sub select_regions {
 	}
     }
     push @outside, @list;
-    $in_out == REG_IN ? @inside : @outside;
+    ($flag & REGION_INSIDE) ? @inside : @outside;
 }
 
 sub select_regions_strict {
     my @list = @{+shift};
     my @by = @{+shift};
-    my $in_out = shift;
+    my $flag = shift;
 
     my(@outside, @inside);
 
@@ -134,7 +197,7 @@ sub select_regions_strict {
 	}
     }
     push @outside, @list;
-    $in_out == REG_IN ? @inside : @outside;
+    ($flag & REGION_INSIDE) ? @inside : @outside;
 }
 
 sub merge_regions {
