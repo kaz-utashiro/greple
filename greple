@@ -1133,7 +1133,7 @@ If the pattern start with ampersand (`&'), it is treated as a
 function, and the function is called instead of searching pattern.
 Function call interface is same as the one for block/region options.
 
-If you have a definition of I<odd_line> function in you F<.greplrc>,
+If you have a definition of I<odd_line> function in you F<.greplerc>,
 which is described in this manual later, you can print odd number
 lines like this:
 
@@ -1728,7 +1728,7 @@ passphrase is asked for each file.  If you want to input passphrase
 only once to find from multiple files, use B<-Mpgp> module.
 
 If the filter start with C<&>, perl subroutine is called instead of
-external command.  You can define the subroutine in F<.greplrc> or
+external command.  You can define the subroutine in F<.greplerc> or
 modules.  B<Greple> simply call the subroutine, so it should be
 responsible for process control.
 
@@ -1747,7 +1747,7 @@ number for each files.
     greple --of 'cat -n' string file1 file2 ...
 
 If the filter start with C<&>, perl subroutine is called instead of
-external command.  You can define the subroutine in F<.greplrc> or
+external command.  You can define the subroutine in F<.greplerc> or
 modules.
 
 Output filter command is executed only when matched string exists to
