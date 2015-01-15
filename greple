@@ -899,7 +899,7 @@ sub grep_data {
 	    open SAVESTDOUT, '>&', \*STDOUT or die "open: $!";
 	    push_output_filter(\*STDOUT, @opt_of);
 	}
-	display_result($current_file, \@result);
+	display_result($grepper);
 	if (@opt_of) {
 	    close STDOUT;
 	    open STDOUT, '>&', \*SAVESTDOUT or die "open: $!";
@@ -919,8 +919,8 @@ sub grep_data {
 }
 
 sub display_result {
-    my $file = shift;
-    my @result = @{+shift} or return;
+    my $grepper = shift;
+    my $file = $grepper->{filename};
 
     if ($need_filename and $opt_filestyle eq 'once') {
 	print $file, ":\n";
@@ -931,15 +931,10 @@ sub display_result {
 
     my $line = 1;
     my $lastpos = 0;
-    for my $result (@result) {
+    for my $result ($grepper->result) {
 
 	my($block_start, $block_end) = @{shift @$result};
-	my $block = substr($_, $block_start, $block_end - $block_start);
-
-	for (@$result) {
-	    $_->[0] = $_->[0] > $block_start ? $_->[0] - $block_start : 0;
-	    $_->[1] = $_->[1] - $block_start;
-	}
+	my $block = $grepper->cut($block_start, $block_end);
 
 	for my $func (@opt_print) {
 	    for ($block) {
@@ -952,7 +947,7 @@ sub display_result {
 	}
 
 	if ($opt_n) {
-	    my $gap = substr($_, $lastpos, $block_start - $lastpos);
+	    my $gap = $grepper->cut($lastpos, $block_start);
 	    $line += $gap =~ tr/\n/\n/;
 	}
 	$lastpos = $block_end;
@@ -974,7 +969,17 @@ sub display_result {
 	    my($ms, $me, $pi) = @$matched;
 	    next if $ms == $me;
 
+	    $ms = max($ms - $block_start, 0);
+	    $me -= $block_start;
 	    my $s = substr($block, $ms, $me - $ms);
+
+	    if ($opt_join) {
+		if ($opt_n and $opt_linestyle eq 'line') {
+		    $s =~ s/(?<!\A)\n(?!\z)/$mark/g;
+		} else {
+		    $s =~ s/(?<!\A)\n(?!\z)/$opt_joinby/g;
+		}
+	    }
 
 	    # --random
 	    if ($opt_random) {
@@ -985,13 +990,6 @@ sub display_result {
 		$pi = $uniq_color->index($s);
 	    }
 
-	    if ($opt_join) {
-		if ($opt_n and $opt_linestyle eq 'line') {
-		    $s =~ s/(?<!\A)\n(?!\z)/$mark/g;
-		} else {
-		    $s =~ s/(?<!\A)\n(?!\z)/$opt_joinby/g;
-		}
-	    }
 	    substr($block, $ms, $me - $ms,
 		   $need_color ? index_color($s, $pi) : $s);
 	}

@@ -8,6 +8,8 @@ our @EXPORT      = qw(FILELABEL);
 our %EXPORT_TAGS = ();
 our @EXPORT_OK   = qw();
 
+our @ISA = qw(App::Greple::Text);
+
 use Data::Dumper;
 use Scalar::Util qw(blessed);
 
@@ -354,6 +356,30 @@ sub blocknize {
     $end // die;
 
     ($begin, $end);
+}
+
+1;
+
+
+package App::Greple::Text;
+
+sub new {
+    my $class = shift;
+    my $obj = bless {
+	text => \$_[0],
+    }, $class;
+    $obj;
+}
+
+sub text {
+    my $obj = shift;
+    ${ $obj->{text} };
+}
+
+sub cut {
+    my $obj = shift;
+    my($from, $to) = @_;
+    substr ${ $obj->{text} }, $from, $to - $from;
 }
 
 1;
