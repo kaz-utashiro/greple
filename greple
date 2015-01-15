@@ -935,7 +935,6 @@ sub display_result {
 
 	my($block_start, $block_end) = @{shift @$result};
 	my $block = substr($_, $block_start, $block_end - $block_start);
-	my $need_newline = not $block =~ /\n\z/;
 
 	for (@$result) {
 	    $_->[0] = $_->[0] > $block_start ? $_->[0] - $block_start : 0;
@@ -1016,7 +1015,7 @@ sub display_result {
 	}
 
 	print $block;
-	print "\n" if $need_newline;
+	print "\n" if not $block =~ /\n\z/;
 	print _blockend($blockend) if $need_blockend;
     }
 }
