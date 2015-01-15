@@ -42,7 +42,9 @@ sub append {
 	$arg->{flag} &= ~FLAG_OR;
 	@_ = (join '|',
 	      map {
-		  App::Greple::Pattern->new($_, flag => $arg->{flag})->cooked
+		  ## Mask IGNORECASE to eliminate redundant designator.
+		  App::Greple::Pattern->new
+		      ($_, flag => $arg->{flag} | ~FLAG_IGNORECASE)->cooked
 	      } @_);
 	$arg->{flag} |= FLAG_REGEX;
     }
