@@ -289,27 +289,34 @@ sub get_regions {
     }
 }
 
+use constant {
+    PARAM_OPT  => 0,
+    PARAM_TEXT => 1,
+    PARAM_FROM => 2,
+    PARAM_TO   => 3,
+};
+
 sub optimized_blocknize {
-    my %opt = %{$_[0]};
-    my($begin, $end) = (-1, -1);
+    my %opt = %{$_[PARAM_OPT]};
+    my($from, $to) = (-1, -1);
     if ($opt{p} or $opt{A} or $opt{B}) {
 	\&blocknize;
     } else {
 	sub {
-	    if ($begin <= $_[1] and $_[2] < $end) {
+	    if ($from <= $_[PARAM_FROM] and $_[PARAM_TO] < $to) {
 		;
 	    } else {
-		($begin, $end) = &blocknize;
+		($from, $to) = &blocknize;
 	    }
-	    ($begin, $end);
+	    ($from, $to);
 	}
     }
 }
 
 sub blocknize {
-    my %opt = %{+shift};
-    local *_ = shift;		# text
-    my($from, $to) = @_;	# range
+    my %opt = %{$_[PARAM_OPT]};			# option
+    local *_ = $_[PARAM_TEXT];			# text
+    my($from, $to) = @_[PARAM_FROM, PARAM_TO];	# range
     my $matched = substr($_, $from, $to - $from);
 
     my $delim = $opt{p} ? "\n\n" : "\n";
