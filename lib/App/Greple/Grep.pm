@@ -126,7 +126,7 @@ sub grep {
 		push @{$tmp[$resi]}, @l;
 	    }
 	}
-	@result = map { [ merge_regions(@$_) ] } @tmp;
+	@result = map { [ merge_regions {destructive => 1}, @$_ ] } @tmp;
     }
 
     ##
@@ -155,7 +155,7 @@ sub grep {
 	for my $re (@{$self->{block}}) {
 	    push @blocks, get_regions($self->{filename}, \$_, $re);
 	}
-    	@blocks = merge_regions({nojoin => 1}, @blocks);
+    	@blocks = merge_regions {nojoin => 1, destructive => 1}, @blocks;
     }
     ##
     ## build block list from matched range
@@ -166,11 +166,10 @@ sub grep {
 		   B => $self->{before},
 		   p => $self->{paragraph});
 	my $sub_blocknize = optimized_blocknize(\%opt);
-    	@blocks =
-	    merge_regions({nojoin => 1},
-			  map({[$sub_blocknize->(\%opt,
-						 $textp, $_->[0], $_->[1])]}
-			      @blocks));
+    	@blocks = merge_regions(
+	    {nojoin => 1, destructive => 1},
+	    map({[$sub_blocknize->(\%opt, $textp, $_->[0], $_->[1])]}
+		@blocks));
     }
 
     my $bp = $self->{BLOCKS} = \@blocks;
@@ -226,11 +225,11 @@ sub grep {
     ##
     my @list = ();
     for my $bi (@effective_index) {
-	my @matched = merge_regions({nojoin => $self->{only}},
+	my @matched = merge_regions({nojoin => $self->{only},
+				     destructive => 1},
 				    @{$mp->[$bi][MUST_LIST]},
 				    @{$mp->[$bi][POSI_LIST]},
-				    @{$mp->[$bi][NEGA_LIST]}
-	    );
+				    @{$mp->[$bi][NEGA_LIST]});
 	$self->{MATCHED} += @matched;
 	if ($self->{only}) {
 	    push @list, map({ [ $_, $_ ] } @matched);
