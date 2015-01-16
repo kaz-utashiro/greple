@@ -29,6 +29,7 @@ use warnings;
 use Carp;
 use App::Greple::Common;
 use App::Greple::Regions;
+use Data::Dumper;
 
 use Exporter 'import';
 our @EXPORT      = qw(part pod comment doc code);
@@ -41,18 +42,25 @@ my %part;
 
 my $pod_re = qr{^=\w+(?s:.*?)(?:\z|^=cut[ \t]*\n)}m;
 my $comment_re = qr{^(?:[ \t]*#.*\n)+}m;
+my $empty_re = qr{^(?:[ \t]*\n)+}m;
 
 sub setup {
     return $target if $target == \$_;
     my @pod     = match_regions(pattern => $pod_re);
     my @comment = match_regions(pattern => $comment_re);
+    my @empty   = match_regions(pattern => $empty_re);
     my @doc     = merge_regions(@pod, @comment);
-    my @code    = reverse_regions(\@doc, length);
+    my @noncode = merge_regions(@doc, @empty);
+    my @code    = reverse_regions(\@noncode, length);
+    my @nondoc  = reverse_regions(\@doc, length);
     %part = (
 	pod     => \@pod,
 	comment => \@comment,
 	doc     => \@doc,
 	code    => \@code,
+	nondoc  => \@nondoc,
+	noncode => \@noncode,
+	empty   => \@empty,
 	);
     $target = \$_;
 }
@@ -68,10 +76,10 @@ sub part {
     };
 }
 
-sub pod     { setup and @{$part{pod}} }
+sub pod     { setup and @{$part{pod}}     }
 sub comment { setup and @{$part{comment}} }
-sub doc     { setup and @{$part{doc}} }
-sub code    { setup and @{$part{code}} }
+sub doc     { setup and @{$part{doc}}     }
+sub code    { setup and @{$part{code}}    }
 
 1;
 
@@ -91,8 +99,10 @@ option --code    --outside :doc:
 #option --comment --inside  '&comment'
 #option --code    --outside '&doc'
 
-option	--colordump \
+option	--cd \
 	--le '&part(code)'    --cm=R \
 	--le '&part(comment)' --cm=G \
 	--le '&part(pod)'     --cm=B \
-	--need 1 --all
+	--need 1
+
+option	--colordump --cd --all
