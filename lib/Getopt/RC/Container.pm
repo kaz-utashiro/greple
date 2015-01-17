@@ -24,6 +24,13 @@ sub new {
 	Help => [],
     }, $class;
 
+    configure $obj @_ if @_;
+
+    $obj;
+}
+
+sub configure {
+    my $obj = shift;
     my %opt = @_;
 
     if (my $base = $opt{BASECLASS}) {
@@ -38,14 +45,10 @@ sub new {
 	}
     }
     elsif (my $module = $opt{MODULE}) {
+	my $pkg = $opt{PACKAGE} || 'main';
 	$module = join '::', $obj->{Base}, $module if $obj->{Base};
 	$obj->module($module);
-	if (-f $module) {
-	    require $module;
-	} else {
-	    my $pkg = $opt{PACKAGE} || 'main';
-	    eval "package $pkg; use $module";
-	}
+	eval "package $pkg; use $module";
 	croak "$module: $@" if $@;
 	local *data = "${module}::DATA";
 	if (not eof *data) {

@@ -14,12 +14,31 @@ use Getopt::RC::Container;
 
 sub new {
     my $class = shift;
-    my %opt = @_;
 
     my $obj = bless {
 	RC => [],
-	BASECLASS => $opt{BASECLASS},
+	BASECLASS => undef,
     }, $class;
+
+    configure $obj @_ if @_;
+
+    $obj;
+}
+
+sub configure {
+    my $obj = shift;
+    my %opt = @_;
+
+    if (my $base = $opt{BASECLASS}) {
+	$obj->baseclass($base);
+    }
+
+    if (my $rc = $opt{RC}) {
+	my @rc = ref $rc eq 'ARRAY' ? @$rc : $rc;
+	for (@rc) {
+	    $obj->load(FILE => $_);
+	}
+    }
 
     $obj;
 }
