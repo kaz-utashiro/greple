@@ -43,9 +43,9 @@ BEGIN {
     }
 }
 
-use Getopt::RC::Loader;
-use Getopt::RC::Func qw(parse_func);
-use Getopt::RC::LabeledParam;
+use Getopt::EX::Loader;
+use Getopt::EX::Func qw(parse_func);
+use Getopt::EX::LabeledParam;
 
 use App::Greple::Common;
 use App::Greple::Util;
@@ -142,7 +142,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
 
 =cut
 
-my $rcloader = new Getopt::RC::Loader
+my $rcloader = new Getopt::EX::Loader
     (BASECLASS => 'App::Greple');
 
 my @opt_e;
@@ -549,7 +549,7 @@ my %colormap = (
 
 my @colors;
 
-my $cmap = new Getopt::RC::LabeledParam
+my $cmap = new Getopt::EX::LabeledParam
     newlabel => 0,
     HASH => \%colormap,
     LIST => \@colors,

@@ -1,4 +1,4 @@
-package Getopt::RC::Loader;
+package Getopt::EX::Loader;
 
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ our %EXPORT_TAGS = ( );
 our @EXPORT_OK   = qw();
 
 use Data::Dumper;
-use Getopt::RC::Container;
+use Getopt::EX::Container;
 
 sub new {
     my $class = shift;
@@ -61,7 +61,7 @@ sub append {
 
 sub load {
     my $obj = shift;
-    my $rc = Getopt::RC::Container->new(@_, BASECLASS => $obj->baseclass);
+    my $rc = Getopt::EX::Container->new(@_, BASECLASS => $obj->baseclass);
     push @{$obj->{RC}}, $rc;
     $obj;
 }

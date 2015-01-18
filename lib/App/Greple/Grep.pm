@@ -13,7 +13,7 @@ our @ISA = qw(App::Greple::Text);
 use Data::Dumper;
 use Scalar::Util qw(blessed);
 
-use Getopt::RC::Func;
+use Getopt::EX::Func;
 
 use App::Greple::Common;
 use App::Greple::Regions;
@@ -80,7 +80,7 @@ sub grep {
 	    if ($pat->is_function) {
 		$pat->function;
 	    } else {
-		new Getopt::RC::Func \&match_regions, pattern => $pat->regex;
+		new Getopt::EX::Func \&match_regions, pattern => $pat->regex;
 	    }
 	};
 	my @p = $func->call(@args, &FILELABEL => $self->{filename});

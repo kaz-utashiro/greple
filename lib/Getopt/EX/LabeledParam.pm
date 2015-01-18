@@ -1,4 +1,4 @@
-package Getopt::RC::LabeledParam;
+package Getopt::EX::LabeledParam;
 
 use strict;
 use warnings;
@@ -10,8 +10,8 @@ our @EXPORT_OK   = qw();
 our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
 use Data::Dumper;
-use Getopt::RC::Container;
-use Getopt::RC::Func qw(parse_func);
+use Getopt::EX::Container;
+use Getopt::EX::Func qw(parse_func);
 
 sub new {
     my $class = shift;

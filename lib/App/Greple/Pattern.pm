@@ -9,7 +9,7 @@ our @EXPORT      = ();
 our %EXPORT_TAGS = ();
 our @EXPORT_OK   = qw();
 
-use Getopt::RC::Func qw(parse_func);
+use Getopt::EX::Func qw(parse_func);
 
 ##
 ## Flags
