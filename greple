@@ -22,7 +22,6 @@ require 5.010;
 
 use File::stat;
 use IO::Handle;
-use Getopt::Long qw(GetOptionsFromArray GetOptionsFromString);
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
 use List::Util qw(min max first sum);
@@ -346,14 +345,18 @@ map { $_ = decode 'utf8', $_ unless utf8::is_utf8($_) } @ARGV;
 $rcloader->deal_with(\@ARGV);
 push @opt_begin, $rcloader->call;
 
+push @optargs, $rcloader->builtin;
+
 ## ENV
 $ENV{'GREPLEOPTS'} and unshift @ARGV, shellwords($ENV{'GREPLEOPTS'});
 
 
 ## GetOptions
+require Getopt::Long;
 my @SAVEDARGV = @ARGV;
-Getopt::Long::Configure qw(bundling no_getopt_compat);
-GetOptions(@optargs, $rcloader->builtin) || pod2usage;
+my $parser = new Getopt::Long::Parser
+    config => [ qw(bundling no_getopt_compat) ] ;
+$parser->getoptions(@optargs) || pod2usage;
 
 our %opt_d;
 @opt_d = split(//, join('', @opt_d));
