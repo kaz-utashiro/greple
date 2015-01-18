@@ -768,7 +768,12 @@ exit($stat{match_effective} == 0);
 sub grep_files {
     while (defined($current_file = open_nextfile())) {
 
-	my $content = do { local $/; <STDIN> };
+	my $content = eval { local $/; <STDIN> };
+	if (not defined $content) {
+	    warn $@ if $@;
+	    warn "SKIP $current_file\n";
+	    next;
+	}
 
 	warn $current_file, ":\n" if $opt_d{f};
 	defined $content or next;
