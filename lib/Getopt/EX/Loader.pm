@@ -18,6 +18,7 @@ sub new {
     my $obj = bless {
 	RC => [],
 	BASECLASS => undef,
+	MODULE_OPT => '-M',
     }, $class;
 
     configure $obj @_ if @_;
@@ -29,16 +30,20 @@ sub configure {
     my $obj = shift;
     my %opt = @_;
 
-    if (my $base = $opt{BASECLASS}) {
-	$obj->baseclass($base);
+    for my $opt (qw(BASECLASS MODULE_OPT)) {
+	if (my $value = delete $opt{$opt}) {
+	    $obj->{$opt} = $value;
+	}
     }
 
-    if (my $rc = $opt{RC}) {
+    if (my $rc = delete $opt{RCFILE}) {
 	my @rc = ref $rc eq 'ARRAY' ? @$rc : $rc;
 	for (@rc) {
 	    $obj->load(FILE => $_);
 	}
     }
+
+    warn "Unknown option: ", Dumper \%opt if %opt;
 
     $obj;
 }
@@ -88,15 +93,20 @@ sub deal_with {
     $obj->modopt($argv, @_);
     unshift @$argv, $obj->default;
     $obj->expand($argv, @_);
+
+    $obj;
 }
 
 sub modopt {
     my $obj = shift;
     my $argv = shift;
 
+    my $start = $obj->{MODULE_OPT} // return ();
+    $start eq '' and return ();
+    my $start_re = qr/\Q$start\E/;
     my @modules;
     while (@$argv) {
-	if ($argv->[0] =~ /^-M(?<module>.+)/) {
+	if ($argv->[0] =~ /^$start_re(?<module>.+)/) {
 	    shift @$argv;
 	    push @modules, $obj->parseopt($+{module}, $argv);
 	    next;
