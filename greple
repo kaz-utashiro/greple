@@ -800,11 +800,7 @@ sub usage {
     my $quote = qr/[\\(){}\|\*?]/;
     for my $rcdata ($rcloader->rc) {
 	my $title = $rcdata->title;
-	if ($title eq "main") {
-	    print "    User defined options:\n";
-	} else {
-	    print "    Module $title options:\n";
-	}
+	print "    $title options:\n";
 	for my $name ($rcdata->options) {
 	    my $help = $opt_usage ? "" : $rcdata->help($name) // "";
 	    next if $help eq 'ignore';

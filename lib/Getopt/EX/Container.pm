@@ -38,7 +38,7 @@ sub configure {
     }
 
     if (my $file = $opt{FILE}) {
-	$obj->module('main');
+	$obj->module($file);
 	if (open(RC, "<:encoding(utf8)", $file)) {
 	    $obj->readrc(*RC);
 	    close RC;
@@ -89,7 +89,7 @@ sub module {
 sub title {
     my $obj = shift;
     my $mod = $obj->module;
-    $mod =~ /.*:(.+)/ ? $1 : $mod;
+    $mod =~ m{ .* [:/] (.+) }x ? $1 : $mod;
 }
 
 sub define {
@@ -176,50 +176,52 @@ sub parsetext {
 sub parseline {
     my $obj = shift;
     my $line = shift;
-    my($arg0, $arg1, $rest) = split(' ', $line, 3);
+    my @arg = split ' ', $line, 3;
 
-    my @commands = qw(define option builtin defopt);
-    return if not grep { $arg0 eq $_ } @commands;
-
-    my $optname = $arg1;
-    if ($arg0 eq "builtin") {
-	$optname =~ s/^(\w+).*/length($1) == 1 ? '-' : '--' . $1/e;
+    if (@arg < 3) {
+	warn sprintf("Parse error in %s: %s\n", $obj->title, $line);
+	return;
     }
 
     ##
     ## in-line help document after //
     ##
-    if ($rest and $rest =~ s{ (?:^|\s+) // \s+ (?<message>.*) }{}x) {
+    my $optname = $arg[1] // '';
+    if ($arg[0] eq "builtin") {
+	$optname =~ s/^(\w+).*/length($1) == 1 ? '-' : '--' . $1/e;
+    }
+    if ($arg[2] and $arg[2] =~ s{ (?:^|\s+) // \s+ (?<message>.*) }{}x) {
 	$obj->help($optname, $+{message});
     }
 
-    if ($arg0 eq "define") {
-	$obj->define($arg1, $rest);
+    if ($arg[0] eq "define") {
+	$obj->define($arg[1], $arg[2]);
     }
-    elsif ($arg0 eq "option") {
-	$obj->setopt($arg1, $rest);
+    elsif ($arg[0] eq "option") {
+	$obj->setopt($arg[1], $arg[2]);
     }
-    elsif ($arg0 eq "defopt") {
-	$obj->define($arg1, $rest);
-	$obj->setopt($arg1, $arg1);
+    elsif ($arg[0] eq "defopt") {
+	$obj->define($arg[1], $arg[2]);
+	$obj->setopt($arg[1], $arg[1]);
     }
-    elsif ($arg0 eq "builtin") {
+    elsif ($arg[0] eq "builtin") {
 	$obj->setopt($optname, BUILTIN);
-	if ($rest =~ /^\\?(?<mark>[\$\@\%])(?<name>[\w:]+)/) {
+	if ($arg[2] =~ /^\\?(?<mark>[\$\@\%])(?<name>[\w:]+)/) {
 	    my($mark, $name) = @+{"mark", "name"};
 	    my $mod = $obj->module;
 	    /:/ or s/^/${mod}::/ for $name;
 	    no strict 'refs';
-	    $obj->builtin($arg1 => {'$' => \${$name},
-				    '@' => \@{$name},
-				    '%' => \%{$name}}->{$mark});
+	    $obj->builtin($arg[1] => {'$' => \${$name},
+				      '@' => \@{$name},
+				      '%' => \%{$name}}->{$mark});
 	}
     }
-    elsif ($arg0 eq "help") {
-	$obj->help($arg1, $rest);
+    elsif ($arg[0] eq "help") {
+	$obj->help($arg[1], $arg[2]);
     }
     else {
-	warn "$arg0: Unknown operator in rc file.\n";
+	warn sprintf("Unknown operator \"%s\" in %s\n",
+		     $arg[0], $obj->title);
     }
 
     $obj;
