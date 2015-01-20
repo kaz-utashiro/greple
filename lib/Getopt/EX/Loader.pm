@@ -68,7 +68,7 @@ sub load {
     my $obj = shift;
     my $rc = Getopt::EX::Container->new(@_, BASECLASS => $obj->baseclass);
     push @{$obj->{RC}}, $rc;
-    $obj;
+    $rc;
 }
 
 sub default {
@@ -108,7 +108,9 @@ sub modopt {
     while (@$argv) {
 	if ($argv->[0] =~ /^$start_re(?<module>.+)/) {
 	    shift @$argv;
-	    push @modules, $obj->parseopt($+{module}, $argv);
+	    if (my $mod = $obj->parseopt($+{module}, $argv)) {
+		push @modules, $mod;
+	    }
 	    next;
 	}
 	last;
@@ -138,24 +140,18 @@ sub parseopt {
 	$call = $+{call};
     }
 
-    my $rc = $obj->load(MODULE => $mod);
-
-    my $module = "${base}::${mod}";
+    my $rc = eval { $obj->load(MODULE => $mod) } or die $@;
 
     if ($call) {
-	$rc->call("${module}::${call}");
+	$rc->call(join '::', $rc->module, $call);
     }
 
     ##
     ## If &getopt is defined in module, call it and replace @ARGV.
     ##
-    my $getopt = "${module}::getopt";
-    if (defined &$getopt) {
-	no strict 'refs';
-	@$argref = &$getopt($rc, @$argref);
-    }
+    $rc->run_getopt;
 
-    $rc;
+    $obj;
 }
 
 sub expand {

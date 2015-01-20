@@ -241,4 +241,19 @@ sub call {
 	: @$list;
 }
 
+sub run_getopt {
+    my $obj = shift;
+    my $argv = shift;
+    my $module = $obj->module;
+
+    ##
+    ## If &getopt is defined in module, call it and replace @ARGV.
+    ##
+    my $getopt = "${module}::getopt";
+    if (defined &$getopt) {
+	no strict 'refs';
+	@$argv = &$getopt($obj, @$argv);
+    }
+}
+
 1;
