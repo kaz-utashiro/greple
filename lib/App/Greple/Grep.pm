@@ -67,7 +67,7 @@ sub grep {
     $self->{RESULT} = [];
     $self->{BLOCKS} = [];
     $self->{MATCHED} = 0;
-    
+
     ##
     ## build match result list
     ##

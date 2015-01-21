@@ -60,7 +60,7 @@ sub lexical_opt {
     my $obj = shift;
     my $arg = shift;
     my $opt = shift;
-    
+
     my @or;
 
     for (split /(?<!\\) +/, $opt) {

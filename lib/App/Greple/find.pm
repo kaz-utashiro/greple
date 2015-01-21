@@ -33,13 +33,16 @@ package App::Greple::find;
 use strict;
 use warnings;
 use Carp;
+use Data::Dumper;
 
-sub getopt {
+sub initialize {
     my $rc = shift;
+    my $argv = shift;
+
     my @find;
-    while (@_) {
-	last if $_[0] =~ /^--(man|show)$/;
-	my $arg = shift;
+    while (@$argv) {
+	last if $argv->[0] =~ /^--(man|show)$/;
+	my $arg = shift @$argv;
 	last if $arg eq '--';
 	push @find, $arg;
     }
@@ -52,7 +55,6 @@ sub getopt {
 	    exit;
 	}
     }
-    @_;
 }
 
 1;

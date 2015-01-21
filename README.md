@@ -184,7 +184,7 @@ or `(?<c>\w)\g{c}`.
     function, and the function is called instead of searching pattern.
     Function call interface is same as the one for block/region options.
 
-    If you have a definition of _odd\_line_ function in you `.greplrc`,
+    If you have a definition of _odd\_line_ function in you `.greplerc`,
     which is described in this manual later, you can print odd number
     lines like this:
 
@@ -728,7 +728,7 @@ or `(?<c>\w)\g{c}`.
     only once to find from multiple files, use **-Mpgp** module.
 
     If the filter start with `&`, perl subroutine is called instead of
-    external command.  You can define the subroutine in `.greplrc` or
+    external command.  You can define the subroutine in `.greplerc` or
     modules.  **Greple** simply call the subroutine, so it should be
     responsible for process control.
 
@@ -747,7 +747,7 @@ or `(?<c>\w)\g{c}`.
         greple --of 'cat -n' string file1 file2 ...
 
     If the filter start with `&`, perl subroutine is called instead of
-    external command.  You can define the subroutine in `.greplrc` or
+    external command.  You can define the subroutine in `.greplerc` or
     modules.
 
     Output filter command is executed only when matched string exists to
@@ -801,21 +801,24 @@ or `(?<c>\w)\g{c}`.
     function called.  So please be sure that all data being consistent.
 
 - **--begin**=_function_(_..._), **--begin**=_function_=_..._
-- **-M**_module_::_function(...)_, **-M**_module_::_function=..._
 
     Option **--begin** specify the function executed at the beginning of
     each file processing.  This _function_ have to be called from **main**
     package.  So if you define the function in the module package, use the
     full package name or export properly.
 
-    It can be set with module option, following module name.  In this
-    form, the function will be called with module package name.  So you
-    don't have to export it.
-
 - **--end**=_function_(_..._), **--end**=_function_=_..._
 
     Option **--end** is almost same as **--begin**, except that the function
     is called after the file processing.
+
+- **-M**_module_::_function(...)_, **-M**_module_::_function=..._
+
+    Function can be given with module option, following module name.  In
+    this form, the function will be called with module package name.  So
+    you don't have to export it.  Because it is called only once at the
+    beginning of command execution, before starting file processing,
+    `FILELABEL` parameter is not given exceptionally.
 
 For these run-time functions, optional argument list can be set in the
 form of `key` or `key=value`, connected by comma.  These arguments
@@ -826,12 +829,19 @@ of `FILELABEL` constant.  As a result, the option in the next form:
     --begin function(key1,key=val2)
     --begin function=key1,key=val2
 
-    -Mmodule::function(key1,key=val2)
-    -Mmodule::function=key1,key=val2
-
 will be transformed into following function call:
 
     function(&FILELABEL => "filename", key1 => 1, key2 => "val2")
+
+As described earlier, `FILELABEL` parameter is not given to the
+function specified with module option. So
+
+    -Mmodule::function(key1,key=val2)
+    -Mmodule::function=key1,key=val2
+
+simply becomes:
+
+    function(key1 => 1, key2 => "val2")
 
 The function can be defined in `.greplerc` or modules.  Assign the
 arguments into hash, then you can access argument list as member of
@@ -842,7 +852,7 @@ interpreted as a bare word.
 
     sub function {
         my %arg = @_;
-        my $filename = delete $arg{&FILELABEL} or die;
+        my $filename = delete $arg{&FILELABEL};
         $arg{key1};             # 1
         $arg{key2};             # "val2"
         $_;                     # contents
@@ -1049,10 +1059,10 @@ You can use the module like this:
 
     greple -Mperl --colorful --code --comment --pod default greple
 
-If special subroutine **getopt()** is defined in the module, it is
-called at the beginning with `@ARGV` contents.  Actual `@ARGV` is
-replaced by the result of **getopt()**.  See **find** module as a
-sample.
+If special subroutine **initialize()** is defined in the module, it is
+called at the beginning with `Getopt::EX::Container` object as a
+first argument.  Second argument is the reference to `@ARGV`, and you
+can modify actual `@ARGV` using it.  See **find** module as a sample.
 
 # HISTORY
 
