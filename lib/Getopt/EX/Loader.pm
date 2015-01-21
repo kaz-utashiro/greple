@@ -11,14 +11,16 @@ our @EXPORT_OK   = qw();
 
 use Data::Dumper;
 use Getopt::EX::Container;
+use Getopt::EX::Func qw(parse_func);
 
 sub new {
     my $class = shift;
 
     my $obj = bless {
-	RC => [],
+	BUCKETS => [],
 	BASECLASS => undef,
 	MODULE_OPT => '-M',
+	DEFAULT => 'default',
     }, $class;
 
     configure $obj @_ if @_;
@@ -30,7 +32,7 @@ sub configure {
     my $obj = shift;
     my %opt = @_;
 
-    for my $opt (qw(BASECLASS MODULE_OPT)) {
+    for my $opt (qw(BASECLASS MODULE_OPT DEFAULT)) {
 	if (my $value = delete $opt{$opt}) {
 	    $obj->{$opt} = $value;
 	}
@@ -54,44 +56,51 @@ sub baseclass {
 	: $obj->{BASECLASS};
 }
 
-sub rc {
+sub buckets {
     my $obj = shift;
-    @{ $obj->{RC} };
+    @{ $obj->{BUCKETS} };
 }
 
 sub append {
     my $obj = shift;
-    push @{ $obj->{RC} }, @_;
+    push @{ $obj->{BUCKETS} }, @_;
 }
 
 sub load {
     my $obj = shift;
-    my $rc = Getopt::EX::Container->new(@_, BASECLASS => $obj->baseclass);
-    push @{$obj->{RC}}, $rc;
-    $rc;
+    my $bucket = new Getopt::EX::Container @_, BASECLASS => $obj->baseclass;
+    $obj->append($bucket);
+    $bucket;
 }
 
-sub default {
+sub defaults {
     my $obj = shift;
-    map { $_->default } $obj->rc;
+    map { $_->default } $obj->buckets;
 }
 
-sub call {
+sub calls {
     my $obj = shift;
-    map { $_->call } $obj->rc;
+    map { $_->call } $obj->buckets;
 }
 
-sub builtin {
+sub builtins {
     my $obj = shift;
-    map { $_->builtin } $obj->rc;
+    map { $_->builtin } $obj->buckets;
 }
 
 sub deal_with {
     my $obj = shift;
     my $argv = shift;
 
+    if (my $default = $obj->{DEFAULT}) {
+	if (my $bucket = eval { $obj->load(MODULE => $default) }) {
+	    $bucket->run_inits($argv);
+	} else {
+	    die $@ unless $! =~ /^No such file or directory/;
+	}
+    }
     $obj->modopt($argv, @_);
-    unshift @$argv, $obj->default;
+    unshift @$argv, $obj->defaults;
     $obj->expand($argv, @_);
 
     $obj;
@@ -140,16 +149,16 @@ sub parseopt {
 	$call = $+{call};
     }
 
-    my $rc = eval { $obj->load(MODULE => $mod) } or die $@;
+    my $bucket = eval { $obj->load(MODULE => $mod) } or die $@;
 
     if ($call) {
-	$rc->call(join '::', $rc->module, $call);
+	$bucket->call(join '::', $bucket->module, $call);
     }
 
     ##
     ## If &getopt is defined in module, call it and replace @ARGV.
     ##
-    $rc->run_getopt;
+    $bucket->run_inits($argref);
 
     $obj;
 }
@@ -165,8 +174,8 @@ sub expand {
     for (my $i = 0; $i < @$argv; $i++) {
 	last if $argv->[$i] eq '--';
 	my($opt, $value) = split /=/, $argv->[$i], 2;
-	for my $rcdata ($obj->rc) {
-	    if (my @s = $rcdata->getopt($opt)) {
+	for my $bucket ($obj->buckets) {
+	    if (my @s = $bucket->getopt($opt)) {
 		my @module = $obj->modopt(\@s);
 		splice @$argv, $i, 1, ($opt, $value) if defined $value;
 		##
@@ -176,8 +185,8 @@ sub expand {
 		s/\$<(\d+)>/$rest[$1]/ge foreach @s;
 		shift @rest;
 		s/\$<shift>/shift @rest/ge foreach @s;
-		
-		my @default = map { $_->default } @module;
+
+		my @default = map { $_->defaults } @module;
 		push @$argv, @default, @s, @rest;
 		redo ARGV;
 	    }

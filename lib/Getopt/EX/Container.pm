@@ -9,8 +9,11 @@ our @EXPORT      = qw();
 our %EXPORT_TAGS = ( );
 our @EXPORT_OK   = qw();
 
+use Data::Dumper;
 use Text::ParseWords qw(shellwords);
 use List::Util qw(first);
+
+use Getopt::EX::Func qw(parse_func);
 
 sub new {
     my $class = shift;
@@ -33,18 +36,18 @@ sub configure {
     my $obj = shift;
     my %opt = @_;
 
-    if (my $base = $opt{BASECLASS}) {
+    if (my $base = delete $opt{BASECLASS}) {
 	$obj->{Base} = $base;
     }
 
-    if (my $file = $opt{FILE}) {
+    if (my $file = delete $opt{FILE}) {
 	$obj->module($file);
 	if (open(RC, "<:encoding(utf8)", $file)) {
 	    $obj->readrc(*RC);
 	    close RC;
 	}
     }
-    elsif (my $module = $opt{MODULE}) {
+    elsif (my $module = delete $opt{MODULE}) {
 	my $pkg = $opt{PACKAGE} || 'main';
 	$module = join '::', $obj->{Base}, $module if $obj->{Base};
 	$obj->module($module);
@@ -56,9 +59,11 @@ sub configure {
 	}
     }
 
-    if (my $builtin = $opt{BUILTIN}) {
+    if (my $builtin = delete $opt{BUILTIN}) {
 	$obj->builtin(@$builtin);
     }
+
+    warn "Unprocessed option: ", Dumper \%opt if %opt;
 
     $obj;
 }
@@ -121,7 +126,13 @@ sub setopt {
     my $obj = shift;
     my $name = shift;
     my $list = $obj->{Option};
-    my @args = shellwords(shift);
+    my @args = do {
+	if (ref $_[0] eq 'ARRAY') {
+	    @{ $_[0] };
+	} else {
+	    map { shellwords $_ } @_;
+	}
+    };
     for (@args) {
 	$obj->expand(\$_);
     }
@@ -241,18 +252,26 @@ sub call {
 	: @$list;
 }
 
-sub run_getopt {
+sub run_inits {
     my $obj = shift;
     my $argv = shift;
     my $module = $obj->module;
 
     ##
-    ## If &getopt is defined in module, call it and replace @ARGV.
+    ## Call &initialize if defined.
     ##
-    my $getopt = "${module}::getopt";
-    if (defined &$getopt) {
+    my $init = "${module}::initialize";
+    if (defined &$init) {
 	no strict 'refs';
-	@$argv = &$getopt($obj, @$argv);
+	&$init($obj, $argv);
+    }
+
+    ##
+    ## Call function specified with module.
+    ##
+    for my $call ($obj->call) {
+	my $func = $call->can('call') ? $call : parse_func($call);
+	$func->call;
     }
 }
 
