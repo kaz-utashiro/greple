@@ -546,8 +546,8 @@ my %colormap = (
 
 my @colors;
 
-require App::Greple::Colorize;
-my $color_handler = new App::Greple::Colorize
+require Getopt::EX::Colormap;
+my $color_handler = new Getopt::EX::Colormap
     HASH => \%colormap,
     LIST => \@colors,
     ;

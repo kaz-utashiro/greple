@@ -1,11 +1,11 @@
 =head1 NAME
 
-App::Greple::Colorize
+Getopt::EX::Colormap;
 
 
 =head1 SYNOPSIS
 
-use App::Greple::Colorize qw(colorize);
+use Getopt::EX::Colormap qw(colorize);
 
 $text = colorize(SPEC, TEXT);
 
@@ -68,7 +68,7 @@ grey levels.
 
 =cut
 
-package App::Greple::Colorize;
+package Getopt::EX::Colormap;
 
 use strict;
 use warnings;
