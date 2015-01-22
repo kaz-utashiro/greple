@@ -45,7 +45,6 @@ BEGIN {
 
 use Getopt::EX::Loader;
 use Getopt::EX::Func qw(parse_func);
-use Getopt::EX::LabeledParam;
 
 use App::Greple::Common;
 use App::Greple::Util;
@@ -53,7 +52,6 @@ use App::Greple::Grep;
 use App::Greple::Regions;
 use App::Greple::Pattern;
 use App::Greple::Pattern::Holder;
-use App::Greple::Colorize qw(colorize);
 use App::Greple::Filter;
 
 
@@ -548,13 +546,12 @@ my %colormap = (
 
 my @colors;
 
-my $cmap = new Getopt::EX::LabeledParam
-    newlabel => 0,
+require App::Greple::Colorize;
+my $color_handler = new App::Greple::Colorize
     HASH => \%colormap,
     LIST => \@colors,
     ;
-
-$cmap->append(@opt_colormap);
+$color_handler->load_option(@opt_colormap);
 
 my @default_color =
     $opt_256
@@ -568,8 +565,9 @@ my @default_color =
 	 DK/333)
     : qw(RD GD BD CD MD YD);
 
-if (@colors == 0) {
-    @colors = $opt_colorful ? @default_color : $default_color[0];
+if ($color_handler->list == 0) {
+    $color_handler->append
+	($opt_colorful ? @default_color : $default_color[0]);
 }
 
 if (@opt_face) {
@@ -596,40 +594,17 @@ if ($opt_d{c}) {
     warn 'colors = ', $dump->(\@colors);
 }
 
-sub index_color {
-    my $text = shift;
-    my $index = @_ ? shift : 0;
-    if ($need_color and @colors) {
-	$text = color($colors[$index % @colors], $text, $index);
-    }
-    $text;
-}
+sub _file     { $color_handler->color('FILE'    , @_) }
+sub _line     { $color_handler->color('LINE'    , @_) }
+sub _delim    { $color_handler->color('DELIM'   , @_) }
+sub _blockend { $color_handler->color('BLOCKEND', @_) }
 
-sub _file     { unshift @_, 'FILE'     ; goto &color }
-sub _line     { unshift @_, 'LINE'     ; goto &color }
-sub _delim    { unshift @_, 'DELIM'    ; goto &color }
-sub _blockend { unshift @_, 'BLOCKEND' ; goto &color }
+sub index_color {
+    $color_handler->index_color(@_);
+}
 
 sub color {
-    goto &_color if ref $_[0] ne 'ARRAY';
-    my @speclist = @{+shift};
-    local $_ = shift;
-    for my $color (@speclist) {
-	$_ = _color($color, $_);
-    }
-    $_;
-}
-
-sub _color {
-    my $color = shift;
-    local $_ = shift;
-
-    my $c = exists $colormap{$color} ? $colormap{$color} : $color;
-
-    return $c->call if blessed $c and ref $c->can('call');
-    return $_ unless $need_color and $c;
-
-    colorize($c, $_);
+    $color_handler->color(@_);
 }
 
 my $uniq_color = new UniqIndex

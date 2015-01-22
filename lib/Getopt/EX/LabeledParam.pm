@@ -68,7 +68,7 @@ sub append {
 	my $spec = pop @$_;
 	my @spec;
 	while ($spec =~ s/\&(\w+ (?: \( [^)]* \) )? ) ;?//x) { # &func
-	    push @spec, parse_func($1);
+	    push @spec, parse_func({ PACKAGE => 'main' }, $1);
 	}
 	if ($spec =~ s/\b(sub\s*{.*)//) { # sub { ... }
 	    push @spec, parse_func($1);
