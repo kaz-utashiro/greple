@@ -313,8 +313,8 @@ sub load_option {
 
 sub index_color {
     my $obj = shift;
+    my $index = shift;
     my $text = shift;
-    my $index = @_ ? shift : 0;
 
     my $list = $obj->{LIST};
     if (@$list) {

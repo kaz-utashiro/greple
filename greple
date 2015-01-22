@@ -141,7 +141,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
 =cut
 
 my $rcloader = new Getopt::EX::Loader
-    (BASECLASS => 'App::Greple');
+    BASECLASS => 'App::Greple';
 
 my @opt_e;
 my @opt_v;
@@ -613,7 +613,7 @@ my $uniq_color = new UniqIndex
 sub dump_uniqcolor {
     my $list = $uniq_color->list;
     for my $i (0 .. $#{ $list }) {
-	warn sprintf "%d %s\n", $i, index_color($list->[$i], $i);
+	warn sprintf "%d %s\n", $i, index_color($i, $list->[$i]);
     }
 }
 
@@ -684,7 +684,7 @@ if ($opt_d{m}) {
 	my $target = $pat->cooked;
 	warn sprintf("  %s %s\n",
 		     $type,
-		     @colors > 1 ? index_color($target, $i++) : $target);
+		     @colors > 1 ? index_color($i++, $target) : $target);
     }
     warn sprintf "need = %d, allow = %d\n", $opt_need, $opt_allow;
 }
@@ -968,7 +968,7 @@ sub display_result {
 	    }
 
 	    substr($block, $ms, $me - $ms,
-		   $need_color ? index_color($s, $pi) : $s);
+		   $need_color ? index_color($pi, $s) : $s);
 	}
 	if ($opt_n) {
 	    if ($opt_linestyle eq 'line') {
