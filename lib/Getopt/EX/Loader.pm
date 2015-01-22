@@ -68,9 +68,20 @@ sub append {
 
 sub load {
     my $obj = shift;
-    my $bucket = new Getopt::EX::Container @_, BASECLASS => $obj->baseclass;
+    my $bucket =
+	new Getopt::EX::Container @_, BASECLASS => $obj->baseclass;
     $obj->append($bucket);
     $bucket;
+}
+
+sub load_file {
+    my $obj = shift;
+    $obj->load(FILE => shift);
+}
+
+sub load_module {
+    my $obj = shift;
+    $obj->load(MODULE => shift);
 }
 
 sub defaults {
@@ -93,7 +104,7 @@ sub deal_with {
     my $argv = shift;
 
     if (my $default = $obj->{DEFAULT}) {
-	if (my $bucket = eval { $obj->load(MODULE => $default) }) {
+	if (my $bucket = eval { $obj->load_module($default) }) {
 	    $bucket->run_inits($argv);
 	} else {
 	    die $@ unless $! =~ /^No such file or directory/;
@@ -149,7 +160,7 @@ sub parseopt {
 	$call = $+{call};
     }
 
-    my $bucket = eval { $obj->load(MODULE => $mod) } or die $@;
+    my $bucket = eval { $obj->load_module($mod) } or die $@;
 
     if ($call) {
 	$bucket->call(join '::', $bucket->module, $call);
