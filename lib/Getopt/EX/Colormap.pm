@@ -249,6 +249,7 @@ sub apply_color {
 sub new {
     my $class = shift;
     my $obj = bless {
+	newlabel => 0,
 	HASH  => {},
 	LIST  => [],
 	CACHE => {},
@@ -290,7 +291,7 @@ sub configure {
     my $obj = shift;
     my %opt = @_;
 
-    for my $key (qw(HASH LIST)) {
+    for my $key (qw(newlabel HASH LIST)) {
 	if (my $val = delete $opt{$key}) {
 	    $obj->{$key} = $val;
 	}
@@ -303,7 +304,7 @@ sub load_option {
 
     require Getopt::EX::LabeledParam;
     my $cmap = new Getopt::EX::LabeledParam
-	newlabel => 0,
+	newlabel => $obj->{newlabel},
 	HASH => $obj->{HASH},
 	LIST => $obj->{LIST},
 	;

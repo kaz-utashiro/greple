@@ -17,7 +17,7 @@ sub new {
     my $class = shift;
 
     my $obj = bless {
-	newlabel => 1,
+	newlabel => 0,
 	HASH => {},
 	LIST => [],
     }, $class;
@@ -79,12 +79,12 @@ sub append {
 	    $obj->push_list($c);
 	}
 	else {
-	    map { $obj->hash->{$_} = $c }
+	    map { $obj->{HASH}->{$_} = $c }
 	    map {
-		if ($obj->newlabel) {
+		if (!/\W/ and $obj->{newlabel}) {
 		    $_;
 		} else {
-		    match_glob($_, keys %{$obj->hash()})
+		    match_glob($_, keys %{$obj->{HASH}})
 		}
 	    }
 	    @$_;
