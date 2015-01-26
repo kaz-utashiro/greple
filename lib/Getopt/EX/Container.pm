@@ -76,6 +76,7 @@ sub readrc {
 	s/^__(?:CODE|PERL)__\s*\n(.*)//ms and do {
 	    package main;
 	    eval $1;
+	    die if $@;
 	};
 	s/^\s*(?:#.*)?\n//mg;
 	s/\\\n//g;
