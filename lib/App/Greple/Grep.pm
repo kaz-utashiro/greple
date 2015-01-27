@@ -12,6 +12,7 @@ our @ISA = qw(App::Greple::Text);
 
 use Data::Dumper;
 use Scalar::Util qw(blessed);
+use List::Util qw(min max);
 
 use Getopt::EX::Func;
 
