@@ -249,7 +249,7 @@ or `(?<c>\w)\g{c}`.
 - **--need**=_n_
 - **--allow**=_n_
 
-    Option to compromize matching condition.  Option **--need** specifies
+    Option to compromise matching condition.  Option **--need** specifies
     the required match count, and **--allow** the number of negative
     condition to be overlooked.
 
@@ -335,7 +335,7 @@ or `(?<c>\w)\g{c}`.
 - **--join**
 - **--joinby**=_string_
 
-    Convert newline character found in matched string to empty or specifed
+    Convert newline character found in matched string to empty or specified
     _string_.  Using **--join** with **-o** (only-matching) option, you can
     collect searching sentence list in one per line form.  This is
     sometimes useful for Japanese text processing.  For example, next
@@ -345,7 +345,7 @@ or `(?<c>\w)\g{c}`.
         greple -ho --join '\p{InKatakana}+(\n\p{InKatakana}+)*'
 
     Space separated word sequence can be processed with **--joinby**
-    option.  Next exapmle prints all \`for \*something\*' pattern in pod
+    option.  Next example prints all \`for \*something\*' pattern in pod
     documents within Perl script.
 
         greple -Mperl --pod -ioe '\bfor \w+' --joinby ' '
@@ -381,7 +381,7 @@ or `(?<c>\w)\g{c}`.
 
     Change directory before processing files.  When multiple directories
     are specified in **--chdir** option, by using wildcard form or
-    repeating option, **--glob** file expantion will be done for every
+    repeating option, **--glob** file expansion will be done for every
     directories.
 
         greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
@@ -447,7 +447,7 @@ or `(?<c>\w)\g{c}`.
 
     and other effects :
 
-        S  Standout (reverse video)
+        S  Stand-out (reverse video)
         U  Underline
         D  Double-struck (boldface)
         F  Flash (blink)
@@ -539,9 +539,9 @@ or `(?<c>\w)\g{c}`.
 
     Set or unset specified _effect_ for all color specs.  Use \`+'
     (optional) to set, and \`-' to unset.  Effect is a single character
-    expressing: S (Standout), U (Underline), D (Double-struck), F (Flash).
+    expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash).
 
-    Next example romove D (double-struck) effect.
+    Next example remove D (double-struck) effect.
 
         greple --face -D
 
@@ -668,7 +668,7 @@ or `(?<c>\w)\g{c}`.
         greple --inside and command
 
     matches pattern `command` because the part of matched string is
-    included in specified inside-area.  Partial match failes when option
+    included in specified inside-area.  Partial match fails when option
     **--strict** provided, and longer string never matches within shorter
     area.
 
@@ -764,10 +764,10 @@ or `(?<c>\w)\g{c}`.
 - **--print**=_function_, **--print**=_sub{...}_
 
     Specify user defined function executed before data print.  Text to be
-    printed is replaced by the result of the funcion.  Arbitrary function
+    printed is replaced by the result of the function.  Arbitrary function
     can be defined in `.greplerc` file.  Matched data is placed in
     variable `$_`.  Other information is passed by key-value pair in the
-    arguments.  Filename is passed by `file` key.  Matched informaiton is
+    arguments.  Filename is passed by `file` key.  Matched information is
     passed by `matched` key, in the form of perl array reference:
     `[[start,end],[start,end]...]`.
 
@@ -791,7 +791,7 @@ or `(?<c>\w)\g{c}`.
 
     It is possible to use multiple **--print** options.  In that case,
     second function will get the result of the first function.  The
-    command will print the final result of the last funciton.
+    command will print the final result of the last function.
 
 - **--continue**
 
@@ -822,7 +822,7 @@ or `(?<c>\w)\g{c}`.
 
 For these run-time functions, optional argument list can be set in the
 form of `key` or `key=value`, connected by comma.  These arguments
-will be passed to the funciton in key => value list.  Sole key will
+will be passed to the function in key => value list.  Sole key will
 have the value one.  Also processing file name is passed with the key
 of `FILELABEL` constant.  As a result, the option in the next form:
 
@@ -937,18 +937,19 @@ on user's home directory.  Following directives can be used.
 
 - **define** _name_ string
 
-    Directive \`define' is almost same as \`option', but argument is not
-    processed by _shellwords_ and treated just a simple text.
-    Metacharacters can be included without escaping.  Defined string
-    replacement is done only in definition in option argument.  If you
-    want to use the word in command line, use option directive instead.
+    Define macro.  This is similar to **option**, but argument is not
+    processed by _shellwords_ and treated just a simple text, so
+    meta-characters can be included without escape.  Macro expansion is
+    done for option definition and other macro definition.  Macro is not
+    evaluated in command line option.  Use option directive if you want to
+    use in command line,
 
         define :kana: \p{InKatakana}
         option --kanalist --nocolor -o --join --re ':kana:+(\n:kana:+)*'
         help   --kanalist List up Katakana string
 
 Environment variable substitution is done for string specified by
-\`option' and \`define' directivies.  Use Perl syntax **$ENV{NAME}** for
+\`option' and \`define' directives.  Use Perl syntax **$ENV{NAME}** for
 this purpose.  You can use this to make a portable module.
 
 When _greple_ found `__CODE__` line in `.greplerc` file, the rest
@@ -977,7 +978,7 @@ taken as array element `$-[0]` and `$+[0]`.
 You can use next command to search pattern included in odd number
 lines.
 
-    % greple --inside '&odd_line' patten files...
+    % greple --inside '&odd_line' pattern files...
 
 # MODULE
 
@@ -1069,7 +1070,7 @@ can modify actual `@ARGV` using it.  See **find** module as a sample.
 Most capability of **greple** is derived from **mg** command, which has
 been developing from early 1990's by the same author.  Because modern
 standard **grep** family command becomes to have similar capabilities,
-it is a time to clean up entire functionarities, totally remodel the
+it is a time to clean up entire functionalities, totally remodel the
 option interfaces, and change the command name. (2013.11)
 
 # AUTHOR
