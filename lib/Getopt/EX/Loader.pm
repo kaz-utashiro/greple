@@ -217,3 +217,88 @@ sub modules {
 }
 
 1;
+
+=head1 NAME
+
+Getopt::EX::Loader - RC/Module loader
+
+=head1 SYNOPSIS
+
+  use Getopt::EX::Loader;
+
+  my $loader = new Getopt::EX::Loader
+      BASECLASS => 'App::example';
+
+  $loader->load_file("$ENV{HOME}/.examplerc");
+
+  $loader->deal_with(\@ARGV);
+
+  my $parser = new Getopt::Long::Parser;
+  $parser->getoptions( ... , $loader->builtins )
+
+=head1 DESCRIPTION
+
+This is the main interface to use L<Getopt::EX> modules.  You can
+create loader object, load user defined rc file, load modules
+specified by command arguments, substitute user defined option and
+insert default options defined in rc file or modules, get module
+defined built-in option definition for option parser.
+
+Most of work is done in C<deal_with> method.  It parses command
+arguments and load modules specified by B<-M> option by default.  Then
+it scans options and substitute them according to the definitions in
+rc file or modules.  If RC and modules defines default options, they
+are inserted to the arguments.
+
+Module can define built-in options which should be handled option
+parser.  They can be taken by C<builtins> method, so you should give
+them to option parser.
+
+If C<App::example> is given as a C<BASECLASS> of the loader object, it
+is prepended to all module names.  So command line
+
+    % example -Mfoo
+
+will load C<App::example::foo> module.
+
+In this case, if module C<App::example::default> exists, it is loaded
+automatically without explicit indication.  Default module can be used
+just like a startup RC file.
+
+
+=head1 METHODS
+
+=over 4
+
+=item B<configure> I<name> => I<value>, ...
+
+=over 4
+
+=item BASECLASS
+
+Define base class for user defined module.
+
+=item MODULE_OPT
+
+Define module option string.  String B<-M> is set by default.
+
+=item DEFAULT
+
+Define default module name.  String B<default> is set by default.  Set
+C<undef> if you don't want load any default module.
+
+=back
+
+=item B<buckets>
+
+Return loaded L<Getopt::EX::Container> object list.
+
+=item B<load_file>
+
+Load specified file.
+
+=item B<load_module>
+
+Load specified module.
+
+=back

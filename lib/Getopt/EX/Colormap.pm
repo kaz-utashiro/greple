@@ -1,73 +1,3 @@
-=head1 NAME
-
-Getopt::EX::Colormap;
-
-
-=head1 SYNOPSIS
-
-use Getopt::EX::Colormap qw(colorize);
-
-$text = colorize(SPEC, TEXT);
-
-$text = colorize(SPEC_1, TEXT_1, SPEC_2, TEXT_2, ...);
-
-
-=head1 EXAMPLE
-
-print colorize('R', "red", 'G', "green", 'B', "blue");
-
-
-=head1 DESCRIPTION
-
-SPEC is combination of single character representing uppercase
-foreground color :
-
-    R  Red
-    G  Green
-    B  Blue
-    C  Cyan
-    M  Magenta
-    Y  Yellow
-    K  Black
-    W  White
-
-and alternative (usually brighter) colors in lowercase:
-
-    r, g, b, c, m, y, k, w
-
-or RGB value if using ANSI 256 color terminal :
-
-    FORMAT:
-        foreground[/background]
-
-    COLOR:
-        000 .. 555       : 6 x 6 x 6 216 colors
-        000000 .. FFFFFF : 24bit RGB mapped to 216 colors
-	L00 .. L23       : 24 grey levels
-
-    Sample:
-	K/W                   : black on white
-        005     0000FF        : blue foreground
-           /505       /FF00FF : magenta background
-        000/555 000000/FFFFFF : black on white
-        500/050 FF0000/00FF00 : red on green
-
-and other effects :
-
-    X  No effect
-    Z  Zero (reset)
-    D  Double-struck (boldface)
-    I  Italic
-    S  Standout (reverse video)
-    V  Vanish (concealed)
-    U  Underline
-    F  Flash (blink)
-
-When RGB values are all same in the hex 24bit spec, it is converted 24
-grey levels.
-
-=cut
-
 package Getopt::EX::Colormap;
 
 use strict;
@@ -285,3 +215,256 @@ sub color {
 }
 
 1;
+
+=head1 NAME
+
+Getopt::EX::Colormap - ANSI terminal color and option support
+
+
+=head1 SYNOPSIS
+
+  GetOptions('colormap|cm:s' => @opt_colormap);
+
+  require Getopt::EX::Colormap;
+  my $handler = new Getopt::EX::Colormap;
+  $handler->load_params(@opt_colormap);  
+
+  print handler->color('FILE', 'FILE labeled text');
+
+  print handler->index_color($index, 'TEXT');
+
+    or
+
+  use Getopt::EX::Colormap qw(colorize);
+  $text = colorize(SPEC, TEXT);
+  $text = colorize(SPEC_1, TEXT_1, SPEC_2, TEXT_2, ...);
+
+
+=head1 DESCRIPTION
+
+Coloring text capability is not strongly bound to option processing,
+but it may be useful to give simple uniform way to specify complicated
+color setting from command line.
+
+This module assumes the color information is given in two ways: one in
+labeled table, and one in indexed list.
+
+This is a example of labeled table:
+
+    --cm 'COMMAND=SE,OMARK=CS,NMARK=MS' \
+    --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544' \
+    --cm 'CMARK=GS,MMARK=YS,CTEXT=G,MTEXT=Y'
+
+Each color definitions are separated by colon (C<,>) and label is
+specified by I<LABEL=> style precedence.  Multiple labels can set for
+same value by connecting them together.  
+Label name can be specified
+with C<*> and C<?> wild characters.
+
+List example is like this:
+
+    --cm 555/100,555/010,555/001 \
+    --cm 555/011,555/101,555/110 \
+    --cm 555/021,555/201,555/210 \
+    --cm 555/012,555/102,555/120
+
+This is the example of RGB 6x6x6 bit 216 colors specification.  Left
+side of slash is foreground color, and left side is for background.
+This color list is accessed by index.
+
+Handler maintains hash and list objects, and labeled colors are stored
+in hash, non-label colors are in list automatically.  User can mix
+both specifications.
+
+Not only producing ANSI colored text, this module supports calling
+arbitrary function to handle a string.  See L<FUNCTION SPEC> section
+for more detail.
+
+
+=head1 COLOR SPEC
+
+Color specification is combination of single uppercase character
+representing 8 colors :
+
+    R  Red
+    G  Green
+    B  Blue
+    C  Cyan
+    M  Magenta
+    Y  Yellow
+    K  Black
+    W  White
+
+and alternative (usually brighter) colors in lowercase:
+
+    r, g, b, c, m, y, k, w
+
+or RGB value and 24 grey levels if using ANSI 256 color terminal :
+
+    000000 .. FFFFFF : 24bit RGB colors
+    000 .. 555       : 6x6x6 RGB 216 colors
+    L00 .. L23       : 24 grey levels
+
+=over 4
+
+Note that, when values are all same in 24bit RGB, it is converted to
+24 grey level, otherwise 6x6x6 216 color.
+
+=back
+
+with other special effects :
+
+    X  No effect
+    Z  Zero (reset)
+    D  Double-struck (boldface)
+    P  Pale (dark)
+    I  Italic
+    S  Stand-out (reverse video)
+    V  Vanish (concealed)
+    U  Underline
+    F  Flash (blink)
+
+If the spec includes C</>, left side is considered for foreground
+color and right side is for background.  If multiple colors are
+given in same spec, all indicators are produced in the order of
+their presence.  As a result, the last one takes effect.
+
+Effect character can be found anywhare and in any order in color spec
+string.
+
+Samples:
+
+    CHR  6x6x6    24bit           color
+    ===  =======  =============   ==================
+    B    005      0000FF        : blue foreground
+     /M     /505        /FF00FF : magenta background
+    K/W  000/555  000000/FFFFFF : black on white
+    R/G  500/050  FF0000/00FF00 : red on green
+    W/w  L03/L20  303030/c6c6c6 : grey on grey
+
+RGB 24-bit color sequence is supported but disabled by default.  Set
+C<$COLOR_RGB24> module variable to enable it.
+
+
+=head1 FUNCTION SPEC
+
+It is also possible to set arbitrary function is called to handle
+string in place of color, which is not necessarily concerned with
+color.  This scheme is quite powerful and the module name itself may
+be somewhat misleading.  Spec string which start with C<sub{> is
+considered as a function definition.  So
+
+    % example --cm 'sub{uc}'
+
+set the function object in the color entry.  And when C<color> method
+is called with that object, specified function is called instead of
+producing ANSI color sequence.  Function is supposed to get text to be
+handled as a global variable C<$_>, and return the result as a string.
+Function C<sub{uc}> in the above example returns uppercase version of
+C<$_>.
+
+If your script print file name according to the color spec labeled by
+B<FILE>, then
+
+    % example --cm FILE=R
+
+prints the file name in red, but
+
+    % example --cm FILE=sub{uc}
+
+will print the name in uppercase.
+
+Spec start with C<&> is considered as a function call.  If the
+function C<double> is defined like this:
+
+    sub double { $_ . $_ }
+
+then, command
+
+    % example --cm '&double'
+
+produces doubled text by C<color> method.  Function can also take
+parameters, so the next example
+
+    sub repeat {
+	my %opt = @_;
+	$_ x $opt{count} // 1;
+    }
+
+    % example --cm '&repeat(count=3)'
+
+produces tripled text.
+
+Function object is created by <Getopt::EX::Func> module.  Take a look
+at the module for detail.
+
+
+=head1 EXAMPLE CODE
+
+    #!/usr/bin/perl
+    
+    use strict;
+    use warnings;
+
+    my @opt_colormap;
+    use Getopt::EX::Long;
+    GetOptions("colormap|cm=s" => \@opt_colormap);
+    
+    my %colormap = ( # default color map
+        FILE => 'R',
+        LINE => 'G',
+        TEXT => 'B',
+        );
+    my @colors;
+    
+    require Getopt::EX::Colormap;
+    my $handler = new Getopt::EX::Colormap
+        HASH => \%colormap,
+        LIST => \@colors;
+    
+    $handler->load_params(@opt_colormap);
+
+    for (0 .. $#colors) {
+        print $handler->index_color($_, "COLOR $_"), "\n";
+    }
+    
+    for (sort keys %colormap) {
+        print $handler->color($_, $_), "\n";
+    }
+
+This sample program is complete to work.  If you save this script as a
+file F<example>, try to put following contents in F<~/.examplerc> and
+see what happens.
+
+    option default \
+        --cm 555/100,555/010,555/001 \
+        --cm 555/011,555/101,555/110 \
+        --cm 555/021,555/201,555/210 \
+        --cm 555/012,555/102,555/120
+
+
+=head1 METHODS
+
+=over 4
+
+=item B<color> I<label>, TEXT
+
+=item B<color> I<color_spec>, TEXT
+
+Return colored text indicated by label or color spec string.
+
+=item B<index_color> I<index>, TEXT
+
+Return colored text indicated by I<index>.  If the index is bigger
+than color list, it rounds up.
+
+=item B<new>
+
+=item B<append>
+
+=item B<load_params>
+
+See super class L<Getopt::EX::LabeledParam>.
+
+
+=back

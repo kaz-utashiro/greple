@@ -277,3 +277,147 @@ sub run_inits {
 }
 
 1;
+
+=head1 NAME
+
+Getopt::EX::Container - RC/Module data container
+
+=head1 SYNOPSIS
+
+  use Getopt::EX::Container;
+
+  my $bucket = new Getopt::EX::Container
+	BASECLASS => $baseclass,
+	FILE => $file_name  /  MODULE => $module_name,
+	;
+
+=head1 DESCRIPTION
+
+This module is usually used from L<Getopt::EX::Loader>, and keeps
+all data about loaded rc file or module.
+
+After user defined module was loaded, subroutine C<initialize> is
+called if it exists in the module, then this container object is
+passed to the function as a first argument.  So you can use it to
+directly touch the object contents through class interface.
+
+
+=head1 RC FILE FORMAT
+
+=over 7
+
+=item B<option> I<name> I<string>
+
+Define option I<name>.  Argument I<string> is processed by
+I<shellwords> routine defined in L<Text::ParseWords> module.  Be sure
+that this module sometimes requires escape backslashes.
+
+Any kind of string can be used for option name but it is not combined
+with other options.
+
+    option --fromcode --outside='(?s)\/\*.*?\*\/'
+    option --fromcomment --inside='(?s)\/\*.*?\*\/'
+
+If the option named B<default> is defined, it will be used as a
+default option.
+
+For the purpose to include following arguments within replaced
+strings, two special notations can be used in option definition.
+String C<$E<lt>nE<gt>> is replaced by the I<n>th argument after the
+substituted option, where I<n> is number start from one.  String
+C<$E<lt>shiftE<gt>> is replaced by following command line argument and
+the argument is removed from option list.
+
+For example, when
+
+    option --line --le &line=$<shift>
+
+is defined, command
+
+    greple --line 10,20-30,40
+
+will be evaluated as this:
+
+    greple --le &line=10,20-30,40
+
+=item B<define> I<name> I<string>
+
+Define macro.  This is similar to B<option>, but argument is not
+processed by I<shellwords> and treated just a simple text, so
+meta-characters can be included without escape.  Macro expansion is
+done for option definition and other macro definition.  Macro is not
+evaluated in command line option.  Use option directive if you want to
+use in command line,
+
+    define (#kana) \p{InKatakana}
+    option --kanalist --nocolor -o --join --re '(#kana)+(\n(#kana)+)*'
+    help   --kanalist List up Katakana string
+
+=item B<help> I<name>
+
+Define help message for option I<name>.
+
+=item B<builtin> I<spec> I<variable>
+
+Define built-in option which should be processed by option parser.
+Defined option spec can be taken by B<builtin> method, and script is
+responsible to give them to parser.
+
+Arguments are assumed to be L<Getopt::Long> style spec, and
+I<variable> is string start with C<$>, C<@> or C<%>.  They will be
+replaced by a reference to the object which the string represent.
+
+=back
+
+
+=head1 METHODS
+
+=over 4
+
+=item B<new>
+
+Create object.  Parameters are just passed to C<configure> method.
+
+=item B<configure>
+
+Configure object.  Parameter is passed in hash name and value style.
+
+=over 4
+
+=item B<BASECLASS> =E<gt> I<class>
+
+Set base class.
+
+=item B<FILE> =E<gt> I<filename>
+
+Load file.
+
+=item B<MODULE> =E<gt> I<modulename>
+
+Load module.
+
+=back
+
+=item B<define> I<name>, I<macro>
+
+Define macro.
+
+=item B<setopt> I<name>, I<option>
+
+Set option.
+
+=item B<getopt> I<name>
+
+Get option.  Takes option name and return it's definition if
+available.  It doesn't return I<default> option, get it by I<default>
+method.
+
+=item B<default>
+
+Get default option.  Use C<setopt(default =E<gt> ...)> to set.
+
+=item B<builtin>
+
+Get built-in options.
+
+=back

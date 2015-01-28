@@ -1178,7 +1178,7 @@ Ignore case.
 
 =item B<--allow>=I<n>
 
-Option to compromize matching condition.  Option B<--need> specifies
+Option to compromise matching condition.  Option B<--need> specifies
 the required match count, and B<--allow> the number of negative
 condition to be overlooked.
 
@@ -1273,7 +1273,7 @@ overlaps each other and makes single block.
 
 =item B<--joinby>=I<string>
 
-Convert newline character found in matched string to empty or specifed
+Convert newline character found in matched string to empty or specified
 I<string>.  Using B<--join> with B<-o> (only-matching) option, you can
 collect searching sentence list in one per line form.  This is
 sometimes useful for Japanese text processing.  For example, next
@@ -1283,7 +1283,7 @@ across multiple lines.
     greple -ho --join '\p{InKatakana}+(\n\p{InKatakana}+)*'
 
 Space separated word sequence can be processed with B<--joinby>
-option.  Next exapmle prints all `for *something*' pattern in pod
+option.  Next example prints all `for *something*' pattern in pod
 documents within Perl script.
 
     greple -Mperl --pod -ioe '\bfor \w+' --joinby ' '
@@ -1325,7 +1325,7 @@ common job.
 
 Change directory before processing files.  When multiple directories
 are specified in B<--chdir> option, by using wildcard form or
-repeating option, B<--glob> file expantion will be done for every
+repeating option, B<--glob> file expansion will be done for every
 directories.
 
     greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
@@ -1397,7 +1397,7 @@ or RGB value if using ANSI 256 color terminal :
 
 and other effects :
 
-    S  Standout (reverse video)
+    S  Stand-out (reverse video)
     U  Underline
     D  Double-struck (boldface)
     F  Flash (blink)
@@ -1489,9 +1489,9 @@ Disabled by default.
 
 Set or unset specified I<effect> for all color specs.  Use `+'
 (optional) to set, and `-' to unset.  Effect is a single character
-expressing: S (Standout), U (Underline), D (Double-struck), F (Flash).
+expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash).
 
-Next example romove D (double-struck) effect.
+Next example remove D (double-struck) effect.
 
     greple --face -D
 
@@ -1635,7 +1635,7 @@ specified area.  For instance,
     greple --inside and command
 
 matches pattern C<command> because the part of matched string is
-included in specified inside-area.  Partial match failes when option
+included in specified inside-area.  Partial match fails when option
 B<--strict> provided, and longer string never matches within shorter
 area.
 
@@ -1749,10 +1749,10 @@ entire output from B<greple> command.
 =item B<--print>=I<function>, B<--print>=I<sub{...}>
 
 Specify user defined function executed before data print.  Text to be
-printed is replaced by the result of the funcion.  Arbitrary function
+printed is replaced by the result of the function.  Arbitrary function
 can be defined in F<.greplerc> file.  Matched data is placed in
 variable C<$_>.  Other information is passed by key-value pair in the
-arguments.  Filename is passed by C<file> key.  Matched informaiton is
+arguments.  Filename is passed by C<file> key.  Matched information is
 passed by C<matched> key, in the form of perl array reference:
 C<[[start,end],[start,end]...]>.
 
@@ -1776,7 +1776,7 @@ Then, you can use this function in the command line.
 
 It is possible to use multiple B<--print> options.  In that case,
 second function will get the result of the first function.  The
-command will print the final result of the last funciton.
+command will print the final result of the last function.
 
 =item B<--continue>
 
@@ -1809,7 +1809,7 @@ C<FILELABEL> parameter is not given exceptionally.
 
 For these run-time functions, optional argument list can be set in the
 form of C<key> or C<key=value>, connected by comma.  These arguments
-will be passed to the funciton in key => value list.  Sole key will
+will be passed to the function in key => value list.  Sole key will
 have the value one.  Also processing file name is passed with the key
 of C<FILELABEL> constant.  As a result, the option in the next form:
 
@@ -1953,11 +1953,12 @@ won't show up in the usage.
 
 =item B<define> I<name> string
 
-Directive `define' is almost same as `option', but argument is not
-processed by I<shellwords> and treated just a simple text.
-Metacharacters can be included without escaping.  Defined string
-replacement is done only in definition in option argument.  If you
-want to use the word in command line, use option directive instead.
+Define macro.  This is similar to B<option>, but argument is not
+processed by I<shellwords> and treated just a simple text, so
+meta-characters can be included without escape.  Macro expansion is
+done for option definition and other macro definition.  Macro is not
+evaluated in command line option.  Use option directive if you want to
+use in command line,
 
     define :kana: \p{InKatakana}
     option --kanalist --nocolor -o --join --re ':kana:+(\n:kana:+)*'
@@ -1966,7 +1967,7 @@ want to use the word in command line, use option directive instead.
 =back
 
 Environment variable substitution is done for string specified by
-`option' and `define' directivies.  Use Perl syntax B<$ENV{NAME}> for
+`option' and `define' directives.  Use Perl syntax B<$ENV{NAME}> for
 this purpose.  You can use this to make a portable module.
 
 When I<greple> found C<__CODE__> line in F<.greplerc> file, the rest
@@ -1995,7 +1996,7 @@ taken as array element C<$-[0]> and C<$+[0]>.
 You can use next command to search pattern included in odd number
 lines.
 
-    % greple --inside '&odd_line' patten files...
+    % greple --inside '&odd_line' pattern files...
 
 
 =head1 MODULE
@@ -2091,7 +2092,7 @@ can modify actual C<@ARGV> using it.  See B<find> module as a sample.
 Most capability of B<greple> is derived from B<mg> command, which has
 been developing from early 1990's by the same author.  Because modern
 standard B<grep> family command becomes to have similar capabilities,
-it is a time to clean up entire functionarities, totally remodel the
+it is a time to clean up entire functionalities, totally remodel the
 option interfaces, and change the command name. (2013.11)
 
 

@@ -148,3 +148,57 @@ sub getoptionsfromarray {
 }
 
 1;
+
+=head1 NAME
+
+Getopt::EX::Long - Getopt::Long compatible glue module
+
+=head1 SYNOPSIS
+
+  use Getopt::EX::Long;
+
+  or
+
+  require Getopt::EX::Long;
+  my $parser = new Getopt::EX::Long::Parser
+	config   => [ Getopt::Long option ... ],
+	exconfig => [ Getopt::EX::Long option ...];
+
+=head1 DESCRIPTION
+
+L<Getopt::EX::Long> is almost compatible to L<Getopt::Long> and you
+can just replace module declaration and it should work just same as
+before.
+
+Besides working same, user can define their own option aliases and
+write dynamically loaded extension module.  If the command name is
+I<example>,
+
+    ~/.examplerc
+
+file is loaded by default.  In this rc file, user can define their own
+option with macro processing.  This is useful when the command takes
+complicated arguments.
+
+Also, special command option preceded by B<-M> is taken and
+corresponding perl module is loaded.  Module is assumed under the
+specific base class.  For example,
+
+    % example -Mfoo
+
+will load C<App::example::foo> module, by default.
+
+This module is normal perl module, so user can write any kind of
+program.  If the module is specified with initial function call, it is
+called at the beginning of command execution.  Suppose that the
+module I<foo> is specified like this:
+
+    % example -Mfoo::bar(buz=100) ...
+
+Then, after the module B<foo> is loaded, function I<bar> is called
+with the parameter I<baz> which has value 100.
+
+If the module includes C<__DATA__> section, it is interpreted just
+same as rc file.  So you can define arbitrary option there.  Combined
+with startup function call described above, it is possible to control
+module behavior by user defined option.
