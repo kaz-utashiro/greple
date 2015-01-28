@@ -46,7 +46,7 @@ sub set_hash {
     $obj;
 }
 
-sub get_list { shift->{LIST} }
+sub list { @{ shift->{LIST} } }
 
 sub push_list {
     my $obj = shift;
@@ -61,6 +61,23 @@ sub set_list {
 }
 
 sub append {
+    my $obj = shift;
+    for my $item (@_) {
+	if (ref $item eq 'ARRAY') {
+	    push @{$obj->{LIST}}, @$item;
+	}
+	elsif (ref $item eq 'HASH') {
+	    while (my($k, $v) = each %$item) {
+		$obj->{HASH}->{$k} = $v;
+	    }
+	}
+	else {
+	    push @{$obj->{LIST}}, $item;
+	}
+    }
+}
+
+sub load_params {
     my $obj = shift;
 
     my $re_field = qr/[\w\*\?]+/;

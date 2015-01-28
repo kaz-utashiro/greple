@@ -77,11 +77,14 @@ use Exporter 'import';
 our @EXPORT      = qw();
 our %EXPORT_TAGS = ();
 our @EXPORT_OK   = qw(colorize);
+our @ISA         = qw(Getopt::EX::LabeledParam);
 
 use Carp;
 use List::Util qw(first);
 use Scalar::Util qw(blessed);
 use Data::Dumper;
+
+use Getopt::EX::LabeledParam;
 
 our $COLOR_RGB24 = 0;
 
@@ -248,67 +251,11 @@ sub apply_color {
 
 sub new {
     my $class = shift;
-    my $obj = bless {
-	newlabel => 0,
-	HASH  => {},
-	LIST  => [],
-	CACHE => {},
-    }, $class;
+    my $obj = SUPER::new $class;
 
+    $obj->{CACHE} = {};
     configure $obj @_ if @_;
 
-    $obj;
-}
-
-sub hash {
-    my $obj = shift;
-    $obj->{HASH};
-}
-
-sub list {
-    my $obj = shift;
-    @{ $obj->{LIST} };
-}
-
-sub append {
-    my $obj = shift;
-    for my $item (@_) {
-	if (ref $item eq 'ARRAY') {
-	    push @{$obj->{LIST}}, @$item;
-	}
-	elsif (ref $item eq 'HASH') {
-	    while (my($k, $v) = each %$item) {
-		$obj->{HASH}->{$k} = $v;
-	    }
-	}
-	else {
-	    push @{$obj->{LIST}}, $item;
-	}
-    }
-}
-
-sub configure {
-    my $obj = shift;
-    my %opt = @_;
-
-    for my $key (qw(newlabel HASH LIST)) {
-	if (my $val = delete $opt{$key}) {
-	    $obj->{$key} = $val;
-	}
-    }
-    warn "Unknown option: ", Dumper %opt if %opt;
-}
-
-sub load_option {
-    my $obj = shift;
-
-    require Getopt::EX::LabeledParam;
-    my $cmap = new Getopt::EX::LabeledParam
-	newlabel => $obj->{newlabel},
-	HASH => $obj->{HASH},
-	LIST => $obj->{LIST},
-	;
-    $cmap->append(@_);
     $obj;
 }
 

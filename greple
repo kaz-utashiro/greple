@@ -551,7 +551,7 @@ my $color_handler = new Getopt::EX::Colormap
     HASH => \%colormap,
     LIST => \@colors,
     ;
-$color_handler->load_option(@opt_colormap);
+$color_handler->load_params(@opt_colormap);
 
 my @default_color =
     $opt_256
