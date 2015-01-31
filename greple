@@ -38,7 +38,7 @@ use Encode::Guess;
 ## Setup greple/lib to be a module directory if exists.
 ##
 BEGIN {
-    if ((my $lib = abs_path($0)) =~ s{/ \K \w+ $}{lib}x) {
+    if ((my $lib = abs_path($0)) =~ s{/ \K (?:bin/)? \w+ $}{lib}x) {
 	push @INC, $lib if -d "$lib/App/Greple";
     }
 }
