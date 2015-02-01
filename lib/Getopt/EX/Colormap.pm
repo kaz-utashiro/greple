@@ -10,22 +10,12 @@ our @EXPORT_OK   = qw(colorize);
 our @ISA         = qw(Getopt::EX::LabeledParam);
 
 use Carp;
-use List::Util qw(first);
 use Scalar::Util qw(blessed);
 use Data::Dumper;
 
 use Getopt::EX::LabeledParam;
 
 our $COLOR_RGB24 = 0;
-
-my @grey24 = ( 0x08, 0x12, 0x1c, 0x26, 0x30, 0x3a, 0x44, 0x4e,
-	       0x58, 0x62, 0x6c, 0x76, 0x80, 0x8a, 0x94, 0x9e,
-	       0xa8, 0xb2, 0xbc, 0xc6, 0xd0, 0xda, 0xe4, 0xee );
-
-sub rgb_to_grey {
-    my $rgb = shift;
-    first { $rgb >= $grey24[$_] } reverse 0 .. $#grey24;
-}
 
 sub ansi256_number {
     my $code = shift;
@@ -38,9 +28,16 @@ sub ansi256_number {
 	$grey = 0 + $1;
     }
     elsif ($code =~ /^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i) {
-	my($rx, $gx, $bx) = (hex($1), hex($2), hex($3));
-	if ($rx != 0 and $rx != 0xff and $rx == $gx and $rx == $bx) {
-	    $grey = rgb_to_grey $rx;
+	my($rx, $gx, $bx) = map { hex } $1, $2, $3;
+	if ($rx != 255 and $rx == $gx and $rx == $bx) {
+	    ##
+	    ## Divide area into 25 segments, and map to BLACK and 24 GREYS
+	    ##
+	    $grey = int ( $rx * 25 / 255 ) - 1;
+	    if ($grey < 0) {
+		$r = $g = $b = 0;
+		$grey = undef;
+	    }
 	} else {
 	    $r = int ( 5 * $rx / 255 );
 	    $g = int ( 5 * $gx / 255 );
@@ -50,7 +47,7 @@ sub ansi256_number {
     else {
 	die "Color spec error: $code";
     }
-    defined $grey ? ($grey + 232) : ($r*36 + $g*6 + $b + 16)
+    defined $grey ? ($grey + 232) : ($r*36 + $g*6 + $b + 16);
 }
 
 my %numbers = (
@@ -215,6 +212,10 @@ sub color {
 }
 
 1;
+
+
+__END__
+
 
 =head1 NAME
 
