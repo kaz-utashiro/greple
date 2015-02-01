@@ -101,7 +101,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
   COLOR
     --color=when         use terminal color (auto, always, never)
     --nocolor            same as --color=never
-    --colormap=color     R, G, B, C, M, Y, W, Standout, Double-struck, Underline
+    --colormap=color     R, G, B, C, M, Y etc.
     --colorful           use default multiple colors
     --ansicolor=s        ANSI color 16, 256 or 24bit
     --[no]256            same as --ansicolor 256 or 16
@@ -1365,12 +1365,12 @@ expected.
 
 Option B<--nocolor> is alias for B<--color>=I<never>.
 
-=item B<--colormap>=I<RGBCYMKWrgbcymkwSUDF>, B<--quote>=I<start>,I<end>
+=item B<--colormap>=I<spec>
 
 Specify color map.  Default is RD: RED and BOLD.
 
-COLOR is combination of single character representing uppercase
-foreground color :
+Color specification is combination of single uppercase character
+representing 8 colors :
 
     R  Red
     G  Green
@@ -1381,40 +1381,55 @@ foreground color :
     K  Black
     W  White
 
-and corresponding lowercase background color :
+and alternative (usually brighter) colors in lowercase:
 
     r, g, b, c, m, y, k, w
 
-or RGB value if using ANSI 256 color terminal :
+or RGB value and 24 grey levels if using ANSI 256 color terminal :
 
-    FORMAT:
-        foreground[/background]
+    000000 .. FFFFFF : 24bit RGB colors
+    000 .. 555       : 6x6x6 RGB 216 colors
+    L00 .. L23       : 24 grey levels
 
-    COLOR:
-        000 .. 555       : 6 x 6 x 6 216 colors
-        000000 .. FFFFFF : 24bit RGB mapped to 216 colors
+=over 4
 
-    Sample:
-        005     0000FF        : blue foreground
-           /505       /FF00FF : magenta background
-        000/555 000000/FFFFFF : black on white
-        500/050 FF0000/00FF00 : red on green
+Note that, when values are all same in 24bit RGB, it is converted to
+24 grey level, otherwise 6x6x6 216 color.
 
-and other effects :
+=back
 
-    S  Stand-out (reverse video)
-    U  Underline
+with other special effects :
+
+    Z  Zero (reset)
     D  Double-struck (boldface)
+    P  Pale (dark)
+    I  Italic
+    S  Stand-out (reverse video)
+    V  Vanish (concealed)
+    U  Underline
     F  Flash (blink)
 
-If the mode string contains colon `:' character, they are used to
-quote the matched string.  If you want to quote the pattern by angle
-bracket, use like this.
+    ;  No effect
+    X  No effect
 
-    greple --quote='<:>' pattern
+If the spec includes C</>, left side is considered for foreground
+color and right side is for background.  If multiple colors are
+given in same spec, all indicators are produced in the order of
+their presence.  As a result, the last one takes effect.
 
-Option B<--quote> is an alias for B<--colormap>, but it set the
-option B<--color>=I<always> at the same time.
+Effect characters are case insensitive, and can be found anywhere and
+in any order in color spec string.  Because C<X> and C<;> takes no
+effect, you can use them to improve readability, like C<SD;K/5x4x4>.
+
+Samples:
+
+    RGB  6x6x6    24bit           color
+    ===  =======  =============   ==================
+    B    005      0000FF        : blue foreground
+     /M     /505        /FF00FF : magenta background
+    K/W  000/555  000000/FFFFFF : black on white
+    R/G  500/050  FF0000/00FF00 : red on green
+    W/w  L03/L20  303030/c6c6c6 : grey on grey
 
 Multiple colors can be specified separating by white space or comma,
 or by repeating options.  Those colors will be applied for each
@@ -1425,7 +1440,7 @@ green and `baz' in blue.
 
     greple --cm R -e foo --cm G -e bar --cm B -e baz
 
-=item B<--colormap>=I<field>=I<color>,I<field>=I<color>,...
+=item B<--colormap>=I<field>=I<spec>,I<field>=I<spec>,...
 
 Another form of colormap option to specify the color for fields:
 
@@ -1441,19 +1456,19 @@ C<$_>, and the return value of the subroutine will be displayed.
 
 Next command convert all words in C comment to upper case.
 
-    greple --all --include '/\*(?s:.*?)\*/' '\w+' --cm 'sub{uc}'
+    greple --all '/\*(?s:.*?)\*/' --cm 'sub{uc}'
 
-Note that the form of I<&func> can be used just in the same way as
-other color specifications. However, if it start with I<sub{> pattern,
-all the rest of the argument is taken as a part of subroutine
-definition.  So, it can not be combined with other color definitions.
+You can quote matched string instead of coloring (this emulates
+deprecated option B<--quote>):
+
+    greple --cm 'sub{"<".$_.">"}' ...
 
 It is possible to use this definition with field names.  Next example
 print line numbers in seven digits.
 
     greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
 
-Experimentally, these function can be combined with other normal color
+Experimentally, function can be combined with other normal color
 specifications.  Also the form I<&func;> can be repeated.
 
     greple --cm 'BF/544;sub{uc}'
@@ -1466,9 +1481,15 @@ Shortcut for B<--colormap>='I<RD GD BD CD MD YD>' in ANSI 16 colors
 mode, and B<--colormap>='I<D/544 D/454 D/445 D/455 D/454 D/554>' and
 other combination of 3, 4, 5 for 256 colors mode.  Enabled by default.
 
+=item B<--ansicolor>=I<16>|I<256>|I<24bit>
+
+If set as I<16>, use ANSI 16 colors as a default color set, otherwise
+ANSI 256 colors.  When set as I<24bit>, 6 hex digits notation produces
+24bit color sequence.  Default is I<256>.
+
 =item B<--[no]256>
 
-Set/unset ANSI 256 color mode.  Enabled by default.
+Shortcut for B<--ansicolor>=I<256> or I<16>.
 
 =item B<--regioncolor>
 
@@ -2114,6 +2135,7 @@ L<grep(1)>, L<perl(1)>
 
 L<github|http://kaz-utashiro.github.io/greple/>
 
+L<Getopt::EX>
 
 =head1 LICENSE
 

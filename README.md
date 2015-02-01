@@ -41,9 +41,10 @@ greple - grep with multiple keywords
     COLOR
       --color=when         use terminal color (auto, always, never)
       --nocolor            same as --color=never
-      --colormap=color     R, G, B, C, M, Y, W, Standout, Double-struck, Underline
+      --colormap=color     R, G, B, C, M, Y etc.
       --colorful           use default multiple colors
-      --[no]256            use ANSI 256 colors
+      --ansicolor=s        ANSI color 16, 256 or 24bit
+      --[no]256            same as --ansicolor 256 or 16
       --regioncolor        use different color for inside/outside regions
       --uniqcolor          use different color for unique string
       --random             use random color each time
@@ -410,12 +411,12 @@ or `(?<c>\w)\g{c}`.
 
     Option **--nocolor** is alias for **--color**=_never_.
 
-- **--colormap**=_RGBCYMKWrgbcymkwSUDF_, **--quote**=_start_,_end_
+- **--colormap**=_spec_
 
     Specify color map.  Default is RD: RED and BOLD.
 
-    COLOR is combination of single character representing uppercase
-    foreground color :
+    Color specification is combination of single uppercase character
+    representing 8 colors :
 
         R  Red
         G  Green
@@ -426,40 +427,51 @@ or `(?<c>\w)\g{c}`.
         K  Black
         W  White
 
-    and corresponding lowercase background color :
+    and alternative (usually brighter) colors in lowercase:
 
         r, g, b, c, m, y, k, w
 
-    or RGB value if using ANSI 256 color terminal :
+    or RGB value and 24 grey levels if using ANSI 256 color terminal :
 
-        FORMAT:
-            foreground[/background]
+        000000 .. FFFFFF : 24bit RGB colors
+        000 .. 555       : 6x6x6 RGB 216 colors
+        L00 .. L23       : 24 grey levels
 
-        COLOR:
-            000 .. 555       : 6 x 6 x 6 216 colors
-            000000 .. FFFFFF : 24bit RGB mapped to 216 colors
+    >     Note that, when values are all same in 24bit RGB, it is converted to
+    >     24 grey level, otherwise 6x6x6 216 color.
 
-        Sample:
-            005     0000FF        : blue foreground
-               /505       /FF00FF : magenta background
-            000/555 000000/FFFFFF : black on white
-            500/050 FF0000/00FF00 : red on green
+    with other special effects :
 
-    and other effects :
-
-        S  Stand-out (reverse video)
-        U  Underline
+        Z  Zero (reset)
         D  Double-struck (boldface)
+        P  Pale (dark)
+        I  Italic
+        S  Stand-out (reverse video)
+        V  Vanish (concealed)
+        U  Underline
         F  Flash (blink)
 
-    If the mode string contains colon \`:' character, they are used to
-    quote the matched string.  If you want to quote the pattern by angle
-    bracket, use like this.
+        ;  No effect
+        X  No effect
 
-        greple --quote='<:>' pattern
+    If the spec includes `/`, left side is considered for foreground
+    color and right side is for background.  If multiple colors are
+    given in same spec, all indicators are produced in the order of
+    their presence.  As a result, the last one takes effect.
 
-    Option **--quote** is an alias for **--colormap**, but it set the
-    option **--color**=_always_ at the same time.
+    Effect characters are case insensitive, and can be found anywhere and
+    in any order in color spec string.  Because `X` and `;` takes no
+    effect, you can use them to improve readability, like `SD;K/5x4x4`.
+
+    Samples:
+
+        RGB  6x6x6    24bit           color
+        ===  =======  =============   ==================
+        B    005      0000FF        : blue foreground
+         /M     /505        /FF00FF : magenta background
+        K/W  000/555  000000/FFFFFF : black on white
+        R/G  500/050  FF0000/00FF00 : red on green
+        W/w  L03/L20  303030/c6c6c6 : grey on grey
 
     Multiple colors can be specified separating by white space or comma,
     or by repeating options.  Those colors will be applied for each
@@ -470,7 +482,7 @@ or `(?<c>\w)\g{c}`.
 
         greple --cm R -e foo --cm G -e bar --cm B -e baz
 
-- **--colormap**=_field_=_color_,_field_=_color_,...
+- **--colormap**=_field_=_spec_,_field_=_spec_,...
 
     Another form of colormap option to specify the color for fields:
 
@@ -486,19 +498,19 @@ or `(?<c>\w)\g{c}`.
 
     Next command convert all words in C comment to upper case.
 
-        greple --all --include '/\*(?s:.*?)\*/' '\w+' --cm 'sub{uc}'
+        greple --all '/\*(?s:.*?)\*/' --cm 'sub{uc}'
 
-    Note that the form of _&func_ can be used just in the same way as
-    other color specifications. However, if it start with _sub{_ pattern,
-    all the rest of the argument is taken as a part of subroutine
-    definition.  So, it can not be combined with other color definitions.
+    You can quote matched string instead of coloring (this emulates
+    deprecated option **--quote**):
+
+        greple --cm 'sub{"<".$_.">"}' ...
 
     It is possible to use this definition with field names.  Next example
     print line numbers in seven digits.
 
         greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
 
-    Experimentally, these function can be combined with other normal color
+    Experimentally, function can be combined with other normal color
     specifications.  Also the form _&func;_ can be repeated.
 
         greple --cm 'BF/544;sub{uc}'
@@ -511,9 +523,15 @@ or `(?<c>\w)\g{c}`.
     mode, and **--colormap**='_D/544 D/454 D/445 D/455 D/454 D/554_' and
     other combination of 3, 4, 5 for 256 colors mode.  Enabled by default.
 
+- **--ansicolor**=_16_|_256_|_24bit_
+
+    If set as _16_, use ANSI 16 colors as a default color set, otherwise
+    ANSI 256 colors.  When set as _24bit_, 6 hex digits notation produces
+    24bit color sequence.  Default is _256_.
+
 - **--\[no\]256**
 
-    Set/unset ANSI 256 color mode.  Enabled by default.
+    Shortcut for **--ansicolor**=_256_ or _16_.
 
 - **--regioncolor**
 
@@ -1082,6 +1100,8 @@ Kazumasa Utashiro
 [grep(1)](http://man.he.net/man1/grep), [perl(1)](http://man.he.net/man1/perl)
 
 [github](http://kaz-utashiro.github.io/greple/)
+
+[Getopt::EX](https://metacpan.org/pod/Getopt::EX)
 
 # LICENSE
 

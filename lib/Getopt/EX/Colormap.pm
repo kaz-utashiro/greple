@@ -315,7 +315,6 @@ Note that, when values are all same in 24bit RGB, it is converted to
 
 with other special effects :
 
-    X  No effect
     Z  Zero (reset)
     D  Double-struck (boldface)
     P  Pale (dark)
@@ -325,17 +324,21 @@ with other special effects :
     U  Underline
     F  Flash (blink)
 
+    ;  No effect
+    X  No effect
+
 If the spec includes C</>, left side is considered for foreground
 color and right side is for background.  If multiple colors are
 given in same spec, all indicators are produced in the order of
 their presence.  As a result, the last one takes effect.
 
-Effect character can be found anywhare and in any order in color spec
-string.
+Effect characters are case insensitive, and can be found anywhere and
+in any order in color spec string.  Because C<X> and C<;> takes no
+effect, you can use them to improve readability, like C<SD;K/5x4x4>.
 
 Samples:
 
-    CHR  6x6x6    24bit           color
+    RGB  6x6x6    24bit           color
     ===  =======  =============   ==================
     B    005      0000FF        : blue foreground
      /M     /505        /FF00FF : magenta background
@@ -467,5 +470,10 @@ than color list, it rounds up.
 
 See super class L<Getopt::EX::LabeledParam>.
 
-
 =back
+
+
+=head1 SEE ALSO
+
+L<Getopt::EX>,
+L<Getopt::EX::LabeledParam>
