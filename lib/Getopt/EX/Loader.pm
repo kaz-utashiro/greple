@@ -110,10 +110,8 @@ sub deal_with {
 	    die $@ unless $! =~ /^No such file or directory/;
 	}
     }
-    $obj->modopt($argv, @_);
-    unshift @$argv, $obj->defaults;
-    $obj->expand($argv, @_);
-
+    $obj->modopt($argv);
+    $obj->expand($argv);
     $obj;
 }
 
@@ -171,7 +169,7 @@ sub parseopt {
     ##
     $bucket->run_inits($argref);
 
-    $obj;
+    $bucket;
 }
 
 sub expand {
@@ -179,7 +177,19 @@ sub expand {
     my $argv = shift;
 
     ##
-    ## Process user defined option.
+    ## Insert module defaults.
+    ##
+    unshift @$argv, map {
+	if (my @s = $_->default()) {
+	    my @modules = $obj->modopt(\@s);
+	    @s, map { $_->default } @modules;
+	} else {
+	    ();
+	}
+    } $obj->buckets;
+
+    ##
+    ## Expand user defined option.
     ##
   ARGV:
     for (my $i = 0; $i < @$argv; $i++) {
@@ -197,7 +207,7 @@ sub expand {
 		shift @rest;
 		s/\$<shift>/shift @rest/ge foreach @s;
 
-		my @default = map { $_->defaults } @module;
+		my @default = map { $_->default } @module;
 		push @$argv, @default, @s, @rest;
 		redo ARGV;
 	    }
