@@ -256,11 +256,10 @@ This is a example of labeled table:
     --cm 'OTEXT=C,NTEXT=M,*CHANGE=BD/445,DELETE=APPEND=RD/544' \
     --cm 'CMARK=GS,MMARK=YS,CTEXT=G,MTEXT=Y'
 
-Each color definitions are separated by colon (C<,>) and label is
-specified by I<LABEL=> style precedence.  Multiple labels can set for
-same value by connecting them together.  
-Label name can be specified
-with C<*> and C<?> wild characters.
+Each color definitions are separated by comma (C<,>) and label is
+specified by I<LABEL=> style precedence.  Multiple labels can be set
+for same value by connecting them together.  Label name can be
+specified with C<*> and C<?> wild characters.
 
 List example is like this:
 
@@ -277,7 +276,7 @@ Handler maintains hash and list objects, and labeled colors are stored
 in hash, non-label colors are in list automatically.  User can mix
 both specifications.
 
-Not only producing ANSI colored text, this module supports calling
+Besides producing ANSI colored text, this module supports calling
 arbitrary function to handle a string.  See L<FUNCTION SPEC> section
 for more detail.
 
@@ -300,7 +299,8 @@ and alternative (usually brighter) colors in lowercase:
 
     r, g, b, c, m, y, k, w
 
-or RGB value and 24 grey levels if using ANSI 256 color terminal :
+or RGB values and 24 grey levels if using ANSI 256 or full color
+terminal :
 
     000000 .. FFFFFF : 24bit RGB colors
     000 .. 555       : 6x6x6 RGB 216 colors
@@ -327,14 +327,14 @@ with other special effects :
     ;  No effect
     X  No effect
 
-If the spec includes C</>, left side is considered for foreground
-color and right side is for background.  If multiple colors are
-given in same spec, all indicators are produced in the order of
-their presence.  As a result, the last one takes effect.
+If the spec includes C</>, left side is considered as foreground color
+and right side as background.  If multiple colors are given in same
+spec, all indicators are produced in the order of their presence.
+Consequently, the last one takes effect.
 
 Effect characters are case insensitive, and can be found anywhere and
 in any order in color spec string.  Because C<X> and C<;> takes no
-effect, you can use them to improve readability, like C<SD;K/5x4x4>.
+effect, you can use them to improve readability, like C<SxD;K/544>.
 
 Samples:
 
@@ -346,28 +346,28 @@ Samples:
     R/G  500/050  FF0000/00FF00 : red on green
     W/w  L03/L20  303030/c6c6c6 : grey on grey
 
-RGB 24-bit color sequence is supported but disabled by default.  Set
-C<$COLOR_RGB24> module variable to enable it.
+24-bit RGB color sequence is supported but disabled by default.  Set
+C<$COLOR_RGB24> module variable to enable.
 
 
 =head1 FUNCTION SPEC
 
-It is also possible to set arbitrary function is called to handle
-string in place of color, which is not necessarily concerned with
-color.  This scheme is quite powerful and the module name itself may
-be somewhat misleading.  Spec string which start with C<sub{> is
+It is also possible to set arbitrary function which is called to
+handle string in place of color, and that is not necessarily concerned
+with color.  This scheme is quite powerful and the module name itself
+may be somewhat misleading.  Spec string which start with C<sub{> is
 considered as a function definition.  So
 
     % example --cm 'sub{uc}'
 
 set the function object in the color entry.  And when C<color> method
 is called with that object, specified function is called instead of
-producing ANSI color sequence.  Function is supposed to get text to be
-handled as a global variable C<$_>, and return the result as a string.
+producing ANSI color sequence.  Function is supposed to get the target
+text as a global variable C<$_>, and return the result as a string.
 Function C<sub{uc}> in the above example returns uppercase version of
 C<$_>.
 
-If your script print file name according to the color spec labeled by
+If your script prints file name according to the color spec labeled by
 B<FILE>, then
 
     % example --cm FILE=R
@@ -376,10 +376,10 @@ prints the file name in red, but
 
     % example --cm FILE=sub{uc}
 
-will print the name in uppercase.
+will print the name in uppercases.
 
-Spec start with C<&> is considered as a function call.  If the
-function C<double> is defined like this:
+Spec start with C<&> is considered as a function name.  If the
+function C<double> is defined like:
 
     sub double { $_ . $_ }
 
