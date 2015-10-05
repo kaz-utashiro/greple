@@ -5,17 +5,14 @@ use warnings;
 use Carp;
 
 use Exporter 'import';
-our @EXPORT = (	'GetOptions',
-		'GetOptionsFromArray',
-#		'GetOptionsFromString',
-		'Configure',
-		'HelpMessage',
-		'VersionMessage',
-
-		'ExConfigure',
+our @EXPORT      = ( 'GetOptions' );
+our @EXPORT_OK   = ( 'GetOptionsFromArray',
+		   # 'GetOptionsFromString',
+		     'Configure',
+		     'HelpMessage',
+		     'VersionMessage',
+		     'ExConfigure',
     );
-our @EXPORT_OK   = qw();
-our %EXPORT_TAGS = ( all => [ @EXPORT, @EXPORT_OK ] );
 our @ISA         = qw(Getopt::Long);
 
 use Data::Dumper;
@@ -202,3 +199,14 @@ If the module includes C<__DATA__> section, it is interpreted just
 same as rc file.  So you can define arbitrary option there.  Combined
 with startup function call described above, it is possible to control
 module behavior by user defined option.
+
+=head1 INCOMPATIBILITY
+
+Subroutine B<GetOptionsFromString> is not supported.
+
+Variables C<$REQUIRE_ORDER>, C<$PERMUTE>, C<$RETURN_IN_ORDER> can not
+be exported.
+
+=head1 SEE ALSO
+
+L<Getopt::EX>
