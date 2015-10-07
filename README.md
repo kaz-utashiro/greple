@@ -173,7 +173,7 @@ or `(?<c>\w)\g{c}`.
     means negative pattern, \`?' means alternative, and \`+' does required.
 
     Next example print lines which contains \`foo' and \`bar', and one or
-    more of \`yabba' and 'dabba', and none of \`bar' and \`doo'.
+    more of \`yabba' and 'dabba', and none of \`baz' and \`doo'.
 
         greple --le='foo bar -baz ?yabba ?dabba -doo'
 
@@ -230,9 +230,9 @@ or `(?<c>\w)\g{c}`.
     Specify negative match token.  Because it does not affect to the bare
     pattern argument, you can narrow down the search result like this.
 
-        greple foo pattern file
-        greple foo pattern file -v bar
-        greple foo pattern file -v bar -v baz
+        greple foo file
+        greple foo file -v bar
+        greple foo file -v bar -v baz
 
 - **--re**=_pattern_
 
@@ -461,7 +461,7 @@ or `(?<c>\w)\g{c}`.
 
     Effect characters are case insensitive, and can be found anywhere and
     in any order in color spec string.  Because `X` and `;` takes no
-    effect, you can use them to improve readability, like `SD;K/5x4x4`.
+    effect, you can use them to improve readability, like `SxD;K/544`.
 
     Samples:
 
@@ -903,6 +903,25 @@ interpreted as a bare word.
 - **--require**=_filename_
 
     Include arbitrary perl program.
+
+- **--conceal** _type_=_val_
+
+    Conceal runtime errors.  Repeatable.  Types are:
+
+    - **read**
+
+        (Default 1) Errors occured during file read.  Mainly unicode related
+        errors when reading binary or umbiguous text file.
+
+    - **skip**
+
+        (Default 0) File skip warings produced when fatal error was occured
+        during file read.  Occurs when reading binary files with automatic
+        character code recognition.
+
+    - **all**
+
+        Set same value for all types.
 
 # ENVIRONMENT and STARTUP FILE
 
