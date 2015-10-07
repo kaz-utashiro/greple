@@ -85,19 +85,16 @@ sub code    { setup and @{$part{code}}    }
 
 __DATA__
 
-define :comment: ^([ \t]*#.*\n)+
-define :pod: ^=(?s:.*?)(?:\Z|^=cut[ \t]*\n)
-define :doc: :pod:|:comment:
+defopt :code    &part(code)
+defopt :comment &part(comment)
+defopt :pod     &part(pod)
+defopt :doc     &part(doc)
 
-option --allsection --pod --comment --code
-
-option --pod     --inside  :pod:
-option --comment --inside  :comment:
-option --code    --outside :doc:
-
-#option --pod     --inside  '&pod'
-#option --comment --inside  '&comment'
-#option --code    --outside '&doc'
+option --code    --inside :code
+option --comment --inside :comment
+option --pod     --inside :pod
+option --doc     --inside :doc
+option --allpart --pod --comment --code
 
 option	--cd \
 	--le '&part(code)'    --cm=R \
