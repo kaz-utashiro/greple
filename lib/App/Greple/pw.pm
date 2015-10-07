@@ -89,6 +89,8 @@ Currently following options are available:
     clear_screen
     clear_buffer
     goto_home
+    browser
+    timeout
     parse_matrix
     parse_id
     parse_pw
@@ -101,6 +103,7 @@ Currently following options are available:
     pw_color
     pw_label_color
     pw_blackout
+    debug
 
 Password is not blacked out when B<pw_blackout> is 0.  If it is 1, all
 password characters are replaced by 'x'.  If it is greater than 1,
@@ -112,7 +115,9 @@ current list.
 
 =item B<pw_status>
 
-Print option status.
+Print option status.  Next command displays defaults.
+
+    greple -Mpw::pw_status= dummy /dev/null
 
 =back
 
@@ -158,14 +163,17 @@ our $clear_string = 'Hasta la vista.';
 our $clear_screen = 1;
 our $clear_buffer = 1;
 our $goto_home = 0;
+our $browser = 'chrome';
+our $timeout = 300;
 
 my @flags = (
-    debug           => \$debug,
     clear_clipboard => \$clear_clipboard,
     clear_string    => \$clear_string,
     clear_screen    => \$clear_screen,
     clear_buffer    => \$clear_buffer,
     goto_home       => \$goto_home,
+    browser         => \$browser,
+    timeout         => \$timeout,
     parse_matrix    => \$App::Greple::PwBlock::parse_matrix,
     parse_id        => \$App::Greple::PwBlock::parse_id,
     parse_pw        => \$App::Greple::PwBlock::parse_pw,
@@ -178,6 +186,7 @@ my @flags = (
     pw_color        => \$App::Greple::PwBlock::pw_color,
     pw_label_color  => \$App::Greple::PwBlock::pw_label_color,
     pw_blackout     => \$App::Greple::PwBlock::pw_blackout,
+    debug           => \$debug,
     );
 my %flags = @flags;
 my @label = @flags[grep { $_ % 2 == 0 } 0 .. $#flags];
@@ -202,6 +211,7 @@ sub pw_option {
 }
 
 sub pw_status {
+    binmode STDOUT, ":encoding(utf8)";
     for my $key (@label) {
 	my $val = $flags{$key};
 	print($key, ": ",
@@ -220,14 +230,35 @@ sub pw_epilogue {
     print STDERR CSI, "3J" if $clear_buffer;
 }
 
+sub pw_timeout {
+    if ($debug) {
+	warn "pw_timeout() called.\n";
+	sleep 1;
+    }
+    pw_epilogue();
+    exit;
+}
+
 sub command_loop {
     my $pw = shift;
 
     open TTY, "/dev/tty" or die;
+
+    require Term::ReadLine;
+    my $term = Term::ReadLine->new(__PACKAGE__, *TTY, *STDOUT);
+
     binmode TTY, ":encoding(utf8)";
-    while (print STDERR "> " and $_ = <TTY>) {
+    binmode STDOUT, ":encoding(utf8)";
+
+    while ($_ = $term->readline("> ")) {
+	if ($timeout) {
+	    $SIG{ALRM} = \&pw_timeout;
+	    alarm $timeout;
+	    warn "Set timeout to $timeout seconds\n" if $debug;
+	}
 	/\S/ or next;
-	chomp;
+	$term->addhistory($_);
+	s/\s+\z//;
 	$_ = kana2alpha($_);
 
 	if (my $id = $pw->id($_)) {
@@ -244,11 +275,11 @@ sub command_loop {
 	}
 
 	if (0) {}
-	elsif (/^D/)  { print Dumper $pw }
-	elsif (/^n/i) { last }
-	elsif (/^p/i) { print $pw->masked }
-	elsif (/^q/i) { return 0 }
-	elsif (/^v/i) {
+	elsif (/^dump\b/)  { print Dumper $pw }
+	elsif (/^N/i) { last }
+	elsif (/^P/i) { print $pw->masked }
+	elsif (/^Q/i) { return 0 }
+	elsif (/^V/i) {
 	    s/^.\s*//;
 	    my @option = split /\s+/;
 	    if (@option == 0) {
@@ -256,6 +287,77 @@ sub command_loop {
 	    } else {
 		my @values = map { $pw->any($_) // '[N/A]' } @option;
 		print "@values\n";
+	    }
+	}
+	elsif (/^show\b/i) {
+	    print $pw->masked;
+	}
+	elsif (/^orig\b/i) {
+	    print $pw->orig;
+	}
+	##
+	## INPUT to browser
+	##
+	elsif (s/^input\s*//i) {
+	    my %field = do {
+		map {
+		    m{
+			( (?: name: | id: )? \w+ )
+			(?|
+			  \s+ (.*) # '=' がなければ残り全部
+			  |
+			  = ( \/.+\/ | \w+ (?:,\w+)* )
+			)
+		    }xg
+		}
+		$pw->orig =~ /^INPUT\s+(.+)/mg;
+	    };
+	    warn Dumper \%field if $debug;
+	    my @arg = do {
+		map { /^([a-z]\d\s*){2,}$/i ? /([a-z]\d)/gi : $_ }
+		map { m{^/(.+)/$} ? get_pattern($1) : $_ }
+		map { $field{$_} or $_ }
+		map { split /[\s=]+/ }
+		map { $field{$_} or $_ }
+		split /\s+/;
+	    };
+	    warn "@arg\n" if $debug;
+	    while (@arg >= 2) {
+		my $label = shift @arg;
+		my @fields = split /[,]/, $label;
+		for my $field (@fields) {
+		    my $item = shift @arg;
+		    my $value = $pw->any($item) // $item;
+		    set_browser_field($field, $value);
+		}
+	    }
+	}
+	elsif (/^set$/) {
+	    for my $var (sort keys %flags) {
+		print "$var: ";
+		if (ref $flags{$var} eq 'SCALAR') {
+		    print ${$flags{$var}};
+		} else {
+		    my @val = @{$flags{$var}};
+		    print qq("@val");
+		}
+		print "\n";
+	    }
+	}
+	elsif (s/^set\s+//) {
+	    my($var, $val) = split /\s+/, $_, 2;
+	    if (my $ref = $flags{$var}) {
+		if (ref $ref eq 'SCALAR') {
+		    $$ref = $val;
+		}
+		elsif (ref $ref eq 'ARRAY') {
+		    @$ref = split /\s+/, $val;
+		}
+		else {
+		    die;
+		}
+	    } else {
+		warn "Unknown variable: $var";
 	    }
 	}
 	elsif (/^([A-J]\d\s*)+$/i) {
@@ -280,9 +382,9 @@ my %kana2alpha = (
     );
 
 sub kana2alpha {
-    my $text = shift;
-    $text =~ s/([アイウエオカキクケコ])/$kana2alpha{$1}/g;
-    $text;
+    local $_ = shift;
+    s/([アイウエオカキクケコ])/$kana2alpha{$1}/g;
+    $_;
 }
 
 my $clipboard;
@@ -325,6 +427,77 @@ sub dumpto {
     close COM;
 }
 
+sub apple_script {
+    my $app = shift;
+    shift if $_[0] eq 'to';
+    my $do = join "\n", @_;
+    my $script = <<"    end_script";
+	tell Application "$app"
+	    $do
+	end tell
+    end_script
+    warn $script if $debug;
+    if ((open(CMD, "-|") // die) == 0) {
+	exec 'osascript', '-e', $script or die;
+    } else {
+	my $result = do { local $/; <CMD> };
+	close CMD;
+	warn $result if $debug;
+	return $result =~ /missing value/ ? undef : $result;
+    }
+}
+
+my %js_subs = (
+    chrome => \&js_chrome,
+    safari => \&js_safari,
+    );
+
+sub js {
+    (my $sub = $js_subs{$browser}) // do {
+	warn "Unsupported browser: $browser";
+	return;
+    };
+    goto $sub;
+}
+
+sub _js {
+    goto &js_chrome;
+}
+
+sub js_chrome {
+    my $js = shift;
+    $js =~ s/"/\\"/g;
+    $js =~ s/\n//g;
+    my $script = <<"    end_script";
+	tell active tab of window 1
+	    execute javascript ("$js")
+	end tell
+    end_script
+    apple_script 'Google Chrome', $script;
+}
+
+sub js_safari {
+    my $js = shift;
+    $js =~ s/"/\\"/g;
+    apple_script 'Safari', <<"    end_script";
+	tell current tab of window 1
+	    do JavaScript ("$js")
+	end tell
+    end_script
+}
+
+sub set_browser_field {
+    my $name = shift;
+    my $value = shift;
+    js "document.getElementsByName('$name')[0].value='$value'"
+	if defined $value;
+}
+
+sub get_pattern {
+    my $pattern = shift;
+    js "document.body.textContent.match(/$pattern/)";
+}    
+
 1;
 
 
@@ -334,3 +507,13 @@ option default \
 	--paragraph \
 	--print pw_print \
 	--end pw_epilogue
+
+option --pw_option --begin pw_option($<shift>=$<shift>)
+
+option --debug --pw_option debug 1
+
+option --timeout --pw_option timeout
+
+option --browser --pw_option browser
+option --chrome --browser chrome
+option --safari --browser safari

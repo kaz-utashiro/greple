@@ -63,19 +63,23 @@ sub parse {
     my $obj = shift;
     $obj->{orig} = $obj->{masked} = shift;
     $obj->parse_matrix if $parse_matrix;
-    $obj->parse_id if $parse_id;
     $obj->parse_pw if $parse_pw;
+    $obj->parse_id if $parse_id;
     $obj;
 }
     
 sub make_pattern {
+    my $opt = ref $_[0] eq 'HASH' ? shift : {};
     use English;
     local $LIST_SEPARATOR = '|';
-    qr{ (?:@_)\w*[:=]? [\ \t]* \K ( .* ) }xi;
+    my @match = @_;
+    my @except = qw(INPUT);
+    push @except, @{$opt->{IGNORE}} if $opt->{IGNORE};
+    qr{ ^\s*+ (?!@except) .*? (?:@match)\w*[:=]? [\ \t]* \K ( .* ) }mxi;
 }
 
 our @id_keys = (
-    qw(ID ACCOUNT USER CODE NUMBER),
+    qw(ID ACCOUNT USER CODE NUMBER URL),
     qw(ユーザ アカウント コード 番号),
     );
 our $id_chars = '[\w\.\-\@]';
@@ -97,7 +101,7 @@ sub parse_id {
 
 our @pw_keys = (
     qw(PASS PIN),
-    qw(パス),
+    qw(パス 暗証),
     );
 our $pw_chars = '\S';
 our $pw_color = 'K/545';
@@ -107,7 +111,7 @@ our $pw_blackout = 1;
 sub parse_pw {
     shift->parse_xx(
 	hash => 'pw',
-	pattern => make_pattern(@pw_keys),
+	pattern => make_pattern({IGNORE => [ 'URL' ]}, @pw_keys),
 	chars => $pw_chars,
 	start_label => 'a',
 	label_format => '[%s]',
@@ -127,7 +131,10 @@ sub parse_xx {
     my $chars = qr/$opt{chars}/;
     $obj->{masked} =~ s{ (?!.*\e) $opt{pattern} }{
 	local $_ = $1;
-	s{ (?| (\()([^)]+)(\)) | ()($chars+) )}{
+	s{ (?| ()    (https?://[^\s{}|\\\^\[\]\`]+)	# URL
+	     | ([(]) ([^)]+)(\))	# ( text )
+	     | ()    ($chars+) )	#   text
+	}{
 	    my($pre, $match, $post) = ($1, $2, $3 // '');
 	    $hash{$label_id} = $match;
 	    my $label = sprintf $opt{label_format}, $label_id++;
@@ -189,7 +196,7 @@ sub guess_matrix_area {
     my @more   = map { [ grep { length >= 3 } @$_ ] } @words;
     my $series = 5;
 
-    map  { [ sum(@length[0 .. $_->[0]]) - length $->[0],
+    map  { [ sum(@length[0 .. $_->[0]]) - $length[$->[0]],
 	     sum(@length[0 .. $_->[1]]) ] }
     sort { $b->[1] - $b->[0] <=> $a->[1] - $a->[0] }
     grep { $_->[0] + $series - 1 <= $_->[1] }
