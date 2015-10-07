@@ -1121,7 +1121,7 @@ token is interpreted by the first character.  Token start with `-'
 means negative pattern, `?' means alternative, and `+' does required.
 
 Next example print lines which contains `foo' and `bar', and one or
-more of `yabba' and 'dabba', and none of `bar' and `doo'.
+more of `yabba' and 'dabba', and none of `baz' and `doo'.
 
     greple --le='foo bar -baz ?yabba ?dabba -doo'
 
@@ -1178,9 +1178,9 @@ Specify required match token.  Next two commands are equivalent.
 Specify negative match token.  Because it does not affect to the bare
 pattern argument, you can narrow down the search result like this.
 
-    greple foo pattern file
-    greple foo pattern file -v bar
-    greple foo pattern file -v bar -v baz
+    greple foo file
+    greple foo file -v bar
+    greple foo file -v bar -v baz
 
 =item B<--re>=I<pattern>
 
@@ -1435,7 +1435,7 @@ their presence.  As a result, the last one takes effect.
 
 Effect characters are case insensitive, and can be found anywhere and
 in any order in color spec string.  Because C<X> and C<;> takes no
-effect, you can use them to improve readability, like C<SD;K/5x4x4>.
+effect, you can use them to improve readability, like C<SxD;K/544>.
 
 Samples:
 
