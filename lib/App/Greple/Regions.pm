@@ -87,6 +87,9 @@ sub match_regions {
     my $pattern = $arg{pattern} // croak "Parameter error";
     my $regex = ref $pattern eq 'Regexp' ? $pattern : qr/$pattern/m;
     my @regions;
+
+    no warnings 'utf8';
+
     while (/$regex/gp) {
 	##
 	## this is much faster than:

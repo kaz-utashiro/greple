@@ -35,6 +35,13 @@ use Encode;
 use Encode::Guess;
 
 ##
+## Setting utf8 warnings fatal makes it easy to find code conversion
+## error, so you can choose appropreate file code or automatic code
+## recognition, but loose a chance to find string in unrelated area.
+##
+use warnings FATAL => 'utf8';
+
+##
 ## Setup greple/lib to be a module directory if exists.
 ##
 BEGIN {
@@ -193,6 +200,7 @@ my @opt_print;
 my $opt_continue;
 my $opt_filestyle = 'line';
 my $opt_linestyle = 'line';
+my %opt_conceal = (read => 1, skip => 0);
 my $opt_usage;
 
 my $opt_c;
@@ -275,6 +283,7 @@ my @optargs = (
     'regioncolor|rc!'    => \$opt_regioncolor,
     'print=s'            => \@opt_print,
     'continue!'          => \$opt_continue,
+    'conceal=i'          => \%opt_conceal,
     'usage:s'            => \$opt_usage,
     'M:s'                => sub {
 	warn "Use -M option at the beginning with module name.\n";
@@ -359,6 +368,10 @@ our %opt_d;
 
 if ($opt_d{o}) {
     warn "\@ARGV = ", join(' ', shellquote(@SAVEDARGV)), "\n";
+}
+
+if (exists $opt_conceal{all}) {
+    $opt_conceal{$_} = $opt_conceal{all} for keys %opt_conceal;
 }
 
 my $file_code;
@@ -701,6 +714,7 @@ if (@opt_pf) {
 usage() and exit if defined $opt_usage;
 
 open SAVESTDIN,  '<&', \*STDIN or die "open: $!";
+open SAVESTDERR, '>&', \*STDERR or die "open: $!";
 
 ##------------------------------------------------------------
 ## now ready to run.
@@ -750,15 +764,17 @@ exit($stat{match_effective} == 0);
 sub grep_files {
     while (defined($current_file = open_nextfile())) {
 
+	close STDERR if $opt_conceal{read};
 	my $content = eval { local $/; <STDIN> };
+	open STDERR, '>&', \*SAVESTDERR or die "open: $!" if $opt_conceal{read};
+
 	if (not defined $content) {
 	    warn $@ if $@;
-	    warn "SKIP $current_file\n";
+	    warn "SKIP $current_file\n" unless $opt_conceal{skip};
 	    next;
 	}
 
 	warn $current_file, ":\n" if $opt_d{f};
-	defined $content or next;
 
 	my $matched = grep_data(\$content);
 
@@ -1921,6 +1937,29 @@ information can be display by giving appropriate flag to -d option.
     v: internal match information
 
 =end comment
+
+=item B<--conceal> I<type>=I<val>
+
+Conceal runtime errors.  Repeatable.  Types are:
+
+=over 4
+
+=item B<read>
+
+(Default 1) Errors occured during file read.  Mainly unicode related
+errors when reading binary or umbiguous text file.
+
+=item B<skip>
+
+(Default 0) File skip warings produced when fatal error was occured
+during file read.  Occurs when reading binary files with automatic
+character code recognition.
+
+=item B<all>
+
+Set same value for all types.
+
+=back
 
 =back
 
