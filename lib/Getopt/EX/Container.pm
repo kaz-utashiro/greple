@@ -21,6 +21,7 @@ sub new {
 	Module => undef,
 	Base => undef,
 	Define => [],
+	Expand  => [],
 	Option => [],
 	Builtin => [],
 	Call => [],
@@ -123,10 +124,20 @@ sub expand {
 use constant BUILTIN => "__BUILTIN__";
 sub validopt { $_[0] ne BUILTIN }
 
+sub setlocal {
+    my $obj = shift;
+    $obj->setlist("Expand", @_);
+}
+
 sub setopt {
     my $obj = shift;
+    $obj->setlist("Option", @_);
+}
+
+sub setlist {
+    my $obj = shift;
+    my $list = $obj->{+shift};
     my $name = shift;
-    my $list = $obj->{Option};
     my @args = do {
 	if (ref $_[0] eq 'ARRAY') {
 	    @{ $_[0] };
@@ -134,6 +145,14 @@ sub setopt {
 	    map { shellwords $_ } @_;
 	}
     };
+
+    for (my $i = 0; $i < @args; $i++) {
+	if (my @opt = $obj->getlocal($args[$i])) {
+	    splice @args, $i, 1, @opt;
+	    redo;
+	}
+    }
+
     for (@args) {
 	$obj->expand(\$_);
     }
@@ -149,6 +168,16 @@ sub getopt {
     my $e = first {
 	$_->[0] eq $name and $opt{ALL} || validopt($_->[1])
     } @$list;
+    my @e = $e ? @$e : ();
+    shift @e;
+    @e;
+}
+
+sub getlocal {
+    my $obj = shift;
+    my($name, %opt) = @_;
+
+    my $e = first { $_->[0] eq $name } @{$obj->{Expand}};
     my @e = $e ? @$e : ();
     shift @e;
     @e;
@@ -206,11 +235,17 @@ sub parseline {
 	$obj->help($optname, $+{message});
     }
 
+    ##
+    ## Commands
+    ##
     if ($arg[0] eq "define") {
 	$obj->define($arg[1], $arg[2]);
     }
     elsif ($arg[0] eq "option") {
 	$obj->setopt($arg[1], $arg[2]);
+    }
+    elsif ($arg[0] eq "expand") {
+	$obj->setlocal($arg[1], $arg[2]);
     }
     elsif ($arg[0] eq "defopt") {
 	$obj->define($arg[1], $arg[2]);
@@ -259,20 +294,20 @@ sub run_inits {
     my $module = $obj->module;
 
     ##
+    ## Call function specified with module.
+    ##
+    for my $call ($obj->call) {
+	my $func = $call->can('call') ? $call : parse_func($call);
+	$func->call;
+    }
+
+    ##
     ## Call &initialize if defined.
     ##
     my $init = "${module}::initialize";
     if (defined &$init) {
 	no strict 'refs';
 	&$init($obj, $argv);
-    }
-
-    ##
-    ## Call function specified with module.
-    ##
-    for my $call ($obj->call) {
-	my $func = $call->can('call') ? $call : parse_func($call);
-	$func->call;
     }
 }
 
@@ -340,10 +375,23 @@ will be evaluated as this:
 
     greple --le &line=10,20-30,40
 
+=item B<expand> I<name> I<string>
+
+Define local option I<name>.  Command B<expand> is almost same as
+command B<option> in terms of its function.  However, option defined
+by this command is expanded in, and only in, the process of
+definition, while option definition is expanded when command arguments
+are processed.
+
+This is similar to string macro defined by following B<define>
+command.  But macro expantion is done by simple string replacement, so
+you have to use B<expand> to define option composed by multiple
+arguments.
+
 =item B<define> I<name> I<string>
 
-Define macro.  This is similar to B<option>, but argument is not
-processed by I<shellwords> and treated just a simple text, so
+Define string macro.  This is similar to B<option>, but argument is
+not processed by I<shellwords> and treated just a simple text, so
 meta-characters can be included without escape.  Macro expansion is
 done for option definition and other macro definition.  Macro is not
 evaluated in command line option.  Use option directive if you want to

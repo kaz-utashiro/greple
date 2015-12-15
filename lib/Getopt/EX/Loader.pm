@@ -13,6 +13,8 @@ use Data::Dumper;
 use Getopt::EX::Container;
 use Getopt::EX::Func qw(parse_func);
 
+our $debug = 0;
+
 sub new {
     my $class = shift;
 
@@ -124,9 +126,8 @@ sub modopt {
     my $start_re = qr/\Q$start\E/;
     my @modules;
     while (@$argv) {
-	if ($argv->[0] =~ /^$start_re(?<module>.+)/) {
-	    shift @$argv;
-	    if (my $mod = $obj->parseopt($+{module}, $argv)) {
+	if ($argv->[0] =~ s/^$start_re(.+)/$1/) {
+	    if (my $mod = $obj->parseopt($argv)) {
 		push @modules, $mod;
 	    }
 	    next;
@@ -138,26 +139,30 @@ sub modopt {
 
 sub parseopt {
     my $obj = shift;
-    my $mod = shift;
-    my $argref = shift;
+    my $argv = shift;
     my $base = $obj->baseclass;
     my $call;
 
     ##
     ## Check -Mmod::func(arg) or -Mmod::func=arg
     ##
-    if ($mod =~ s{
-	^ (?<name> .* ) ::
-	  (?<call>
+    if ($argv->[0] =~ s{
+	^ (?<name> \w+ )
+	  (?:
+	    ::
+	    (?<call>
 		\w+
 		(?: (?<P>[(]) | = )  ## start with '(' or '='
 		(?<arg> [^)]* )      ## optional arg list
 		(?(<P>) [)] | )      ## close ')' or none
-	  ) $
+	    )
+	  )?
+	  $
     }{$+{name}}x) {
 	$call = $+{call};
     }
 
+    my $mod = shift @$argv;
     my $bucket = eval { $obj->load_module($mod) } or die $@;
 
     if ($call) {
@@ -167,7 +172,7 @@ sub parseopt {
     ##
     ## If &getopt is defined in module, call it and replace @ARGV.
     ##
-    $bucket->run_inits($argref);
+    $bucket->run_inits($argv);
 
     $bucket;
 }
@@ -197,18 +202,24 @@ sub expand {
 	my($opt, $value) = split /=/, $argv->[$i], 2;
 	for my $bucket ($obj->buckets) {
 	    if (my @s = $bucket->getopt($opt)) {
-		my @module = $obj->modopt(\@s);
+
 		splice @$argv, $i, 1, ($opt, $value) if defined $value;
+
 		##
 		## Convert $<n> and $<shift>
 		##
-		my @rest = splice @$argv, $i;
-		s/\$<(\d+)>/$rest[$1]/ge foreach @s;
-		shift @rest;
-		s/\$<shift>/shift @rest/ge foreach @s;
+		my @follow = splice @$argv, $i;
+		s/\$<(\d+)>/$follow[$1]/ge foreach @s;
+		shift @follow;
+		s/\$<shift>/shift @follow/ge foreach @s;
+
+		printf(STDERR "\@ARGV = %s\n",
+		       join(' ', @$argv, @s, @follow)) if $debug;
+
+		my @module = $obj->modopt(\@s);
 
 		my @default = map { $_->default } @module;
-		push @$argv, @default, @s, @rest;
+		push @$argv, @default, @s, @follow;
 		redo ARGV;
 	    }
 	}
