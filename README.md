@@ -175,7 +175,7 @@ or `(?<c>\w)\g{c}`.
     means negative pattern, \`?' means alternative, and \`+' does required.
 
     Next example print lines which contains \`foo' and \`bar', and one or
-    more of \`yabba' and 'dabba', and none of \`bar' and \`doo'.
+    more of \`yabba' and 'dabba', and none of \`baz' and \`doo'.
 
         greple --le='foo bar -baz ?yabba ?dabba -doo'
 
