@@ -19,12 +19,10 @@ WriteMakefile(
     BUILD_REQUIRES => {
         'Test::More' => 0,
     },
-    REQUIRES => {
-        'Term/ReadKey' => 0,
-    },
     PREREQ_PM => {
-        'Test::More'         => 0,
-        'version'            => 0,
+        'Test::More'   => 0,
+        'version'      => 0,
+        'Term/ReadKey' => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'App-Greple-*' },
