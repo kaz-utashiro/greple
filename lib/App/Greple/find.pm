@@ -35,9 +35,25 @@ use warnings;
 use Carp;
 use Data::Dumper;
 
+use App::Greple::Common;
+
+my $path;
+my $chdir;
+my $debug;
+
+sub set {
+    my %arg = @_;
+    $path = $arg{path} if defined $arg{path};
+    $chdir = $arg{chdir} if defined $arg{chdir};
+}
+
 sub initialize {
     my $rc = shift;
     my $argv = shift;
+
+    if ($chdir) {
+	chdir $chdir or die "chdir: $!";
+    }
 
     my @find;
     while (@$argv) {
@@ -46,15 +62,16 @@ sub initialize {
 	last if $arg eq '--';
 	push @find, $arg;
     }
-    if (@find) {
-	my $pid = open STDIN, '-|';
-	croak "process fork failed" if not defined $pid;
-	if ($pid == 0) {
-	    $find[0] =~ s/^!// or unshift @find, 'find';
-	    exec @find or croak "Can't exec $find[0]";
-	    exit;
-	}
+    return unless @find;
+
+    my $pid = open STDIN, '-|' // croak "process fork failed";
+    return if $pid;
+
+    unless ($find[0] =~ s/^!//) {
+	unshift @find, $path if defined $path;
+	unshift @find, 'find';
     }
+    exec @find or croak "Can't exec $find[0]";
 }
 
 1;
