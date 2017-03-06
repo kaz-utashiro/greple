@@ -6,8 +6,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME             => 'App::Greple',
     AUTHOR           => q{Kazumasa Utashiro <kaz@utashiro.com>},
-    VERSION_FROM     => 'lib/App/Greple.pm',
-    ABSTRACT_FROM    => 'lib/App/Greple.pm',
+    VERSION_FROM     => 'bin/greple',
+    ABSTRACT         => q{grep type command with ritch context},
     EXE_FILES        => [
         'bin/greple',
     ],

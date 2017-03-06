@@ -5,7 +5,7 @@ use warnings;
 
 =head1 NAME
 
-App::Greple
+App::Greple - grep type command with ritch context
 
 =head1 VERSION
 

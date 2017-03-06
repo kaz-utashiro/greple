@@ -5,6 +5,8 @@
 ## Copyright (c) 1991-2017 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
+##
+;; our($VERSION) = q$Revision: greple,v 7.1$ =~ /(\d+\.\d+)/g;
 ;; my $rcsid = q$Id: greple,v 7.1 2017/03/06 03:29:33 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
