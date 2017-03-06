@@ -24,6 +24,7 @@ sub new {
 	Expand  => [],
 	Option => [],
 	Builtin => [],
+	Autoload => {},
 	Call => [],
 	Help => [],
     }, $class;
@@ -170,6 +171,18 @@ sub getopt {
     } @$list;
     my @e = $e ? @$e : ();
     shift @e;
+
+    # check autoload
+    unless (@e) {
+	my $hash = $obj->{Autoload};
+	for my $mod (keys %$hash) {
+	    if (exists $hash->{$mod}->{$name}) {
+		delete $hash->{$mod};
+		return ($mod, $name);
+	    }
+	}
+    }
+
     @e;
 }
 
@@ -190,7 +203,10 @@ sub default {
 
 sub options {
     my $obj = shift;
-    reverse map { $_->[0] } @{$obj->{Option}};
+    my $auto = $obj->{Autoload};
+    my @option = reverse map { $_->[0] } @{$obj->{Option}};
+    my @auto = map { keys %{$auto->{$_}} } keys $auto;
+    (@option, @auto);
 }
 
 sub help {
@@ -263,6 +279,10 @@ sub parseline {
 				      '%' => \%{$name}}->{$mark});
 	}
     }
+    elsif ($arg[0] eq "autoload") {
+	shift @arg;
+	$obj->autoload(@arg);
+    }
     elsif ($arg[0] eq "help") {
 	$obj->help($arg[1], $arg[2]);
     }
@@ -279,6 +299,23 @@ sub builtin {
     my $list = $obj->{Builtin};
     @_  ? push @$list, @_
 	: @$list;
+}
+
+sub autoload {
+    my $obj = shift;
+    my $module = shift;
+    my @option = do {
+	if (ref $_[0] eq 'ARRAY') {
+	    @{ $_[0] };
+	} else {
+	    map { shellwords $_ } @_;
+	}
+    };
+    my $hash = ($obj->{Autoload}->{$module} //= {});
+    map {
+	$hash->{$_} = 1;
+	$obj->help($_, "autoload: $module");
+    } @option;
 }
 
 sub call {
@@ -415,6 +452,18 @@ Arguments are assumed to be L<Getopt::Long> style spec, and
 I<variable> is string start with C<$>, C<@> or C<%>.  They will be
 replaced by a reference to the object which the string represent.
 
+=item B<autoload> I<module> I<options>
+
+Define module which should be loaded automatically when specified
+option is found in the command arguments.
+
+For example,
+
+    autoload -Mdig --dig
+
+replaces option "I<--dig>" to "I<-Mdig --dig>", and I<dig> module is
+loaded before processing I<--dig> option.
+
 =back
 
 
@@ -454,6 +503,10 @@ Define macro.
 
 Set option.
 
+=item B<setlocal> I<name>, I<option>
+
+Set option which is effective only in the module.
+
 =item B<getopt> I<name>
 
 Get option.  Takes option name and return it's definition if
@@ -467,5 +520,9 @@ Get default option.  Use C<setopt(default =E<gt> ...)> to set.
 =item B<builtin>
 
 Get built-in options.
+
+=item B<autoload>
+
+Set autoload module.
 
 =back
