@@ -893,7 +893,7 @@ sub grep_data {
 	$f->call(&FILELABEL => $current_file);
     }
 
-    my $grepper = new App::Greple::Grep (
+    my $grep = new App::Greple::Grep (
 	text         => \$_,
 	filename     => $current_file,
 	pattern      => $pat_holder,
@@ -909,21 +909,21 @@ sub grep_data {
 	strict       => $opt_strict,
 	region_index => $opt_regioncolor,
 	stat         => \%stat,
-	);
-    my @result = $grepper->grep->result;
-    my $matched = $grepper->matched;
+	)->run;
+    my @result = $grep->result;
+    my $matched = $grep->matched;
 
     if ($opt_l) {
 	print "$current_file\n" if $matched;
     }
     elsif ($opt_c) {
 	print "$current_file:" if $need_filename;
-	print scalar $grepper->blocks, "\n";
+	print scalar $grep->blocks, "\n";
     }
     elsif (@result) {
 	# open output filter
 	@opt_of && push_output_filter(\*STDOUT, @opt_of);
-	display_result($grepper);
+	display_result($grep);
 	@opt_of && recover_stdout;
     }
 
@@ -940,8 +940,8 @@ sub grep_data {
 }
 
 sub display_result {
-    my $grepper = shift;
-    my $file = $grepper->{filename};
+    my $grep = shift;
+    my $file = $grep->{filename};
 
     if ($need_filename and $opt_filestyle eq 'once') {
 	print $file, ":\n";
@@ -952,10 +952,10 @@ sub display_result {
 
     my $line = 1;
     my $lastpos = 0;
-    for my $result ($grepper->result) {
+    for my $result ($grep->result) {
 
 	my($block_start, $block_end) = @{shift @$result};
-	my $block = $grepper->cut($block_start, $block_end);
+	my $block = $grep->cut($block_start, $block_end);
 
 	for my $func (@opt_print) {
 	    for ($block) {
@@ -968,7 +968,7 @@ sub display_result {
 	}
 
 	if ($opt_n) {
-	    my $gap = $grepper->cut($lastpos, $block_start);
+	    my $gap = $grep->cut($lastpos, $block_start);
 	    $line += $gap =~ tr/\n/\n/;
 	}
 	$lastpos = $block_end;

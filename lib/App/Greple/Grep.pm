@@ -58,7 +58,7 @@ sub new {
     $obj;
 }
 
-sub grep {
+sub run {
     my $self = shift;
 
     local *_ = $self->{text};
