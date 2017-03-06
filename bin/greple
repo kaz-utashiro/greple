@@ -346,6 +346,9 @@ if ($opt_rc &&
     push @rcdata, $greplerc;
     close GREPLERC;
 }
+else {
+    $greplerc = greplerc({Title => "main"}, q{});
+}
 
 sub greplerc {
     my $arg = ref $_[0] eq 'HASH' ? shift : {};
