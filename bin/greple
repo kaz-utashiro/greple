@@ -5,7 +5,7 @@
 ## Copyright (c) 1991-2017 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
-;; my $rcsid = q$Id: greple,v 6.24 2014/12/31 15:15:47 utashiro Exp $;
+;; my $rcsid = q$Id: greple,v 7.1 2017/03/06 03:29:33 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
@@ -2146,7 +2146,7 @@ can be implemented both in function and macro.
         use Exporter   ();
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.24 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 7.1 $ =~ /(\d+)/g;
     
         @ISA         = qw(Exporter);
         @EXPORT      = qw(&pod &comment &podcomment);
