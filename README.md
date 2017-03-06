@@ -511,7 +511,7 @@ or `(?<c>\w)\g{c}`.
         greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
 
     Experimentally, function can be combined with other normal color
-    specifications.  Also the form _&func;_ can be repeated.
+    specifications.  Also the form _&amp;func;_ can be repeated.
 
         greple --cm 'BF/544;sub{uc}'
 
@@ -1098,7 +1098,7 @@ You can use the module like this:
     greple -Mperl --colorful --code --comment --pod default greple
 
 If special subroutine **initialize()** is defined in the module, it is
-called at the beginning with `Getopt::EX::Container` object as a
+called at the beginning with `Getopt::EX::Module` object as a
 first argument.  Second argument is the reference to `@ARGV`, and you
 can modify actual `@ARGV` using it.  See **find** module as a sample.
 

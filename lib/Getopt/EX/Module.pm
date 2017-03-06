@@ -1,4 +1,4 @@
-package Getopt::EX::Container;
+package Getopt::EX::Module;
 
 use strict;
 use warnings;
@@ -352,13 +352,13 @@ sub run_inits {
 
 =head1 NAME
 
-Getopt::EX::Container - RC/Module data container
+Getopt::EX::Module - RC/Module data container
 
 =head1 SYNOPSIS
 
-  use Getopt::EX::Container;
+  use Getopt::EX::Module;
 
-  my $bucket = new Getopt::EX::Container
+  my $bucket = new Getopt::EX::Module
 	BASECLASS => $baseclass,
 	FILE => $file_name  /  MODULE => $module_name,
 	;

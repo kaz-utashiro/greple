@@ -2170,7 +2170,7 @@ You can use the module like this:
     greple -Mperl --colorful --code --comment --pod default greple
 
 If special subroutine B<initialize()> is defined in the module, it is
-called at the beginning with C<Getopt::EX::Container> object as a
+called at the beginning with C<Getopt::EX::Module> object as a
 first argument.  Second argument is the reference to C<@ARGV>, and you
 can modify actual C<@ARGV> using it.  See B<find> module as a sample.
 

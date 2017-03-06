@@ -10,7 +10,7 @@ our %EXPORT_TAGS = ( );
 our @EXPORT_OK   = qw();
 
 use Data::Dumper;
-use Getopt::EX::Container;
+use Getopt::EX::Module;
 use Getopt::EX::Func qw(parse_func);
 
 our $debug = 0;
@@ -71,7 +71,7 @@ sub append {
 sub load {
     my $obj = shift;
     my $bucket =
-	new Getopt::EX::Container @_, BASECLASS => $obj->baseclass;
+	new Getopt::EX::Module @_, BASECLASS => $obj->baseclass;
     $obj->append($bucket);
     $bucket;
 }
@@ -312,7 +312,7 @@ C<undef> if you don't want load any default module.
 
 =item B<buckets>
 
-Return loaded L<Getopt::EX::Container> object list.
+Return loaded L<Getopt::EX::Module> object list.
 
 =item B<load_file>
 

@@ -48,7 +48,7 @@ used always.  For example,
     option default -n
 
 gives option I<-n> always when the script executed.  See
-L<Getopt::EX::Container> document what you can do in this file.
+L<Getopt::EX::Module> document what you can do in this file.
 
 If the rc file includes a section start with C<__PERL__>, it is
 evaluated as a perl program.  User can define any kind of functions
