@@ -793,7 +793,7 @@ or `(?<c>\w)\g{c}`.
     be used like this:
 
         # ~/.greplerc
-        __CODE__
+        __PERL__
         sub print_simple {
             my %attr = @_;
             for my $r (reverse @{$attr{matched}}) {
@@ -966,11 +966,18 @@ on user's home directory.  Following directives can be used.
 
         greple --le &line=10,20-30,40
 
-- **help** _name_
+- **expand** _name_ _string_
 
-    If \`help' directive is used for same option name, it will be printed
-    in usage message.  If the help message is \`ignore', corresponding line
-    won't show up in the usage.
+    Define local option _name_.  Command **expand** is almost same as
+    command **option** in terms of its function.  However, option defined
+    by this command is expanded in, and only in, the process of
+    definition, while option definition is expanded when command arguments
+    are processed.
+
+    This is similar to string macro defined by following **define**
+    command.  But macro expantion is done by simple string replacement, so
+    you have to use **expand** to define option composed by multiple
+    arguments.
 
 - **define** _name_ string
 
@@ -981,15 +988,42 @@ on user's home directory.  Following directives can be used.
     evaluated in command line option.  Use option directive if you want to
     use in command line,
 
-        define :kana: \p{InKatakana}
-        option --kanalist --nocolor -o --join --re ':kana:+(\n:kana:+)*'
+        define (#kana) \p{InKatakana}
+        option --kanalist --nocolor -o --join --re '(#kana)+(\n(#kana)+)*'
         help   --kanalist List up Katakana string
+
+- **help** _name_
+
+    If \`help' directive is used for same option name, it will be printed
+    in usage message.  If the help message is \`ignore', corresponding line
+    won't show up in the usage.
+
+- **builtin** _spec_ _variable_
+
+    Define built-in option which should be processed by option parser.
+    Arguments are assumed to be [Getopt::Long](https://metacpan.org/pod/Getopt::Long) style spec, and
+    _variable_ is string start with `$`, `@` or `%`.  They will be
+    replaced by a reference to the object which the string represent.
+
+    See **pgp** module for example.
+
+- **autoload** _module_ _options_
+
+    Define module which should be loaded automatically when specified
+    option is found in the command arguments.
+
+    For example,
+
+        autoload -Mdig --dig
+
+    replaces option "_--dig_" to "_-Mdig --dig_", and _dig_ module is
+    loaded before processing _--dig_ option.
 
 Environment variable substitution is done for string specified by
 \`option' and \`define' directives.  Use Perl syntax **$ENV{NAME}** for
 this purpose.  You can use this to make a portable module.
 
-When _greple_ found `__CODE__` line in `.greplerc` file, the rest
+When _greple_ found `__PERL__` line in `.greplerc` file, the rest
 of the file is evaluated as a Perl program.  You can define your own
 subroutines which can be used by **--inside**/**outside**,
 **--include**/**exclude**, **--block** options.
@@ -1002,7 +1036,7 @@ For example, suppose that the following function is defined in your
 `.greplerc` file.  Start and end offset for each pattern match can be
 taken as array element `$-[0]` and `$+[0]`.
 
-    __CODE__
+    __PERL__
     sub odd_line {
         my @list;
         my $i;
@@ -1124,7 +1158,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright (c) 1991-2015 Kazumasa Utashiro
+Copyright (c) 1991-2017 Kazumasa Utashiro
 
 Use and redistribution for ANY PURPOSE are granted as long as all
 copyright notices are retained.  Redistribution with modification is

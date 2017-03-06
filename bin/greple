@@ -2,7 +2,7 @@
 ##
 ## greple: grep with multiple keywords
 ##
-## Copyright (c) 1991-2015 Kazumasa Utashiro
+## Copyright (c) 1991-2017 Kazumasa Utashiro
 ##
 ## Original: Mar 29 1991
 ;; my $rcsid = q$Id: greple,v 6.24 2014/12/31 15:15:47 utashiro Exp $;
@@ -1826,7 +1826,7 @@ Simplest function is B<--print>='I<sub{$_}>'.  Coloring capability can
 be used like this:
 
     # ~/.greplerc
-    __CODE__
+    __PERL__
     sub print_simple {
         my %attr = @_;
         for my $r (reverse @{$attr{matched}}) {
@@ -2034,11 +2034,18 @@ will be evaluated as this:
 
     greple --le &line=10,20-30,40
 
-=item B<help> I<name>
+=item B<expand> I<name> I<string>
 
-If `help' directive is used for same option name, it will be printed
-in usage message.  If the help message is `ignore', corresponding line
-won't show up in the usage.
+Define local option I<name>.  Command B<expand> is almost same as
+command B<option> in terms of its function.  However, option defined
+by this command is expanded in, and only in, the process of
+definition, while option definition is expanded when command arguments
+are processed.
+
+This is similar to string macro defined by following B<define>
+command.  But macro expantion is done by simple string replacement, so
+you have to use B<expand> to define option composed by multiple
+arguments.
 
 =item B<define> I<name> string
 
@@ -2049,9 +2056,36 @@ done for option definition and other macro definition.  Macro is not
 evaluated in command line option.  Use option directive if you want to
 use in command line,
 
-    define :kana: \p{InKatakana}
-    option --kanalist --nocolor -o --join --re ':kana:+(\n:kana:+)*'
+    define (#kana) \p{InKatakana}
+    option --kanalist --nocolor -o --join --re '(#kana)+(\n(#kana)+)*'
     help   --kanalist List up Katakana string
+
+=item B<help> I<name>
+
+If `help' directive is used for same option name, it will be printed
+in usage message.  If the help message is `ignore', corresponding line
+won't show up in the usage.
+
+=item B<builtin> I<spec> I<variable>
+
+Define built-in option which should be processed by option parser.
+Arguments are assumed to be L<Getopt::Long> style spec, and
+I<variable> is string start with C<$>, C<@> or C<%>.  They will be
+replaced by a reference to the object which the string represent.
+
+See B<pgp> module for example.
+
+=item B<autoload> I<module> I<options>
+
+Define module which should be loaded automatically when specified
+option is found in the command arguments.
+
+For example,
+
+    autoload -Mdig --dig
+
+replaces option "I<--dig>" to "I<-Mdig --dig>", and I<dig> module is
+loaded before processing I<--dig> option.
 
 =back
 
@@ -2059,7 +2093,7 @@ Environment variable substitution is done for string specified by
 `option' and `define' directives.  Use Perl syntax B<$ENV{NAME}> for
 this purpose.  You can use this to make a portable module.
 
-When I<greple> found C<__CODE__> line in F<.greplerc> file, the rest
+When I<greple> found C<__PERL__> line in F<.greplerc> file, the rest
 of the file is evaluated as a Perl program.  You can define your own
 subroutines which can be used by B<--inside>/B<outside>,
 B<--include>/B<exclude>, B<--block> options.
@@ -2072,7 +2106,7 @@ For example, suppose that the following function is defined in your
 F<.greplerc> file.  Start and end offset for each pattern match can be
 taken as array element C<$-[0]> and C<$+[0]>.
 
-    __CODE__
+    __PERL__
     sub odd_line {
         my @list;
         my $i;
@@ -2203,7 +2237,7 @@ L<Getopt::EX>
 =head1 LICENSE
 
 
-Copyright (c) 1991-2015 Kazumasa Utashiro
+Copyright (c) 1991-2017 Kazumasa Utashiro
 
 Use and redistribution for ANY PURPOSE are granted as long as all
 copyright notices are retained.  Redistribution with modification is
