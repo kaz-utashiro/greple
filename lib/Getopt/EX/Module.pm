@@ -11,7 +11,7 @@ our @EXPORT_OK   = qw();
 
 use Data::Dumper;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(first);
+use List::Util qw(first none);
 
 use Getopt::EX::Func qw(parse_func);
 
@@ -24,6 +24,7 @@ sub new {
 	Expand  => [],
 	Option => [],
 	Builtin => [],
+	Automod => [],
 	Autoload => {},
 	Call => [],
 	Help => [],
@@ -175,7 +176,7 @@ sub getopt {
     # check autoload
     unless (@e) {
 	my $hash = $obj->{Autoload};
-	for my $mod (keys %$hash) {
+	for my $mod (@{$obj->{Automod}}) {
 	    if (exists $hash->{$mod}->{$name}) {
 		delete $hash->{$mod};
 		return ($mod, $name);
@@ -203,10 +204,12 @@ sub default {
 
 sub options {
     my $obj = shift;
+    my $opt = $obj->{Option};
+    my $automod = $obj->{Automod};
     my $auto = $obj->{Autoload};
-    my @option = reverse map { $_->[0] } @{$obj->{Option}};
-    my @auto = map { keys %{$auto->{$_}} } keys $auto;
-    (@option, @auto);
+    my @opt = reverse map { $_->[0] } @$opt;
+    my @auto = map { sort keys %{$auto->{$_}} } @$automod;
+    (@opt, @auto);
 }
 
 sub help {
@@ -304,18 +307,15 @@ sub builtin {
 sub autoload {
     my $obj = shift;
     my $module = shift;
-    my @option = do {
-	if (ref $_[0] eq 'ARRAY') {
-	    @{ $_[0] };
-	} else {
-	    map { shellwords $_ } @_;
-	}
-    };
+    my @option = map { split ' ' } @_;
+
     my $hash = ($obj->{Autoload}->{$module} //= {});
-    map {
+    my $list = $obj->{Automod};
+    for (@option) {
 	$hash->{$_} = 1;
 	$obj->help($_, "autoload: $module");
-    } @option;
+    }
+    push $list, $module if none { $_ eq $module } @$list;
 }
 
 sub call {
