@@ -226,7 +226,8 @@ sub run {
     ##
     my @list = ();
     for my $bi (@effective_index) {
-	my @matched = merge_regions({nojoin => $self->{only},
+	## now don't connect side-by-side pattern
+	my @matched = merge_regions({nojoin => $self->{only} || 1,
 				     destructive => 1},
 				    @{$mp->[$bi][MUST_LIST]},
 				    @{$mp->[$bi][POSI_LIST]},
