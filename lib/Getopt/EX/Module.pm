@@ -11,7 +11,7 @@ our @EXPORT_OK   = qw();
 
 use Data::Dumper;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(first none);
+use List::Util qw(first);
 
 use Getopt::EX::Func qw(parse_func);
 
@@ -315,7 +315,7 @@ sub autoload {
 	$hash->{$_} = 1;
 	$obj->help($_, "autoload: $module");
     }
-    push $list, $module if none { $_ eq $module } @$list;
+    push $list, $module if not grep { $_ eq $module } @$list;
 }
 
 sub call {
