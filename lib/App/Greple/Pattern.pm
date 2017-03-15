@@ -111,65 +111,102 @@ sub is_ignorecase {   $_[0]->flag & FLAG_IGNORECASE };
 sub is_multiline  {   $_[0]->flag & FLAG_COOK       };
 sub is_function   {   $_[0]->flag & FLAG_FUNCTION   };
 
+my $wchar_re = qr{
+    [\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]
+}x;
+
+my $wclass_re = qr{
+    \[ (?: $wchar_re | \- )+ \]
+}x;
+
+my $wstr_re = qr{
+    (?: $wchar_re | $wclass_re )+
+}x;
+
+sub wstr {
+    local $_ = shift;
+    my @wchars = m{ \G ( $wchar_re | $wclass_re ) }gx or die;
+    join '\\s*', @wchars;
+}
+
 sub cook_pattern {
     my $p = shift;
     my %opt = @_;
     my $opt_i = $opt{flag} & FLAG_IGNORECASE;
 
-    my $wchar_re = qr{
-	[\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]
-    }x;
-
     if ($p =~ s/^\\Q//) {
 	$p = quotemeta($p);
-    } else {
+	goto RETURN;
+    }
+
+  COOK:
+    {
 	$p =~ s{
-	    (
+	    (?<class>
 	     \[[^\]]*\] [\?\*]?	# character-class
-	     |
+	    )
+	    |
+	    (?<ahead>
 	     \(\?[=!][^\)]*\)	# look-ahead pattern
-	     |
+	    )
+	    |
+	    (?<behind>
 	     \(\?\<[=!][^\)]*\)	# look-behind pattern
 	    )
 	    |
-	    ($wchar_re+)
+	    (?<wstr> $wstr_re)
 	    |
-	    (\w+|.)
+	    (?<else> [A-Z0-9_]+ | . )
 	}{
-	    if (defined $1) {
-		$1;
-	    } elsif (defined $2) {
-		join('\s*', split(//, $2));
-	    } elsif (defined $3) {
-		$3;
+	    if (defined $+{ahead}) {
+		${^MATCH}
+		    =~ s{\A \( \? [=!] \K
+			    ( (?: $wstr_re | \| )+ )
+			}{
+			    join '|', (map { wstr($_) } split /\|/, $1);
+			}erx;
+	    } elsif (defined $+{wstr}) {
+		wstr(${^MATCH});
 	    } else {
-		die;
+		${^MATCH};
 	    }
-	}egx;
+	}egpx;
 
 	# ( [
-	$p =~ s/($wchar_re)([\(\[]+)/$1\\s*$2/g;
+	$p =~ s/$wchar_re \K (?= [\(\[] )/(?>\\s*)/gx;
 
 	# ) ]
 	$p =~ s{
-	    (
-	     \(\?<?[=!][^\)]*\)	# look-ahead/behind pattern
+	    (# look-behind ending wchar
+	     \(\?<[=!][^\)]*$wchar_re\)	(?! [|] | $ )
 	    )
 	    |
-	    (
-		$wchar_re[\)\]]+[?]?)(?![|]|$
+	    (# skip look-ahead/behind
+	     \(\?<?[=!][^\)]*\)
+	    )
+	    |
+	    (# whcar before ) or ]
+		$wchar_re [\)\]]+ [?]? (?! [|] | $ )
 	    )
 	}{
 	    if (defined $1) {
-		$1;
+		$1 . "(?>\\s*)";
+	    } elsif (defined $2) {
+		$2;
 	    } else {
-		$2 . "\\s*";
+		$3 . "(?>\\s*)";
 	    }
 	}egx;
 
 	# remove \s* arround space
-	$p =~ s/(?:\\s\*)?\\? +(?:\\s\*)?/\\s+/g;
+	$p =~ s{
+	    (?: \Q\s*\E | \Q(?>\s*)\E)?
+	    (?: \\? \ )+
+	    (?: \Q\s*\E | \Q(?>\s*)\E)?
+	}{\\s+}gx;
     }
+
+  RETURN:
 
     $opt_i ? "(?i)$p" : $p;
 }
