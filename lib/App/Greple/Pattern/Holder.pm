@@ -44,7 +44,7 @@ sub append {
 	      map {
 		  ## Mask IGNORECASE to eliminate redundant designator.
 		  App::Greple::Pattern->new
-		      ($_, flag => $arg->{flag} | ~FLAG_IGNORECASE)->cooked
+		      ($_, flag => $arg->{flag} & ~FLAG_IGNORECASE)->cooked
 	      } @_);
 	$arg->{flag} |= FLAG_REGEX;
     }
