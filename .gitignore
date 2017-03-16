@@ -1,8 +1,10 @@
+RCS
 typescript
 *~
 \#*
 .\#*
 blib*
+*.swp
 *.bak
 Makefile
 Makefile.old
