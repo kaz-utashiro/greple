@@ -27,6 +27,8 @@ lib/App/Greple/line.pm
 lib/App/Greple/perl.pm
 lib/App/Greple/pgp.pm
 lib/App/Greple/pw.pm
+lib/App/Greple/subst.pm
+lib/App/Greple/subst.sample
 lib/App/Greple/tel.pm
 lib/Getopt/EX.pm
 lib/Getopt/EX/Colormap.pm
