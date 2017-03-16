@@ -1881,8 +1881,8 @@ will be passed to the function in key => value list.  Sole key will
 have the value one.  Also processing file name is passed with the key
 of C<FILELABEL> constant.  As a result, the option in the next form:
 
-    --begin function(key1,key=val2)
-    --begin function=key1,key=val2
+    --begin function(key1,key2=val2)
+    --begin function=key1,key2=val2
 
 will be transformed into following function call:
 
@@ -1891,8 +1891,8 @@ will be transformed into following function call:
 As described earlier, C<FILELABEL> parameter is not given to the
 function specified with module option. So
 
-    -Mmodule::function(key1,key=val2)
-    -Mmodule::function=key1,key=val2
+    -Mmodule::function(key1,key2=val2)
+    -Mmodule::function=key1,key2=val2
 
 simply becomes:
 
