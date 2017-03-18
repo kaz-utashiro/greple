@@ -146,6 +146,9 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --norc               skip reading startup file
     --man                display command or module manual page
     --show               display module file
+    --require=file       include perl program
+    --conceal=type       conceal run time errors
+    --persist            continue even after encoding error
     -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 =cut
@@ -203,6 +206,7 @@ my $opt_continue;
 my $opt_filestyle = 'line';
 my $opt_linestyle = 'line';
 my %opt_conceal = (read => 1, skip => 0);
+my $opt_persist = 0;
 my $opt_usage;
 
 my $opt_c;
@@ -286,6 +290,7 @@ my @optargs = (
     'print=s'            => \@opt_print,
     'continue!'          => \$opt_continue,
     'conceal=i'          => \%opt_conceal,
+    'persist!'           => \$opt_persist,
     'usage:s'            => \$opt_usage,
     'M:s'                => sub {
 	warn "Use -M option at the beginning with module name.\n";
@@ -794,6 +799,7 @@ exit($stat{match_effective} == 0);
 ######################################################################
 
 sub grep_files {
+  FILE:
     while (defined($current_file = open_nextfile())) {
 
 	&$before_read() if $before_read;
@@ -802,8 +808,19 @@ sub grep_files {
 
 	if (not defined $content) {
 	    warn $@ if $@;
-	    warn "SKIP $current_file\n" unless $opt_conceal{skip};
-	    next;
+	    if (not $opt_persist) {
+		warn "SKIP $current_file\n" unless $opt_conceal{skip};
+		next FILE;
+	    }
+
+	    # Try again
+	    binmode STDIN, ':raw';
+	    $content = eval { local $/; <STDIN> };
+	    if (not defined $content) {
+		warn "SKIP* $current_file\n" unless $opt_conceal{skip};
+		next FILE;
+	    }
+	    binmode STDOUT, ':raw';
 	}
 
 	warn $current_file, ":\n" if $opt_d{f};
@@ -876,7 +893,11 @@ sub open_nextfile {
 	    push_input_filter(@filters);
 	}
 
-	binmode STDIN, ":encoding($file_code)";
+	if ($file_code eq 'binary') {
+	    # binmode STDIN, ":raw";
+	} else {
+	    binmode STDIN, ":encoding($file_code)";
+	}
 
 	return $file;
     }
@@ -1737,6 +1758,9 @@ and UTF-16/32.
 
     greple --icode=+euc-kr ...
 
+If the string "B<binary>" is given as encoding name, no character
+encoding is expeted and all files are processed as binary data.
+
 =item B<--ocode>=I<code>
 
 Specify output code.  Default is utf8.
@@ -1986,6 +2010,20 @@ character code recognition.
 Set same value for all types.
 
 =back
+
+=item B<--persist>
+
+As B<greple> tries to read data as a character string, sometimes fails
+to convert them into internal representation, and the file is skipped
+without processing.  When option B<--persist> is specified, command
+does not give up the file, and tries to read as binary data.
+
+Next command will show strings in binary file.
+
+    greple -o --re '(?a)\w{4,}' --persist --uc /bin/*
+
+When processing all files as binary data, use B<--icode=binary>
+instead.
 
 =back
 
