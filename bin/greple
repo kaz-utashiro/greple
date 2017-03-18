@@ -1728,6 +1728,15 @@ included in specified inside-area.  Partial match fails when option
 B<--strict> provided, and longer string never matches within shorter
 area.
 
+Interestingly enough, above example
+
+    greple --include PATTERN --exclude PATTERN
+
+produces output, as a matter of fact.  Think of the situation
+searching, say, C<' PATTERN '> with this condition.  Matched area
+includes surrounding spaces, and meets the both condition partially.
+This match does not occur when option B<--strict> is given, either.
+
 =back
 
 
