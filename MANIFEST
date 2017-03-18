@@ -19,6 +19,7 @@ lib/App/Greple/Util.pm
 lib/App/Greple/aozora.pm
 lib/App/Greple/bm.pm
 lib/App/Greple/daemon3.pm
+lib/App/Greple/debug.pm
 lib/App/Greple/diff.pm
 lib/App/Greple/dig.pm
 lib/App/Greple/find.pm
