@@ -100,6 +100,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -C[n]                after and before match context
     --join               delete newline in the matched part
     --joinby=string      replace newline in the matched text by string
+    --nonewline          do not add newline character at block end
     --filestyle=style    how filename printed (once, separate, line)
     --linestyle=style    how line number printed (separate, line)
     --separate           set filestyle and linestyle both "separate"
@@ -194,6 +195,7 @@ my $opt_man;
 my $opt_show;
 my $opt_join;
 my $opt_joinby = "";
+my $opt_newline = 1;
 my $opt_clean;
 my $opt_readlist;
 my $opt_need;
@@ -260,6 +262,7 @@ my @optargs = (
     'ocode=s'            => \$opt_ocode,
     'join!'              => \$opt_join,
     'joinby=s'           => \$opt_joinby,
+    'newline!'           => \$opt_newline,
     'if=s'               => \@opt_if,
     'of=s'               => \@opt_of,
     'pf=s'               => \@opt_pf,
@@ -1057,7 +1060,7 @@ sub display_result {
 	}
 
 	print $block;
-	print "\n" if not $block =~ /\n\z/;
+	print "\n" if $opt_newline and not $block =~ /\n\z/;
 	print _blockend($blockend) if $need_blockend;
     }
 }
@@ -1355,6 +1358,13 @@ option.  Next example prints all `for *something*' pattern in pod
 documents within Perl script.
 
     greple -Mperl --pod -ioe '\bfor \w+' --joinby ' '
+
+=item B<--[no]newline>
+
+Since B<greple> can handle arbitrary blocks other than normal text
+lines, they sometimes do not end by newline character.  In that case,
+extra newline is appended at the end of block to be shown.  Option
+B<--nonewline> disables this behaviour.
 
 =item B<--filestyle>=I<line>|I<once>|I<separate>, B<--fs>
 
