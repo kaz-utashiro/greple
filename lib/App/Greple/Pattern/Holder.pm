@@ -47,6 +47,7 @@ sub append {
 		      ($_, flag => $arg->{flag} & ~FLAG_IGNORECASE)->cooked
 	      } @_);
 	$arg->{flag} |= FLAG_REGEX;
+	$arg->{flag} &= ~FLAG_COOK;
     }
 
     for (@_) {
