@@ -119,36 +119,27 @@ package App::Greple::subst;
 use strict;
 use warnings;
 
+use Exporter 'import';
+our @EXPORT      = qw(&subst_begin &subst &subst_diff &subst_create);
+our %EXPORT_TAGS = ( );
+our @EXPORT_OK   = qw();
+
 use Carp;
-
-use App::Greple::Common;
-
-BEGIN {
-    use Exporter   ();
-    our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
-
-    $VERSION = sprintf "%d.%03d", q$Revision: 1.1 $ =~ /(\d+)/g;
-
-    @ISA         = qw(Exporter);
-    @EXPORT      = qw(&subst_begin &subst &subst_diff &subst_create);
-    %EXPORT_TAGS = ( );
-    @EXPORT_OK   = qw();
-}
-our @EXPORT_OK;
-
-END { }
-
 use Data::Dumper;
 use Text::ParseWords qw(shellwords);
+use App::Greple::Common;
 
 our $debug = 0;
+our $remember_data = 1;
 our @opt_subst_from;
 our @opt_subst_to;
 our @opt_subst_file;
 our $opt_subst_diffcmd = "diff -u";
+our $opt_U;
 
 my $initialized;
 my $current_file;
+my $contents;
 my %fromto;
 my @fromto;
 my @subst_diffcmd;
@@ -178,6 +169,10 @@ sub subst_initialize {
 
     @subst_diffcmd = shellwords $opt_subst_diffcmd;
 
+    if (defined $opt_U) {
+	@subst_diffcmd = ("diff", "-U$opt_U");
+    }
+
     for my $spec (@opt_subst_file) {
 	read_file($spec);
     }
@@ -198,6 +193,7 @@ sub subst_initialize {
 sub subst_begin {
     my %arg = @_;
     $current_file = delete $arg{&FILELABEL} or die;
+    $contents = $_ if $remember_data;
 
     local $_; # for safety
     subst_initialize if not $initialized;
@@ -231,7 +227,31 @@ sub subst {
 }
 
 sub subst_diff {
-    exec @subst_diffcmd, $current_file, "-";
+    my $orig = $current_file;
+    my $io;
+
+    if ($remember_data) {
+	use IO::Pipe;
+	$io = new IO::Pipe;
+	my $pid = fork() // die "fork: $!\n";
+	if ($pid == 0) {
+	    $io->writer;
+	    binmode $io, ":encoding(utf8)";
+	    print $io $contents;
+	    exit;
+	}
+	$io->reader;
+    }
+
+    # clear close-on-exec flag
+    if ($io) {
+	use Fcntl;
+	my $fd = $io->fcntl(F_GETFD, 0) or die "fcntl F_GETFD: $!\n";
+	$io->fcntl(F_SETFD, $fd & ~FD_CLOEXEC) or die "fcntl F_SETFD: $!\n";
+	$orig = sprintf "/dev/fd/%d", $io->fileno;
+    }
+
+    exec @subst_diffcmd, $orig, "-";
     die "exec: $!\n";
 }
 
@@ -278,3 +298,4 @@ builtin --subst_from=s @opt_subst_from
 builtin --subst_to=s   @opt_subst_to
 builtin --subst_file=s @opt_subst_file
 builtin --diffcmd=s    $opt_subst_diffcmd
+builtin -U=i           $opt_U
