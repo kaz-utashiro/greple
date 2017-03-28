@@ -95,6 +95,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -h                   do not display filenames
     -H                   always display filenames
     -o                   print only the matching part
+    -m n[,m]             max count of blocks to be shown
     -A[n]                after match context
     -B[n]                before match context
     -C[n]                after and before match context
@@ -218,6 +219,7 @@ my $opt_h;
 my $opt_i;
 my $opt_n;
 my $opt_o;
+my $opt_m;
 my $opt_p;
 my $opt_l;
 my $opt_A = 0;
@@ -248,6 +250,7 @@ my @optargs = (
 	$opt_filestyle = $opt_linestyle = $_[0]
     },
     'o|only-matching!'   => \$opt_o,
+    'm|max-count=s'      => \$opt_m,
     'p|paragraph!'       => \$opt_p,
     'A|after-context:2'  => \$opt_A,
     'B|before-context:2' => \$opt_B,
@@ -388,6 +391,20 @@ if ($opt_d{o}) {
 if (exists $opt_conceal{all}) {
     $opt_conceal{$_} = $opt_conceal{all} for keys %opt_conceal;
 }
+
+## -m option
+my $splicer = do {
+    my($offset, $length);
+    if (not defined $opt_m) {
+	undef;
+    } elsif (($offset) = $opt_m =~ /^(-?\d+)$/) {
+	sub { splice @{+shift}, $offset }
+    } elsif (($offset, $length) = $opt_m =~ /^(-?\d+),(-?\d+)?$/) {
+	sub { splice @{+shift}, $offset, $length }
+    } else {
+	die "$opt_m: option format error.\n";
+    }
+};
 
 my $file_code;
 my $default_icode = 'utf8';	# default input encoding
@@ -936,8 +953,9 @@ sub grep_data {
 	region_index => $opt_regioncolor,
 	stat         => \%stat,
 	)->run;
-    my @result = $grep->result;
     my $matched = $grep->matched;
+
+    $splicer->($grep->result_ref) if $splicer;
 
     if ($opt_l) {
 	print "$current_file\n" if $matched;
@@ -946,7 +964,7 @@ sub grep_data {
 	print "$current_file:" if $need_filename;
 	print scalar $grep->blocks, "\n";
     }
-    elsif (@result) {
+    elsif (@{$grep->result_ref}) {
 	# open output filter
 	@opt_of && push_output_filter(\*STDOUT, @opt_of);
 	display_result($grep);
@@ -1308,9 +1326,25 @@ Do not display filename.
 
 Display filename always.
 
-=item B<-o>
+=item B<-o>, B<--only-matching>
 
 Print matched string only.
+
+=item B<-m> I<n>[,I<m>], B<--max-count>=I<n>[,I<m>]
+
+Set the maximum count of blocks to be shown to I<n>.
+
+Actually I<n> and I<m> are simply passed to perl L<splice> function as
+I<offset> and I<length>.  Works like this:
+
+    greple -m  10      # get first 10 blocks
+    greple -m   0,-10  # get last 10 blocks
+    greple -m   0,10   # remove first 10 blocks
+    greple -m -10      # remove last 10 blocks
+    greple -m  10,10   # remove 10 blocks from 10th (10-19)
+
+This option does not affect to search performance and command exit
+status.
 
 =item B<-A>[I<n>], B<--after-context>[=I<n>]
 

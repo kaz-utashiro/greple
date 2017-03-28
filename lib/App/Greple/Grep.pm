@@ -249,6 +249,11 @@ sub run {
     $self;
 }
 
+sub result_ref {
+    my $obj = shift;
+    $obj->{RESULT};
+}
+
 sub result {
     my $obj = shift;
     @{ $obj->{RESULT} };

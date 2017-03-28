@@ -26,11 +26,13 @@ greple - grep with multiple keywords
       -h                   do not display filenames
       -H                   always display filenames
       -o                   print only the matching part
+      -m n[,m]             max count of blocks to be shown
       -A[n]                after match context
       -B[n]                before match context
       -C[n]                after and before match context
       --join               delete newline in the matched part
       --joinby=string      replace newline in the matched text by string
+      --nonewline          do not add newline character at block end
       --filestyle=style    how filename printed (once, separate, line)
       --linestyle=style    how line number printed (separate, line)
       --separate           set filestyle and linestyle both "separate"
@@ -77,6 +79,9 @@ greple - grep with multiple keywords
       --norc               skip reading startup file
       --man                display command or module manual page
       --show               display module file
+      --require=file       include perl program
+      --conceal=type       conceal run time errors
+      --persist            continue even after encoding error
       -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 # DESCRIPTION
@@ -303,9 +308,25 @@ or `(?<c>\w)\g{c}`.
 
     Display filename always.
 
-- **-o**
+- **-o**, **--only-matching**
 
     Print matched string only.
+
+- **-m** _n_\[,_m_\], **--max-count**=_n_\[,_m_\]
+
+    Set the maximum count of blocks to be shown to _n_.
+
+    Actually _n_ and _m_ are simply passed to perl [splice](https://metacpan.org/pod/splice) function as
+    _offset_ and _length_.  Works like this:
+
+        greple -m  10      # get first 10 blocks
+        greple -m   0,-10  # get last 10 blocks
+        greple -m   0,10   # remove first 10 blocks
+        greple -m -10      # remove last 10 blocks
+        greple -m  10,10   # remove 10 blocks from 10th (10-19)
+
+    This option does not affect to search performance and command exit
+    status.
 
 - **-A**\[_n_\], **--after-context**\[=_n_\]
 - **-B**\[_n_\], **--before-context**\[=_n_\]
@@ -350,6 +371,13 @@ or `(?<c>\w)\g{c}`.
     documents within Perl script.
 
         greple -Mperl --pod -ioe '\bfor \w+' --joinby ' '
+
+- **--\[no\]newline**
+
+    Since **greple** can handle arbitrary blocks other than normal text
+    lines, they sometimes do not end by newline character.  In that case,
+    extra newline is appended at the end of block to be shown.  Option
+    **--nonewline** disables this behaviour.
 
 - **--filestyle**=_line_|_once_|_separate_, **--fs**
 
@@ -690,6 +718,15 @@ or `(?<c>\w)\g{c}`.
     **--strict** provided, and longer string never matches within shorter
     area.
 
+    Interestingly enough, above example
+
+        greple --include PATTERN --exclude PATTERN
+
+    produces output, as a matter of fact.  Think of the situation
+    searching, say, `' PATTERN '` with this condition.  Matched area
+    includes surrounding spaces, and meets the both condition partially.
+    This match does not occur when option **--strict** is given, either.
+
 ## CHARACTER CODE
 
 - **--icode**=_code_
@@ -713,6 +750,9 @@ or `(?<c>\w)\g{c}`.
     and UTF-16/32.
 
         greple --icode=+euc-kr ...
+
+    If the string "**binary**" is given as encoding name, no character
+    encoding is expeted and all files are processed as binary data.
 
 - **--ocode**=_code_
 
@@ -844,8 +884,8 @@ will be passed to the function in key => value list.  Sole key will
 have the value one.  Also processing file name is passed with the key
 of `FILELABEL` constant.  As a result, the option in the next form:
 
-    --begin function(key1,key=val2)
-    --begin function=key1,key=val2
+    --begin function(key1,key2=val2)
+    --begin function=key1,key2=val2
 
 will be transformed into following function call:
 
@@ -854,8 +894,8 @@ will be transformed into following function call:
 As described earlier, `FILELABEL` parameter is not given to the
 function specified with module option. So
 
-    -Mmodule::function(key1,key=val2)
-    -Mmodule::function=key1,key=val2
+    -Mmodule::function(key1,key2=val2)
+    -Mmodule::function=key1,key2=val2
 
 simply becomes:
 
@@ -922,6 +962,20 @@ interpreted as a bare word.
     - **all**
 
         Set same value for all types.
+
+- **--persist**
+
+    As **greple** tries to read data as a character string, sometimes fails
+    to convert them into internal representation, and the file is skipped
+    without processing.  When option **--persist** is specified, command
+    does not give up the file, and tries to read as binary data.
+
+    Next command will show strings in binary file.
+
+        greple -o --re '(?a)\w{4,}' --persist --uc /bin/*
+
+    When processing all files as binary data, use **--icode=binary**
+    instead.
 
 # ENVIRONMENT and STARTUP FILE
 
@@ -1074,7 +1128,7 @@ can be implemented both in function and macro.
         use Exporter   ();
         our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
     
-        $VERSION = sprintf "%d.%03d", q$Revision: 6.24 $ =~ /(\d+)/g;
+        $VERSION = sprintf "%d.%03d", q$Revision: 7.1 $ =~ /(\d+)/g;
     
         @ISA         = qw(Exporter);
         @EXPORT      = qw(&pod &comment &podcomment);
