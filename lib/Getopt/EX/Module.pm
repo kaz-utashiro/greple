@@ -315,7 +315,7 @@ sub autoload {
 	$hash->{$_} = 1;
 	$obj->help($_, "autoload: $module");
     }
-    push $list, $module if not grep { $_ eq $module } @$list;
+    push @$list, $module if not grep { $_ eq $module } @$list;
 }
 
 sub call {
