@@ -6,18 +6,98 @@ daemon3 - Module for translation of the book "The Design and Implementation of t
 
 greple -Mdaemon3 [ options ]
 
-    --clean        cleanup roff comment and index macro
-    --jp           search from japanese/macro part
-    --jponly       search from japanese text part
-    --jpblock      japanese part as blocks
-    --jptext       search from japanese text without roff macros
-    --eg           search from english/macro part
-    --egonly       search from english text part
-    --egblock      english part as blocks
-    --egtext       search from english text without roff macros
-    --comment      search from comment part
-    --nocomment    search excluding comment part
-    --commentblock comment part as blocks
+    --by <part>  makes <part> as a data record
+    --in <part>  search from <part> section
+		 
+    --jp         print Japanese chunk
+    --eg         print English chunk
+    --egjp       print Japanese/English chunk
+    --comment    print comment block
+    --injp       serach Japanese text
+    --ineg       serach English text
+    --inej       serach English/Japanese text
+    --retrieve   retrieve given part in plain text
+    --colorcode  show each part in color-coded
+
+=head1 DESCRIPTION
+
+Text is devided into forllowing parts.
+
+    e        English  text
+    j        Japanese text
+    eg       English  text and comment
+    jp       Japanese text and comment
+    macro    Common roff macro
+    comment  Comment block
+    com1     Level 1 comment
+    com2     Level 2 comment
+    com3     Level 3 comment
+
+So [ macro ] + [ e ] recovers original text, and [ macro ] + [ j ]
+produces Japanese version of book text.  You can do it by next
+command.
+
+    $ greple -Mdaemon3 --retrieve macro,e
+
+    $ greple -Mdaemon3 --retrieve macro,j
+
+
+=head1 OPTION
+
+=over 7
+
+=item B<--by> I<part>
+
+Makes I<part> as a unit of output.  Multiple part can be given
+connected by commma.
+
+=item B<--in> I<part>
+
+Search pattern only from specified I<part>.
+
+=item B<--roffsafe>
+
+Exclude pattern included in roff comment and index.
+
+=item B<--retrieve> I<part>
+
+Retrieve specified part as a plain text.
+
+=item B<--colorcode>
+
+Produce color-coded result.
+
+=back
+
+
+=head1 EXAMPLE
+
+Produce original text.
+
+    $ greple -Mdaemon3 --retrieve macro,e
+
+Search sequence of "system call" in Japanese text and print I<egjp>
+part including them.  Note that this print lines even if "system" and
+"call" is devided by newline.
+
+    $ greple -Mdaemon3 -e "system call" --by egjp --in j
+
+Seach English text block which include all of "socket", "system",
+"call", "error" and print I<egjp> block including them.
+
+    $ greple -Mdaemo3 "socket system call error" --by egjp --in e
+
+Look the file conents each part colored in different color.
+
+    $ greple -Mdaemon3 --colorcode
+
+Look the colored contents with all other staff
+
+    $ greple -Mdaemon3 --colorcode --all
+
+Compare produced result to original file.
+
+    $ diff -U-1 <(lv file) <(greple -Mdaemon3 --retrieve macro,j) | sdif
 
 =head1 TEXT FORMAT
 
@@ -36,7 +116,7 @@ Simple Translation
 
 =head2 Pattern 2
 
-Site-by-side Translation
+Sentence-by-sentence Translation
 
     .PP
     .EG \"---------------------------------------- ENGLISH
@@ -65,7 +145,7 @@ Site-by-side Translation
 
 =head2 COMMENT
 
-Block start with ※ character is comment block.
+Block start with ※ (kome-mark) character is comment block.
 
     .JP \"---------------------------------------- JAPANESE
     The
@@ -98,81 +178,146 @@ use strict;
 use warnings;
 
 use Carp;
+use Data::Dumper;
+use List::Util qw(min max);
 
-BEGIN {
-    use Exporter   ();
-    our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
+use App::Greple::Common;
 
-    $VERSION = sprintf "%d.%03d", q$Revision: 1.3 $ =~ /(\d+)/g;
-
-    @ISA         = qw(Exporter);
-    @EXPORT      = qw(&part);
-    %EXPORT_TAGS = ( );
-    @EXPORT_OK   = qw();
-}
-our @EXPORT_OK;
+use Exporter 'import';
+our @EXPORT      = qw(&part);
+our %EXPORT_TAGS = ();
+our @EXPORT_OK   = qw();
 
 END { }
 
+{
+    package LabeledRegionList;
+
+    sub new {
+	my $class = shift;
+	my $obj = bless { }, $class;
+	$obj->create(@_) if @_;
+	$obj;
+    }
+    sub create {
+	my $obj = shift;
+	map { $obj->{$_} = [] } @_;
+    }
+    sub getRef {
+	my($obj, $tag) = @_;
+	$obj->{$tag};
+    }
+    sub getList {
+	my($obj, $tag) = @_;
+	@{$obj->getRef($tag)};
+    }
+    sub getSortedList {
+	my $obj = shift;
+	do {
+	    sort { $a->[0] <=> $b->[0] }
+	    map  { $obj->getList($_) }
+	    @_;
+	};
+    }
+    sub enhance ($$$) {
+	my($obj, $tag, $ent) = @_;
+	my $ref = $obj->getRef($tag);
+	if (@$ref == 0) {
+	    push @$ref, $ent;
+	} else {
+	    $ref->[-1] = [ $ref->[-1][0], $ent->[1] ];
+	}
+    }
+    sub push {
+	my $obj = shift;
+	my $tag = shift;
+	my $list = $obj->getRef($tag) or die "$tag: invalid name\n";
+	CORE::push @$list, @_;
+    }
+    sub clean {
+	my $obj = shift;
+	for my $key (keys %$obj) {
+	    @{$obj->{$key}} = ();
+	}
+    }
+    sub tags {
+	keys shift;
+    }
+}
+
 my $target = -1;
-my(@macro, @eg, @jp, @egjp);
+    
+my $region =
+    new LabeledRegionList
+    qw(macro e j egjp eg jp comment com1 com2 com3);
 
 sub part {
     my %arg = @_;
+    my $file = delete $arg{&FILELABEL} or die;
 
     if ($target != \$_) {
+	$region->clean;
 	&setdata;
 	$target = \$_;
     }
-
-    sort({ $a->[0] <=> $b->[0] }
-	 $arg{macro} ? @macro : (),
-	 $arg{egjp} ? @egjp : (),
-	 $arg{eg} ? @eg : (),
-	 $arg{jp} ? @jp : (),
-	);
+    $region->getSortedList(grep $arg{$_}, keys %arg);
 }
 
 sub setdata {
     my $pos = 0;
 
-    @macro = @eg = @jp = @egjp = ();
-
-    while (m{	\G            (?<macro> (?s:.*?))
-		^\.EG[^\n]*\n (?<eg>    .*?\n)
-		^\.JP[^\n]*\n (?<jp>    .*?\n)
-		^\.EJ[^\n]*   (?:\n|\Z)
-	}msgx) {
+    while (m{	\G        (?<macro> (?s:.*?))
+		^\.EG.*\n (?<eg>    (?s:.*?\n))
+		^\.JP.*\n (?<jp>    (?s:.*?\n))
+		^\.EJ.*   (?:\n|\z)
+	}mgx) {
 
 	$pos = pos();
-	push @macro, [ $-[1], $+[1] ];
+
+	$region->push("macro", [ $-[1], $+[1] ]) if $-[1] != $+[1];
+
 	my $eg = [ $-[2], $+[2] ];
 	my $jp = [ $-[3], $+[3] ];
-	my $jptxt = $+{jp};
+	my $trans = $+{jp};
 
-	if ($jptxt !~ /\n\n/) {
-	    push @egjp, [ $eg->[0], $jp->[1] ];
-	    push @eg, $eg;
-	    push @jp, $jp;
+	if ($trans !~ /\n\n/) {
+	    $region->push("egjp", [ $eg->[0], $jp->[1] ]);
+	    $region->push("e", $eg);
+	    $region->push("j", $jp);
+	    $region->push("eg", $eg);
+	    $region->push("jp", $jp);
 	    next;
 	}
 
 	my($s, $e) = @$jp;
 	my $i = 0;
-	while ($jptxt =~ /^((?<firstchar>.).*?\n)(?:\n+|\Z)/smg) {
-	    my($ss, $ee) = ($s + $-[1], $s + $+[1]);
-	    if ($+{firstchar} eq '※' or $i++ % 2) {
-		push @jp, [ $ss, $ee ];
-		@egjp ? $egjp[-1][1] = $ee : push @egjp, [ $ss, $ee ];
+	my $lang = sub { qw(e j)[$i] };
+	my $part = sub { qw(eg jp)[$i] };
+	my $toggle = sub { $i ^= 1 };
+	while ($trans =~ /^((?<kome>(?>※*)).*?\n)(?:\n+|\z)/smg) {
+	    my $ent = [ $s + $-[1], $s + $+[1] ];
+	    if ($+{kome}) {
+		my $level = min(length $+{kome}, 3);
+		&$toggle;
+		$region->push("comment", $ent);
+		$region->push("com".$level, $ent);
+		$region->enhance(&$part, $ent);
+		$region->enhance("egjp", $ent);
 	    } else {
-		push @eg, [ $ss, $ee ];
-		push @egjp, [ $ss, $ee ];
+		$region->push(&$lang, $ent);
+		$region->push(&$part, $ent);
+		if (&$lang eq 'e') {
+		    $region->push("egjp", $ent);
+		} else {
+		    $region->enhance("egjp", $ent);
+		}
 	    }
+	    &$toggle;
 	}
     }
 
     if ($pos > 0 and $pos != length) {
-	push @macro, [ $pos, length ];
+	$region->push("macro", [ $pos, length ]);
     }
 }
 
@@ -180,40 +325,43 @@ sub setdata {
 
 __DATA__
 
-define :comment: ^※.*\n(?:(?!\.(?:EG|JP|EJ)).+\n)*
-define :roffcomment: ^\.\\\".*
-define :roffindex:   ^\.(IX|CO).*
-
 option default --icode=guess
 
-option --clean --exclude :roffcomment: --exclude :roffindex:
+define &part &App::Greple::daemon3::part
 
-option --jp --inside '&part(jp,macro)'
-option --jponly --inside '&part(jp)'
-option --jpblock --block '&part(jp)'
-option --jptext --jponly --clean --nocomment
-
-option --eg --inside '&part(eg,macro)'
-option --egonly --inside '&part(eg)'
-option --egblock --block '&part(eg)'
-option --egtext --egonly --clean --nocomment
-
-option --comment --inside :comment:
+define :comment: ^※.*\n(?:(?!\.(?:EG|JP|EJ)).+\n)*
 option --nocomment --exclude :comment:
-option --commentblock --block :comment:
 
-option --macro --inside '&part(macro)'
-option --allblock --block '&part(macro,eg,jp)'
+define :roffcomment: ^\.\\\".*
+define :roffindex:   ^\.(IX|CO).*
+option --roffsafe --exclude :roffcomment: --exclude :roffindex:
 
-help --clean        cleanup roff comment and index macro
-help --jp           search from japanese/macro part
-help --jponly       search from japanese text part
-help --jpblock      japanese part as blocks
-help --jptext       search from japanese text without roff macros
-help --eg           search from english/macro part
-help --egonly       search from english text part
-help --egblock      english part as blocks
-help --egtext       search from english text without roff macros
-help --comment      search from comment part
-help --nocomment    search excluding comment part
-help --commentblock comment part as blocks
+option --part     &part($<shift>)
+option --by       --block  &part($<shift>)
+option --in       --inside &part($<shift>)
+
+option --jp       --by jp
+option --eg       --by eg
+option --egjp     --by egjp
+option --comment  --by comment
+
+option --injp      --in j --roffsafe --nocomment
+option --ineg      --in e --roffsafe --nocomment
+option --inej      --in e,j --roffsafe --nocomment
+
+option --retrieve   -h --nocolor --le &part($<shift>)
+option --colorcode  --need 1 --regioncolor \
+		    --le &part(macro) \
+		    --le &part(e) --le &part(j) --le &part(comment)
+
+help --jp           print Japanese chunk
+help --eg           print English chunk
+help --egjp         print Japanese/English chunk
+help --comment      print comment block
+
+help --injp         serach Japanese text
+help --ineg         serach English text
+help --inej         serach English/Japanese text
+
+help --retrieve     retrieve given part in plain text
+help --colorcode    show each part in color-coded
