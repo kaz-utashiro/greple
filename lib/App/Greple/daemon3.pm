@@ -241,7 +241,7 @@ END { }
 	}
     }
     sub tags {
-	keys shift;
+	keys %{+shift};
     }
 }
 
