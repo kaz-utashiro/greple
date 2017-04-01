@@ -28,10 +28,13 @@ Text is devided into forllowing parts.
     eg       English  text and comment
     jp       Japanese text and comment
     macro    Common roff macro
+    retain   Retained original text
     comment  Comment block
     com1     Level 1 comment
     com2     Level 2 comment
     com3     Level 3 comment
+    mark     .EG, .JP, .EJ mark lines
+    gap      gaps between English and Japanese
 
 So [ macro ] + [ e ] recovers original text, and [ macro ] + [ j ]
 produces Japanese version of book text.  You can do it by next
@@ -249,7 +252,7 @@ my $target = -1;
     
 my $region =
     new LabeledRegionList
-    qw(macro e j egjp eg jp comment com1 com2 com3);
+    qw(macro mark e j egjp eg jp retain comment com1 com2 com3 gap);
 
 sub part {
     my %arg = @_;
@@ -266,18 +269,20 @@ sub part {
 sub setdata {
     my $pos = 0;
 
-    while (m{	\G        (?<macro> (?s:.*?))
-		^\.EG.*\n (?<eg>    (?s:.*?\n))
-		^\.JP.*\n (?<jp>    (?s:.*?\n))
-		^\.EJ.*   (?:\n|\z)
+    while (m{	\G
+		(?<macro>    (?s:.*?) )
+		(?<start_eg> ^\.EG.*\n) (?<eg> (?s:.*?\n))
+		(?<start_jp> ^\.JP.*\n) (?<jp> (?s:.*?\n))
+		(?<end>      ^\.EJ.*    (?:\n|\z))
 	}mgx) {
 
 	$pos = pos();
 
 	$region->push("macro", [ $-[1], $+[1] ]) if $-[1] != $+[1];
-
-	my $eg = [ $-[2], $+[2] ];
-	my $jp = [ $-[3], $+[3] ];
+	$region->push("mark",
+		      [ $-[2], $+[2] ], [ $-[4], $+[4] ], [ $-[6], $+[6] ]);
+	my $eg = [ $-[3], $+[3] ];
+	my $jp = [ $-[5], $+[5] ];
 	my $trans = $+{jp};
 
 	if ($trans !~ /\n\n/) {
@@ -289,13 +294,17 @@ sub setdata {
 	    next;
 	}
 
+	$region->push("retain", $eg);
+
 	my($s, $e) = @$jp;
 	my $i = 0;
 	my $lang = sub { qw(e j)[$i] };
 	my $part = sub { qw(eg jp)[$i] };
 	my $toggle = sub { $i ^= 1 };
-	while ($trans =~ /^((?<kome>(?>※*)).*?\n)(?:\n+|\z)/smg) {
+	while ($trans =~ /^((?<kome>(?>※*)).*?\n)(\n+|\z)/smg) {
 	    my $ent = [ $s + $-[1], $s + $+[1] ];
+	    my $gap = [ $s + $-[3], $s + $+[3] ];
+	    $region->push("gap", $gap) if $gap->[0] != $gap->[1];
 	    if ($+{kome}) {
 		my $level = min(length $+{kome}, 3);
 		&$toggle;
