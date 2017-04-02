@@ -13,9 +13,9 @@ greple -Mdaemon3 [ options ]
     --eg         print English chunk
     --egjp       print Japanese/English chunk
     --comment    print comment block
-    --injp       serach Japanese text
-    --ineg       serach English text
-    --inej       serach English/Japanese text
+    --injp       search from Japanese text
+    --ineg       search from English text
+    --inej       search from English/Japanese text
     --retrieve   retrieve given part in plain text
     --colorcode  show each part in color-coded
 
