@@ -34,7 +34,7 @@ Text is devided into forllowing parts.
     com2     Level 2 comment
     com3     Level 3 comment
     mark     .EG, .JP, .EJ mark lines
-    gap      gaps between English and Japanese
+    gap      empty line between English and Japanese
 
 So [ macro ] + [ e ] recovers original text, and [ macro ] + [ j ]
 produces Japanese version of book text.  You can do it by next
@@ -65,6 +65,17 @@ Exclude pattern included in roff comment and index.
 =item B<--retrieve> I<part>
 
 Retrieve specified part as a plain text.
+
+Special word I<all> means I<macro>, I<mark>, I<e>, I<j>, I<comment>,
+I<retain>, I<gap>.  Next command produces original text.
+
+    greple -Mdaemon3 --retrieve all
+
+If the I<part> start with minus ('-') character, it is removed from
+specification.  Without positive specification, I<all> is assumed. So
+next command print all lines other than I<retain> part.
+
+    greple -Mdaemon3 --retrieve -retain
 
 =item B<--colorcode>
 
@@ -254,19 +265,40 @@ my $region =
     new LabeledRegionList
     qw(macro mark e j egjp eg jp retain comment com1 com2 com3 gap);
 
+my @all = qw(macro mark e j comment retain gap);
+
 sub part {
     my %arg = @_;
     my $file = delete $arg{&FILELABEL} or die;
 
     if ($target != \$_) {
 	$region->clean;
-	&setdata;
+	&setdata($region);
 	$target = \$_;
     }
-    $region->getSortedList(grep $arg{$_}, keys %arg);
+
+    if (exists $arg{all}) {
+	my $val = delete $arg{all};
+	map { $arg{$_} = $val } @all;
+    }
+
+    my @posi = grep $arg{$_}, grep /^\w+$/, keys %arg;
+    my @nega = map { s/^-//; $_ } grep /^-/, keys %arg;
+
+    my @part = do {
+	if (@nega) {
+	    my %nega = map { ($_, 1) } @nega;
+	    grep { not $nega{$_} } @posi ? @posi : @all;
+	} else {
+	    @posi;
+	}
+    };
+
+    $region->getSortedList(@part);
 }
 
 sub setdata {
+    my $region = shift;
     my $pos = 0;
 
     while (m{	\G
@@ -359,9 +391,15 @@ option --ineg      --in e --roffsafe --nocomment
 option --inej      --in e,j --roffsafe --nocomment
 
 option --retrieve   -h --nocolor --le &part($<shift>)
+
 option --colorcode  --need 1 --regioncolor \
-		    --le &part(macro) \
-		    --le &part(e) --le &part(j) --le &part(comment)
+		    --le &part(comment) --cm R \
+		    --le &part(macro)   --cm C \
+		    --le &part(e)       --cm B \
+		    --le &part(j)       --cm K \
+		    --le &part(retain)  --cm W \
+		    --le &part(mark)    --cm Y \
+		    --le &part(gap)     --cm X
 
 help --jp           print Japanese chunk
 help --eg           print English chunk
