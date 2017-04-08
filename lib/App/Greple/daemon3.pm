@@ -392,7 +392,7 @@ option --inej      --in e,j --roffsafe --nocomment
 
 option --retrieve   -h --nocolor --le &part($<shift>)
 
-option --colorcode  --need 1 --regioncolor \
+option --colorcode  --need 1 \
 		    --le &part(comment) --cm R \
 		    --le &part(macro)   --cm C \
 		    --le &part(e)       --cm B \
