@@ -1593,6 +1593,13 @@ Shortcut for B<--colormap>='I<RD GD BD CD MD YD>' in ANSI 16 colors
 mode, and B<--colormap>='I<D/544 D/454 D/445 D/455 D/454 D/554>' and
 other combination of 3, 4, 5 for 256 colors mode.  Enabled by default.
 
+When single pattern is specified, first color in colormap is used for
+the pattern.  If multiple patterns and multiple colors are specified,
+each patterns are colored with corresponding colors cyclically.
+
+Option B<--regioncolor>, B<--uniqcolor> and B<--random> change this
+behavior.
+
 =item B<--ansicolor>=I<16>|I<256>|I<24bit>
 
 If set as I<16>, use ANSI 16 colors as a default color set, otherwise
@@ -1603,12 +1610,15 @@ ANSI 256 colors.  When set as I<24bit>, 6 hex digits notation produces
 
 Shortcut for B<--ansicolor>=I<256> or I<16>.
 
-=item B<--regioncolor>
+=item B<--[no]regioncolor>, B<--[no]rc>
 
 Use different colors for each B<--inside>/B<outside> regions.
-Disabled by default.
 
-=item B<--uniqcolor>
+Disabled by default, but automatically enabled when only single search
+pattern is specified.  Because there is no way to explicitly disable
+this action, use B<--nocolorful> option to use single color.
+
+=item B<--[no]uniqcolor>, B<--[no]uc>
 
 Use different colors for different string matched.
 Disabled by default.
