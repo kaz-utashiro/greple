@@ -835,6 +835,11 @@ sub grep_files {
 
 	    # Try again
 	    binmode STDIN, ':raw';
+	    seek STDIN, 0, 0 or do {
+		warn "SKIP $current_file (not seekable)\n"
+		    unless $opt_conceal{skip};
+		next FILE;
+	    };
 	    $content = eval { local $/; <STDIN> };
 	    if (not defined $content) {
 		warn "SKIP* $current_file\n" unless $opt_conceal{skip};
