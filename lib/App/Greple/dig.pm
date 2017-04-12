@@ -16,7 +16,7 @@ package App::Greple::dig;
 
 __DATA__
 
-expand (#repository)	( -name .git -o -name RCS )
+expand (#repository)	( -name .git -o -name .svn -o -name RCS )
 expand (#no_dots)	! -name .*
 expand (#no_version)	! -name *,v
 expand (#no_backup)	! -name *~
