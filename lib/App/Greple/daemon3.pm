@@ -406,9 +406,9 @@ help --eg           print English chunk
 help --egjp         print Japanese/English chunk
 help --comment      print comment block
 
-help --injp         serach Japanese text
-help --ineg         serach English text
-help --inej         serach English/Japanese text
+help --injp         search Japanese text
+help --ineg         search English text
+help --inej         search English/Japanese text
 
 help --retrieve     retrieve given part in plain text
 help --colorcode    show each part in color-coded
