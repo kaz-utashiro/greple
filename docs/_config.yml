@@ -1,0 +1,8 @@
+title: Greple
+description: "greple: grep type command with multiple keywords"
+google_analytics: UA-47549010-1
+show_downloads: true
+theme: jekyll-theme-dinky
+
+gems:
+  - jekyll-mentions
