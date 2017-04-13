@@ -551,6 +551,13 @@ or `(?<c>\w)\g{c}`.
     mode, and **--colormap**='_D/544 D/454 D/445 D/455 D/454 D/554_' and
     other combination of 3, 4, 5 for 256 colors mode.  Enabled by default.
 
+    When single pattern is specified, first color in colormap is used for
+    the pattern.  If multiple patterns and multiple colors are specified,
+    each patterns are colored with corresponding colors cyclically.
+
+    Option **--regioncolor**, **--uniqcolor** and **--random** change this
+    behavior.
+
 - **--ansicolor**=_16_|_256_|_24bit_
 
     If set as _16_, use ANSI 16 colors as a default color set, otherwise
@@ -561,12 +568,15 @@ or `(?<c>\w)\g{c}`.
 
     Shortcut for **--ansicolor**=_256_ or _16_.
 
-- **--regioncolor**
+- **--\[no\]regioncolor**, **--\[no\]rc**
 
     Use different colors for each **--inside**/**outside** regions.
-    Disabled by default.
 
-- **--uniqcolor**
+    Disabled by default, but automatically enabled when only single search
+    pattern is specified.  Because there is no way to explicitly disable
+    this action, use **--nocolorful** option to use single color.
+
+- **--\[no\]uniqcolor**, **--\[no\]uc**
 
     Use different colors for different string matched.
     Disabled by default.
