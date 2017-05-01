@@ -377,7 +377,7 @@ or `(?<c>\w)\g{c}`.
     Since **greple** can handle arbitrary blocks other than normal text
     lines, they sometimes do not end by newline character.  In that case,
     extra newline is appended at the end of block to be shown.  Option
-    **--nonewline** disables this behaviour.
+    **--nonewline** disables this behavior.
 
 - **--filestyle**=_line_|_once_|_separate_, **--fs**
 
@@ -762,7 +762,7 @@ or `(?<c>\w)\g{c}`.
         greple --icode=+euc-kr ...
 
     If the string "**binary**" is given as encoding name, no character
-    encoding is expeted and all files are processed as binary data.
+    encoding is expected and all files are processed as binary data.
 
 - **--ocode**=_code_
 
@@ -789,7 +789,7 @@ or `(?<c>\w)\g{c}`.
     Filters for compressed and gzipped file is set by default unless
     **--noif** option is given.  Default action is like this:
 
-        greple --if='s/\.Z$//:zcat --if='s/\.g?z$//:gunzip -c'
+        greple --if='s/\.Z$//:zcat' --if='s/\.g?z$//:gunzip -c'
 
     File with _.gpg_ suffix is filtered by **gpg** command.  In that case,
     passphrase is asked for each file.  If you want to input passphrase
@@ -960,12 +960,12 @@ interpreted as a bare word.
 
     - **read**
 
-        (Default 1) Errors occured during file read.  Mainly unicode related
-        errors when reading binary or umbiguous text file.
+        (Default 1) Errors occurred during file read.  Mainly unicode related
+        errors when reading binary or ambiguous text file.
 
     - **skip**
 
-        (Default 0) File skip warings produced when fatal error was occured
+        (Default 0) File skip warnings produced when fatal error was occurred
         during file read.  Occurs when reading binary files with automatic
         character code recognition.
 
@@ -1039,7 +1039,7 @@ on user's home directory.  Following directives can be used.
     are processed.
 
     This is similar to string macro defined by following **define**
-    command.  But macro expantion is done by simple string replacement, so
+    command.  But macro expansion is done by simple string replacement, so
     you have to use **expand** to define option composed by multiple
     arguments.
 

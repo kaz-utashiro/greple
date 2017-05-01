@@ -1403,7 +1403,7 @@ documents within Perl script.
 Since B<greple> can handle arbitrary blocks other than normal text
 lines, they sometimes do not end by newline character.  In that case,
 extra newline is appended at the end of block to be shown.  Option
-B<--nonewline> disables this behaviour.
+B<--nonewline> disables this behavior.
 
 =item B<--filestyle>=I<line>|I<once>|I<separate>, B<--fs>
 
@@ -1827,7 +1827,7 @@ and UTF-16/32.
     greple --icode=+euc-kr ...
 
 If the string "B<binary>" is given as encoding name, no character
-encoding is expeted and all files are processed as binary data.
+encoding is expected and all files are processed as binary data.
 
 =item B<--ocode>=I<code>
 
@@ -1860,7 +1860,7 @@ may be able to use special device:
 Filters for compressed and gzipped file is set by default unless
 B<--noif> option is given.  Default action is like this:
 
-    greple --if='s/\.Z$//:zcat --if='s/\.g?z$//:gunzip -c'
+    greple --if='s/\.Z$//:zcat' --if='s/\.g?z$//:gunzip -c'
 
 File with I<.gpg> suffix is filtered by B<gpg> command.  In that case,
 passphrase is asked for each file.  If you want to input passphrase
@@ -2064,12 +2064,12 @@ Conceal runtime errors.  Repeatable.  Types are:
 
 =item B<read>
 
-(Default 1) Errors occured during file read.  Mainly unicode related
-errors when reading binary or umbiguous text file.
+(Default 1) Errors occurred during file read.  Mainly unicode related
+errors when reading binary or ambiguous text file.
 
 =item B<skip>
 
-(Default 0) File skip warings produced when fatal error was occured
+(Default 0) File skip warnings produced when fatal error was occurred
 during file read.  Occurs when reading binary files with automatic
 character code recognition.
 
@@ -2151,7 +2151,7 @@ definition, while option definition is expanded when command arguments
 are processed.
 
 This is similar to string macro defined by following B<define>
-command.  But macro expantion is done by simple string replacement, so
+command.  But macro expansion is done by simple string replacement, so
 you have to use B<expand> to define option composed by multiple
 arguments.
 
