@@ -60,6 +60,11 @@ sub new {
 
 sub run {
     my $self = shift;
+    $self->prepare->compose;
+}
+
+sub prepare {
+    my $self = shift;
 
     local *_ = $self->{text};
     my $pat_holder = $self->{pattern};
@@ -196,7 +201,15 @@ sub run {
 
     show_match_table(\@match_table) if $opt_d{v};
 
-    my $mp = $self->{MATCH_TABLE} = \@match_table;
+    $self->{MATCH_TABLE} = \@match_table;
+
+    $self;
+}
+
+sub compose {
+    my $self = shift;
+    my $bp = $self->{BLOCKS};
+    my $mp = $self->{MATCH_TABLE};
 
     ##
     ## now it is quite easy to get effective blocks
@@ -205,7 +218,8 @@ sub run {
 	$mp->[$_][MUST_NEGA] == 0 &&
 	$mp->[$_][POSI_POSI] >= $self->{need} &&
 	$mp->[$_][NEGA_POSI] <= $self->{allow},
-	0 .. $#{$bp});
+	0 .. $#{$bp})
+	or return $self;
 
     ##
     ## --block with -ABC option
