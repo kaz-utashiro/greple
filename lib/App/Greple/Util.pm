@@ -77,13 +77,14 @@ sub index {
     my $obj = shift;
     local $_ = shift;
 
-    s/\n+//g if $obj->{ignore_newline};
-    s/\s+//g if $obj->{ignore_space};
-
     $obj->{HASH}->{$_} //= do {
-	my $list = $obj->{LIST};
-	push @$list, $_;
-	$#{ $list };
+	s/\n+//g if $obj->{ignore_newline};
+	s/\s+//g if $obj->{ignore_space};
+	$obj->{HASH}->{$_} //= do {
+	    my $list = $obj->{LIST};
+	    push @$list, $_;
+	    $#{ $list };
+	};
     };
 }
 
