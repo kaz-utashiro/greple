@@ -643,10 +643,16 @@ if ($opt_d{c}) {
     warn 'colors = ', $dump->(\@colors);
 }
 
-sub _file     { $color_handler->color('FILE'    , @_) }
-sub _line     { $color_handler->color('LINE'    , @_) }
-sub _delim    { $color_handler->color('DELIM'   , @_) }
-sub _blockend { $color_handler->color('BLOCKEND', @_) }
+my($_file, $_line, $_blockend) = do {
+    if ($need_color) {
+	sub { $color_handler->color('FILE'    , $_[0]) },
+	sub { $color_handler->color('LINE'    , $_[0]) },
+	sub { $color_handler->color('BLOCKEND', $_[0]) }
+    }
+    else {
+	(sub { $_[0] }, sub { $_[0] }, sub { $_[0] });
+    }
+};
 
 sub index_color {
     $color_handler->index_color(@_);
@@ -993,7 +999,7 @@ sub display_result {
     my $file = $grep->{filename};
 
     if ($need_filename and $opt_filestyle eq 'once') {
-	print $file, ":\n";
+	print $_file->($file), ":\n";
     }
 
     my $need_blockend =
@@ -1024,11 +1030,11 @@ sub display_result {
 
 	if (my $nl = 0, 1) {
 	    if ($need_filename and $opt_filestyle eq 'separate') {
-		print _file("$current_file:");
+		print $_file->("$current_file:");
 		$nl++;
 	    }
 	    if ($opt_n and $opt_linestyle eq 'separate') {
-		print _line("$line:");
+		print $_line->("$line:");
 		$nl++;
 	    }
 	    print "\n" if $nl;
@@ -1068,7 +1074,7 @@ sub display_result {
 		my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
 		$block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
 			    my $s = $1 ? $opt_joinby
-				       : _line("$line:");
+				       : $_line->("$line:");
 			    $line += $increment;
 			    $s;
 			   }gse;
@@ -1078,13 +1084,13 @@ sub display_result {
 	}
 
 	if ($need_filename and $opt_filestyle eq 'line') {
-	    my $s = _file("$file:");
+	    my $s = $_file->("$file:");
 	    $block =~ s/^/$s/mg;
 	}
 
 	print $block;
 	print "\n" if $opt_newline and not $block =~ /\n\z/;
-	print _blockend($blockend) if $need_blockend;
+	print $_blockend->($blockend) if $need_blockend;
     }
 }
 
