@@ -59,9 +59,11 @@ my %numbers = (
     P => 2,		# P : Pale (Dark)
     I => 3,		# I : Italic
     U => 4,		# U : Underline
-    F => 5,		# F : Flash (Blink)
+    F => 5,		# F : Flash (Blink: Slow)
+    Q => 6,		# Q : Quick (Blink: Rapid)
     S => 7,		# S : Standout (Reverse)
     V => 8,		# V : Vanish (Concealed)
+    J => 9,		# J : Junk (Crossed out)
     K => 30, k => 90,	# K : Kuro (Black)
     R => 31, r => 91,	# R : Red  
     G => 32, g => 92,	# G : Green
@@ -79,16 +81,20 @@ sub ansi_numbers {
     while (m{\G
 	     (?:
 	       (?<slash> /)				# /
+	     | (?<sgi>  H\d[x\d]* )			# SGI params
 	     | (?<h24>  [0-9a-f]{6} )			# 24bit hex
 	     | (?<c256> [0-5][0-5][0-5]			# 216 (6x6x6) colors
 		      | L(?:[01][0-9]|[2][0-3]) )	# 24 grey levels
 	     | (?<c16>  [KRGYBMCW] )			# 16 colors
-	     | (?<efct> [;XNZDPIUFSV] )			# effects
+	     | (?<efct> [;XNZDPIUFQSVJ] )		# effects
 	     | (?<err>  .+ )				# error
 	     )
 	    }xig) {
 	if ($+{slash}) {
-	    $BG++ and die "Color spec error: $_";
+	    $BG++ and die "Color spec error: $_\n";
+	}
+	elsif (my $sgi = $+{sgi}) {
+	    push @numbers, $sgi =~ /(\d+)/g;
 	}
 	elsif (my $h24 = $+{h24}) {
 	    if ($COLOR_RGB24) {
@@ -111,7 +117,7 @@ sub ansi_numbers {
 	    push @numbers, $numbers{$efct} if defined $numbers{$efct};
 	}
 	elsif (my $err = $+{err}) {
-	    die "Color spec error: \"$err\" in \"$_\""
+	    die "Color spec error: \"$err\" in \"$_\".\n"
 	}
 	else { die }
 	
@@ -315,17 +321,26 @@ Note that, when values are all same in 24bit RGB, it is converted to
 
 with other special effects :
 
-    Z  Zero (reset)
-    D  Double-struck (boldface)
-    P  Pale (dark)
-    I  Italic
-    S  Stand-out (reverse video)
-    V  Vanish (concealed)
-    U  Underline
-    F  Flash (blink)
+    Z  0 Zero (reset)
+    D  1 Double-struck (boldface)
+    P  2 Pale (dark)
+    I  3 Italic
+    U  4 Underline
+    F  5 Flash (blink: slow)
+    Q  6 Quick (blink: rapid)
+    S  7 Stand-out (reverse video)
+    V  8 Vanish (concealed)
+    J  9 Junk (crossed out)
 
     ;  No effect
     X  No effect
+
+and arbitrary numbers beginning with "H", those are directly converted
+into escape sequence.  Use "x" to indicate multiple numbers.  Remember
+associated with Hollerith constants.
+
+    H4      underline
+    H1x3x7  bold / italic / stand-out
 
 If the spec includes C</>, left side is considered as foreground color
 and right side as background.  If multiple colors are given in same
