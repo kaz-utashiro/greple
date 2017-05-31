@@ -26,7 +26,7 @@ use File::stat;
 use IO::Handle;
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(min max first sum);
+use List::Util qw(min max first any sum);
 use Scalar::Util qw(blessed);
 use Cwd qw(getcwd abs_path);
 use Data::Dumper;
@@ -1012,14 +1012,15 @@ sub display_result {
 	my($block_start, $block_end) = @{shift @$result};
 	my $block = $grep->cut($block_start, $block_end);
 
-	for my $func (@opt_print) {
-	    for ($block) {
+	if (@opt_print) {
+	    local *_ = \$block;
+	    for my $func (@opt_print) {
 		$_ = $func->call(&FILELABEL => $file, matched => $result);
 	    }
-	}
-	if (@opt_print and not $opt_continue) {
-	    print $block if defined $block;
-	    next;
+	    if (not $opt_continue) {
+		print $block if defined $block;
+		next;
+	    }
 	}
 
 	if ($opt_n) {
@@ -1028,17 +1029,17 @@ sub display_result {
 	}
 	$lastpos = $block_end;
 
-	if (my $nl = 0, 1) {
-	    if ($need_filename and $opt_filestyle eq 'separate') {
-		print $_file->("$current_file:");
-		$nl++;
-	    }
-	    if ($opt_n and $opt_linestyle eq 'separate') {
-		print $_line->("$line:");
-		$nl++;
-	    }
-	    print "\n" if $nl;
+	# when --filestyle and/or --linestyle is "separate"
+	any { $_ }
+	do {
+	    print $_file->("$current_file:")
+		if $need_filename and $opt_filestyle eq 'separate';
+	},
+	do {
+	    print $_line->("$line:")
+		if $opt_n and $opt_linestyle eq 'separate';
 	}
+	and print "\n";
 
 	my $mark = "\001";
 	for my $matched (reverse @$result) {
@@ -1918,9 +1919,9 @@ Specify user defined function executed before data print.  Text to be
 printed is replaced by the result of the function.  Arbitrary function
 can be defined in F<.greplerc> file.  Matched data is placed in
 variable C<$_>.  Other information is passed by key-value pair in the
-arguments.  Filename is passed by C<file> key.  Matched information is
-passed by C<matched> key, in the form of perl array reference:
-C<[[start,end],[start,end]...]>.
+arguments.  Filename is passed by C<&FILELABEL> key, as described
+later.  Matched information is passed by C<matched> key, in the form
+of perl array reference: C<[[start,end],[start,end]...]>.
 
 Simplest function is B<--print>='I<sub{$_}>'.  Coloring capability can
 be used like this:
@@ -1931,7 +1932,7 @@ be used like this:
         my %attr = @_;
         for my $r (reverse @{$attr{matched}}) {
             my($s, $e) = @$r;
-            substr($_, $s, $e - $s, color('B', substr($_, $s, $e - $s)));
+            substr($_, $s, $e - $s, main::color('B', substr($_, $s, $e - $s)));
         }
         $_;
     }
