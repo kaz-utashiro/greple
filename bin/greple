@@ -47,7 +47,7 @@ use warnings FATAL => 'utf8';
 ## Setup greple/lib to be a module directory if exists.
 ##
 BEGIN {
-    if ((my $lib = abs_path($0)) =~ s{/ \K (?:bin/)? \w+ $}{lib}x) {
+    if (my $lib = abs_path($0) =~ s{/(?:script/|bin/)?\w+$}{/lib}r) {
 	push @INC, $lib if -d "$lib/App/Greple";
     }
 }
