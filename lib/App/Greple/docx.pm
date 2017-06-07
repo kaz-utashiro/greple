@@ -26,24 +26,68 @@ our @EXPORT_OK   = ();
 
 use App::Greple::Common;
 use List::Util qw( min max first sum );
-use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use Data::Dumper;
 
-# push @EXPORT, '&docx_begin_old';
-sub docx_begin_old {
-    my %arg = @_;
-    my $file = delete $arg{&FILELABEL} or die;
+our $document = "word/document.xml";
 
-    my $zip = Archive::Zip->new();
-    $zip->read($file) == AZ_OK or die "zip read: $!\n";
+my $zip_extract;
+my $zip_update;
+my $zip_write;
 
-    $_ = decode 'utf8', $zip->contents("word/document.xml");
+BEGIN {
+    eval {
+	require Archive::Zip;
+	import  Archive::Zip qw( :ERROR_CODES :CONSTANTS );
+	my $zip;
+	$zip_extract = sub {
+	    my ($zipdata, $file) = @_;
+	    my $zip = Archive::Zip->new();
+	    my $fh = new IO::File;
+	    $fh->open(\$zipdata, "+<") or die "open: $!\n";
+	    $zip->readFromFileHandle($fh, $file) == &AZ_OK
+		or die "zip read: $!\n";
+	    $fh->close;
+	    decode 'utf8', $zip->contents($document);
+	};
+	$zip_update = sub {
+	    my $data = shift;
+	    $zip->contents($document, $data);
+	};
+	$zip_write = sub {
+	    my $file = shift;
+	    my $status = $zip->writeToFileNamed($file);
+	    $status == &AZ_OK;
+	};
+    } or
+    eval {
+	require IO::Uncompress::Unzip;
+	my $unzip;
+	my $document_data;
+	$zip_extract = sub {
+	    my($zipdata, $file) = @_;
+            $unzip = new IO::Uncompress::Unzip \$zipdata,
+               or die "IO::Uncompress::Unzip failed.\n";
+	    my $status;
+	    for ($status = 1; $status > 0; $status = $unzip->nextStream()) {
+		my $name = $unzip->getHeaderInfo()->{Name};
+		next if $name ne $document;
+		return decode 'utf8', do { local $/; <$unzip> };
+	    }
+	    croak "Error processing $file: $!\n" if $status < 0;
+	    carp "No \"$document\" member in \"$file\".\n";
+	    undef;
+	};
+	$zip_update = sub {
+	    $document_data = shift;
+	};
+	$zip_write = sub {
+	    croak "Not implemented.\n";
+	};
+    } or
+    croak "No Zip module";
 }
 
-my $zip;
-my $zipdata;
 my $stdout;
-our $document = "word/document.xml";
 
 push @EXPORT, '&docx_begin';
 sub docx_begin {
@@ -51,14 +95,7 @@ sub docx_begin {
     my $file = delete $arg{&FILELABEL} or die;
 
     if ($file =~ /\.docx$/ and $_ =~ /\A PK\003\004/x) {
-	$zip = Archive::Zip->new();
-	$zipdata = $_;
-	my $fh = new IO::File;
-	$fh->open(\$zipdata, "+<") or die "open: $!\n";
-	$zip->readFromFileHandle($fh, $file) == AZ_OK or die "zip read: $!\n";
-	$fh->close;
-
-	$_ = decode 'utf8', $zip->contents($document);
+	$_ = $zip_extract->($_, $file);
 	binmode STDOUT, ":encoding(utf8)";
     }
 }
@@ -82,20 +119,14 @@ sub docx_update {
 	return;
     }
 
-    if (not $zip) {
-	warn "No zip data.\n";
-	return;
-    }
-
-    $zip->contents($document, $stdout);
+    $zip_update->($stdout);
 
     if ($newfile) {
 	if (-f $newfile and not $arg{force}) {
 	    warn "File \"$newfile\" exists.\n";
 	    return;
 	}
-	my $status = $zip->writeToFileNamed($newfile);
-	die "$newfile: $!\n" if $status != AZ_OK;
+	$zip_write->($newfile) or die "$newfile: $!\n";
     }
 
     warn "$newfile written.\n";
@@ -160,9 +191,7 @@ option default --persist --begin docx_begin
 option --text --begin docx_text
 
 define (#delText) <w:delText>.*?</w:delText>
-option --pretty --begin docx_xml --exclude (#delText)
-
-option --pretty2 --begin docx_xml2 --exclude (#delText)
+option --indent --begin docx_xml --exclude (#delText)
 
 option --plain --exclude (#delText) --nonewline
 
