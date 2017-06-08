@@ -584,6 +584,7 @@ $opt_join = 1 if $opt_joinby ne "";
 my %colormap = (
     FILE     => "G",
     LINE     => "Y",
+    TEXT     => "",
     BLOCKEND => "",
     );
 
@@ -643,14 +644,15 @@ if ($opt_d{c}) {
     warn 'colors = ', $dump->(\@colors);
 }
 
-my($_file, $_line, $_blockend) = do {
+my($_file, $_line, $_text, $_blockend) = do {
     if ($need_color) {
 	sub { $color_handler->color('FILE'    , $_[0]) },
 	sub { $color_handler->color('LINE'    , $_[0]) },
+	sub { $color_handler->color('TEXT'    , $_[0]) },
 	sub { $color_handler->color('BLOCKEND', $_[0]) }
     }
     else {
-	(sub { $_[0] }, sub { $_[0] }, sub { $_[0] });
+	( sub { $_[0] } ) x 4
     }
 };
 
@@ -1088,6 +1090,8 @@ sub display_result {
 	    my $s = $_file->("$file:");
 	    $block =~ s/^/$s/mg;
 	}
+
+	$block = $_text->($block) if $colormap{TEXT} ne "";
 
 	print $block;
 	print "\n" if $opt_newline and not $block =~ /\n\z/;
@@ -1576,6 +1580,7 @@ Another form of colormap option to specify the color for fields:
 
     FILE      File name
     LINE      Line number
+    TEXT      Unmatched normal text
     BLOCKEND  Block end mark
 
 =item B<--colormap>=I<&func> B<--colormap>=I<sub{...}>
@@ -1604,6 +1609,10 @@ specifications.  Also the form I<&func;> can be repeated.
     greple --cm 'BF/544;sub{uc}'
 
     greple --cm 'R;&func1;&func2;&func3'
+
+When color for 'TEXT' field is specified, whole text including matched
+part is passed to the function, exceptionally.  It is not recommended
+to use user defined function for 'TEXT' field.
 
 =item B<--[no]colorful>
 
