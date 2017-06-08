@@ -1519,17 +1519,26 @@ Note that, when values are all same in 24bit RGB, it is converted to
 
 with other special effects :
 
-    Z  Zero (reset)
-    D  Double-struck (boldface)
-    P  Pale (dark)
-    I  Italic
-    S  Stand-out (reverse video)
-    V  Vanish (concealed)
-    U  Underline
-    F  Flash (blink)
+    Z  0 Zero (reset)
+    D  1 Double-struck (boldface)
+    P  2 Pale (dark)
+    I  3 Italic
+    U  4 Underline
+    F  5 Flash (blink: slow)
+    Q  6 Quick (blink: rapid)
+    S  7 Stand-out (reverse video)
+    V  8 Vanish (concealed)
+    J  9 Junk (crossed out)
 
     ;  No effect
     X  No effect
+
+and arbitrary numbers beginning with "H", those are directly converted
+into escape sequence.  Use "x" to indicate multiple numbers.  Remember
+associated with Hollerith constants.
+
+    H4      underline
+    H1x3x7  bold / italic / stand-out
 
 If the spec includes C</>, left side is considered for foreground
 color and right side is for background.  If multiple colors are
@@ -1558,6 +1567,8 @@ green and `baz' in blue.
     greple --colormap='R G B' 'foo bar baz'
 
     greple --cm R -e foo --cm G -e bar --cm B -e baz
+
+Coloring capability is implmented in L<Getopt::EX::Colormap> module.
 
 =item B<--colormap>=I<field>=I<spec>,I<field>=I<spec>,...
 
