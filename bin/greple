@@ -194,6 +194,7 @@ my $opt_icode;
 my $opt_ocode;
 my $opt_man;
 my $opt_show;
+my $opt_path;
 my $opt_join;
 my $opt_joinby = "";
 my $opt_newline = 1;
@@ -261,6 +262,7 @@ my @optargs = (
     'd=s'                => \@opt_d,
     'man'                => \$opt_man,
     'show'               => \$opt_show,
+    'path'               => \$opt_path,
     'icode=s'            => \@opt_icode,
     'ocode=s'            => \$opt_ocode,
     'join!'              => \$opt_join,
@@ -423,10 +425,10 @@ if ($opt_d{u}) {
 }
 
 ## show man pages
-if ($opt_man or $opt_show) {
+if ($opt_man or $opt_show or $opt_path) {
     my @bucket = $rcloader->buckets;
     if (@bucket and (my $mod = $bucket[-1]->title) ne ".greplerc") {
-	my @perldocopt = $opt_show ? '-m' : () ;
+	my @perldocopt = $opt_show ? '-m' : $opt_path ? '-l' : () ;
 	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
 	my $perldoc = $jp ? "perldocjp" : "perldoc";
 	$ENV{PERL5LIB} = join ':', @INC;
@@ -2059,6 +2061,10 @@ Display module's manual page when used with B<-M> option.
 =item B<--show>
 
 Show module file contents.  Use with B<-M> option.
+
+=item B<--path>
+
+Show module file path.  Use with B<-M> option.
 
 =item B<--require>=I<filename>
 
