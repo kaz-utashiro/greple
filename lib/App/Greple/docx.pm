@@ -8,6 +8,27 @@ greple -Mdocx
 
 =head1 DESCRIPTION
 
+This module makes it possible to search Microsoft Word docx file.
+
+Docx document is consists of multiple files archived in zip format.
+Among those files, document data is stored in "word/document.xml"
+file.  This module extracts the content of this file and replaces the
+search target data.
+
+=head1 OPTIONS
+
+=over 7
+
+=item B<--indent>
+
+Indent XML document before search.
+
+=item B<--text>
+
+Remove XML markups and extract document text.
+
+=back
+
 =cut
 
 package App::Greple::docx;
