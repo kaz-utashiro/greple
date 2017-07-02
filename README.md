@@ -268,8 +268,8 @@ or `(?<c>\w)\g{c}`.
     Using option **--need**=_1_, **greple** produces same result as **grep**
     command.
 
-        grep -e foo -e bar -e baz
-        greple --need=1 -e foo -e bar -e baz
+        grep   -e foo -e bar -e baz
+        greple -e foo -e bar -e baz --need=1
 
     When the count _n_ is negative value, it is subtracted from default
     value.
@@ -470,17 +470,26 @@ or `(?<c>\w)\g{c}`.
 
     with other special effects :
 
-        Z  Zero (reset)
-        D  Double-struck (boldface)
-        P  Pale (dark)
-        I  Italic
-        S  Stand-out (reverse video)
-        V  Vanish (concealed)
-        U  Underline
-        F  Flash (blink)
+        Z  0 Zero (reset)
+        D  1 Double-struck (boldface)
+        P  2 Pale (dark)
+        I  3 Italic
+        U  4 Underline
+        F  5 Flash (blink: slow)
+        Q  6 Quick (blink: rapid)
+        S  7 Stand-out (reverse video)
+        V  8 Vanish (concealed)
+        J  9 Junk (crossed out)
 
         ;  No effect
         X  No effect
+
+    and arbitrary numbers beginning with "H", those are directly converted
+    into escape sequence.  Use "x" to indicate multiple numbers.  Remember
+    associated with Hollerith constants.
+
+        H4      underline
+        H1x3x7  bold / italic / stand-out
 
     If the spec includes `/`, left side is considered for foreground
     color and right side is for background.  If multiple colors are
@@ -510,12 +519,15 @@ or `(?<c>\w)\g{c}`.
 
         greple --cm R -e foo --cm G -e bar --cm B -e baz
 
+    Coloring capability is implmented in [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap) module.
+
 - **--colormap**=_field_=_spec_,_field_=_spec_,...
 
     Another form of colormap option to specify the color for fields:
 
         FILE      File name
         LINE      Line number
+        TEXT      Unmatched normal text
         BLOCKEND  Block end mark
 
 - **--colormap**=_&func_ **--colormap**=_sub{...}_
@@ -544,6 +556,10 @@ or `(?<c>\w)\g{c}`.
         greple --cm 'BF/544;sub{uc}'
 
         greple --cm 'R;&func1;&func2;&func3'
+
+    When color for 'TEXT' field is specified, whole text including matched
+    part is passed to the function, exceptionally.  It is not recommended
+    to use user defined function for 'TEXT' field.
 
 - **--\[no\]colorful**
 
@@ -835,9 +851,9 @@ or `(?<c>\w)\g{c}`.
     printed is replaced by the result of the function.  Arbitrary function
     can be defined in `.greplerc` file.  Matched data is placed in
     variable `$_`.  Other information is passed by key-value pair in the
-    arguments.  Filename is passed by `file` key.  Matched information is
-    passed by `matched` key, in the form of perl array reference:
-    `[[start,end],[start,end]...]`.
+    arguments.  Filename is passed by `&FILELABEL` key, as described
+    later.  Matched information is passed by `matched` key, in the form
+    of perl array reference: `[[start,end],[start,end]...]`.
 
     Simplest function is **--print**='_sub{$\_}_'.  Coloring capability can
     be used like this:
@@ -848,7 +864,7 @@ or `(?<c>\w)\g{c}`.
             my %attr = @_;
             for my $r (reverse @{$attr{matched}}) {
                 my($s, $e) = @$r;
-                substr($_, $s, $e - $s, color('B', substr($_, $s, $e - $s)));
+                substr($_, $s, $e - $s, main::color('B', substr($_, $s, $e - $s)));
             }
             $_;
         }
@@ -949,6 +965,10 @@ interpreted as a bare word.
 - **--show**
 
     Show module file contents.  Use with **-M** option.
+
+- **--path**
+
+    Show module file path.  Use with **-M** option.
 
 - **--require**=_filename_
 
