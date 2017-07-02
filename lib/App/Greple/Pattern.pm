@@ -198,11 +198,12 @@ sub cook_pattern {
 	    }
 	}egx;
 
-	# remove \s* arround space
+	# convert space not preceded by \ to \s+,
+	# removing (?>\s*) arround it
 	$p =~ s{
-	    (?: \Q\s*\E | \Q(?>\s*)\E)?
-	    (?: \\? \ )+
-	    (?: \Q\s*\E | \Q(?>\s*)\E)?
+	    (?: \Q\s*\E | \Q(?>\s*)\E)*
+	    (?: (?<!\\) [ ] )+
+	    (?: \Q\s*\E | \Q(?>\s*)\E)*
 	}{\\s+}gx;
     }
 
