@@ -200,8 +200,6 @@ my $opt_joinby = "";
 my $opt_newline = 1;
 my $opt_clean;
 my $opt_readlist;
-my $opt_need;
-my $opt_allow = 0;
 my @opt_need;
 my @opt_allow;
 my $opt_strict = 0;
@@ -498,39 +496,43 @@ for ([ \@opt_r,  FLAG_REGEX | FLAG_COOK | FLAG_REQUIRED ],
 }
 
 ##
-## set $opt_need and $opt_alow
+## set $count_must, $count_need and $opt_alow
 ##
+my $count_must = 0;
+my $count_need;
+my $count_allow = 0;
 {
     my $must = grep({ $_->is_required } $pat_holder->patterns);
     my $posi = grep({ $_->is_positive } $pat_holder->patterns) - $must;
     my $nega = grep({ $_->is_negative } $pat_holder->patterns);
 
-    $opt_need = $must ? 0 : $posi;
+    $count_must = $must // 0;
+    $count_need = $must ? 0 : $posi;
     for (@opt_need) {
 	if (/^-(\d+)$/) {	# --need -n
-	    $opt_need = $posi - $1;
+	    $count_need = $posi - $1;
 	}
 	elsif (/^\+(\d+)$/) {	# --need +n
-	    $opt_need += $1;
+	    $count_need += $1;
 	}
 	elsif (/^(\d+)$/) {	# --need n
-	    $opt_need = $1 - $must;
+	    $count_need = $1 - $must;
 	}
 	else {
 	    die "$_ is not valid count.\n"
 	}
     }
 
-    $opt_allow = 0;
+    $count_allow = 0;
     for (@opt_allow) {
 	if (/^-(\d+)$/) {	# --allow -n
-	    $opt_allow = $nega - $1;
+	    $count_allow = $nega - $1;
 	}
 	elsif (/^\+(\d+)$/) {	# --allow +n
-	    $opt_allow += $1;
+	    $count_allow += $1;
 	}
 	elsif (/^(\d+)$/) {	# --allow n
-	    $opt_allow = $1;
+	    $count_allow = $1;
 	}
 	else {
 	    die "$_ is not valid count.\n"
@@ -745,7 +747,7 @@ if ($opt_d{m}) {
 		     $type,
 		     @colors > 1 ? index_color($i++, $target) : $target);
     }
-    warn sprintf "need = %d, allow = %d\n", $opt_need, $opt_allow;
+    warn sprintf "must = %d, need = %d, allow = %d\n", $count_must, $count_need, $count_allow;
 }
 
 ## push post-process filter
@@ -962,8 +964,8 @@ sub grep_data {
 	only         => $opt_o,
 	all          => $opt_all,
 	block        => \@opt_block,
-	need         => $opt_need,
-	allow        => $opt_allow,
+	need         => $count_need,
+	allow        => $count_allow,
 	strict       => $opt_strict,
 	region_index => $opt_regioncolor,
 	stat         => \%stat,
@@ -1298,8 +1300,8 @@ Above command prints the line which contains two or more from `foo',
 Using option B<--need>=I<1>, B<greple> produces same result as B<grep>
 command.
 
-    grep -e foo -e bar -e baz
-    greple --need=1 -e foo -e bar -e baz
+    grep   -e foo -e bar -e baz
+    greple -e foo -e bar -e baz --need=1
 
 When the count I<n> is negative value, it is subtracted from default
 value.
