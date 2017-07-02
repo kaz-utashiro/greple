@@ -26,7 +26,7 @@ use File::stat;
 use IO::Handle;
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(min max first any sum);
+use List::Util qw(min max first sum);
 use Scalar::Util qw(blessed);
 use Cwd qw(getcwd abs_path);
 use Data::Dumper;
@@ -1036,7 +1036,7 @@ sub display_result {
 	$lastpos = $block_end;
 
 	# when --filestyle and/or --linestyle is "separate"
-	any { $_ }
+	grep { $_ }
 	do {
 	    print $_file->("$current_file:")
 		if $need_filename and $opt_filestyle eq 'separate';
