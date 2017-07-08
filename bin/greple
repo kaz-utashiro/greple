@@ -669,7 +669,8 @@ sub color {
 }
 
 my $uniq_color = new UniqIndex
-    ignore_newline => 1;
+    ignore_newline => 1,
+    ignore_case => $opt_i;
 
 sub dump_uniqcolor {
     my $list = $uniq_color->list;
@@ -1744,6 +1745,11 @@ Next example prints all words start by `color' and display them all in
 different colors.
 
     greple --uniqcolor 'colou?r\w*'
+
+When used with option B<-i>, color is selected in case-insensitive
+fashion.  If you want case-insensitive match and case-sensitive color
+selection, indicate insensitiveness in the pattern rather than command
+option (e.g. 'I<(?i)pattern>').
 
 =item B<--random>
 

@@ -78,8 +78,11 @@ sub index {
     local $_ = shift;
 
     $obj->{HASH}->{$_} //= do {
-	s/\n+//g if $obj->{ignore_newline};
-	s/\s+//g if $obj->{ignore_space};
+	s/\n+//g    if $obj->{ignore_newline};
+	s/\s+//g    if $obj->{ignore_space};
+	s/\pS+//g   if $obj->{ignore_symbol};
+	s/\pP+//g   if $obj->{ignore_punct};
+	$_ = lc($_) if $obj->{ignore_case};
 	$obj->{HASH}->{$_} //= do {
 	    my $list = $obj->{LIST};
 	    push @$list, $_;
