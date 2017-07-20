@@ -1,6 +1,6 @@
 # NAME
 
-greple - grep with multiple keywords
+greple - extensible grep with lexical expression and region handling
 
 # SYNOPSIS
 
@@ -8,9 +8,9 @@ greple - grep with multiple keywords
 
     PATTERN
       pattern              'and +must -not ?alternative &function'
-      -e pattern           regex pattern match across line boundary
-      -r pattern           regex pattern cannot be compromised
-      -v pattern           regex pattern not to be matched
+      -e pattern           pattern match across line boundary
+      -r pattern           pattern cannot be compromised
+      -v pattern           pattern not to be matched
       --le pattern         lexical expression (same as bare pattern)
       --re pattern         regular expression
       --fe pattern         fixed expression
@@ -75,6 +75,8 @@ greple - grep with multiple keywords
       --continue           continue after print function
       --begin=func         call function before search
       --end=func           call function after search
+      --prologue=func      call function before command execution
+      --epilogue=func      call function after command execution
     OTHER
       --norc               skip reading startup file
       --man                display command or module manual page
@@ -89,9 +91,9 @@ greple - grep with multiple keywords
 ## MULTIPLE KEYWORDS
 
 **greple** has almost the same function as Unix command [egrep(1)](http://man.he.net/man1/egrep) but
-the search is done in the manner similar to search engine.  For
-example, next command print lines those contain all of \`foo' and \`bar'
-and \`baz'.
+the search is done in a manner similar to Internet search engine.
+For example, next command print lines those contain all of \`foo' and
+bar' and \`baz'.
 
     greple 'foo bar baz' ...
 
@@ -109,7 +111,7 @@ token, or use regular expression.
     greple 'foo bar baz yabba|dabba|doo'
 
 This command will print the line which contains all of \`foo', \`bar'
-and \`baz' and one or more from \`yabba', \`dabba' or \`doo'.
+and \`baz' and one or more of \`yabba', \`dabba' or \`doo'.
 
 NOT operator can be specified by prefixing the token by minus (\`-')
 sign.  Next example will show the line which contain both \`foo' and
@@ -123,8 +125,8 @@ This can be written as this using **-e** and **-v** option.
     greple -e foo -e bar -v 'yabba|dabba|doo'
 
 If \`+' is placed to positive matching pattern, that pattern is marked
-as required, and match required count is automatically set to the
-number of required pattern.  So
+as required, and required match count is automatically set to the
+number of required patterns.  So
 
     greple '+foo bar baz'
 
@@ -135,21 +137,100 @@ either or both of \`bar' and \`baz', use like this:
     greple '+foo bar baz' --need 2
     greple '+foo bar baz' --need +1
 
+## FLEXIBLE BLOCKS
+
+Default data block **greple** search and print is a line.  Using
+**--paragraph** (or **-p** in short) option, series of text separated
+by empty line is taken as a record block.  So next command will print
+whole paragraph which contains the word \`foo', \`bar' and \`baz'.
+
+    greple -p 'foo bar baz'
+
+Option **--all** takes whole file as a single block.  So next command
+find files which contains these strings, and print the all contents.
+
+    greple --all 'foo bar baz'
+
+Block also can be defined as pattern.  Next command search and print
+mail header, ignoring mail body text.
+
+    greple --block '\A(.+\n)+'
+
+You can also define arbitrary complex blocks by writing script.
+
+    greple --block '&your_original_function' ...
+
+## MATCH AREA CONTROL
+
+Using option **--inside** and **--outside**, you can specify text area
+the match should be occurred.  Next commands search only in mail header
+and body area respectively.  In these case, data block is not changed,
+then print lines which contains the pattern in the specified area.
+
+    greple --inside '\A(.+\n)+' pattern
+
+    greple --outside '\A(.+\n)+' pattern
+
+Option **--inside**/**--outside** can be used repeatedly to enhance the
+area to be matched.  There are similar option
+**--include**/**--exclude**, but they are used to trim down the area.
+
+Those four options also takes user defined function and any complex
+region can be used.
+
 ## LINE ACROSS MATCH
 
-**greple** also search the pattern across the line boundaries.  This is
-especially useful to handle Asian multi-byte text.  Japanese text can
-be separated by newline almost any place of the text.  So the search
-pattern may spread out on multiple lines.
+**greple** search the pattern across the line boundaries.  This is
+especially useful to handle Asian multi-byte text, more specifically
+Japanese.  Japanese text can be separated by newline almost any place
+in the text.  So the search pattern may spread out on multiple lines.
 
-As for ascii text, space character in the pattern matches any kind of
-space including newline.  Next example will search the word sequence
-of \`foo', \`bar' and 'baz', even they spread out to multiple lines.
+As for ascii word list, space character in the pattern matches any
+kind of space including newline.  Next example will search the word
+sequence of \`foo', \`bar' and 'baz', even they spread out to multiple
+lines.
 
     greple -e 'foo bar baz'
 
 Option **-e** is necessary because space is taken as a token separator
 in the bare or **--le** pattern.
+
+## MODULE AND CUSTOMIZATION
+
+User can define default and original options in `~/.greplerc`.  Next
+example enables color output always, and define new option using
+macro processing.
+
+    option default --color=always
+
+    define :re1 complex-regex-1
+    define :re2 complex-regex-2
+    define :re3 complex-regex-3
+    option --newopt --inside :re1 --exclude :re2 --re :re3
+
+Specific set of function and option interface can be implemented as
+module.  Modules are invoked by **-M** option immediately after command
+name.
+
+For example, **greple** does not have recursive search option, but it
+can be implemented by **--readlist** option which accept target file
+list from standard input.  Using **find** module, it can be written
+like this:
+
+    greple -Mfind . -type f -- pattern
+
+Also **dig** module implements more complex search.  It can be used
+simple as this:
+
+    greple -Mdig --dig .
+
+but this command finally translated into following option list.
+
+    greple -Mfind . ( -name .git -o -name .svn -o -name RCS ) -prune -o 
+        -type f ! -name .* ! -name *,v ! -name *~ 
+        ! -iname *.jpg ! -iname *.jpeg ! -iname *.gif ! -iname *.png 
+        ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf 
+        -print --
 
 # OPTIONS
 
@@ -519,7 +600,7 @@ or `(?<c>\w)\g{c}`.
 
         greple --cm R -e foo --cm G -e bar --cm B -e baz
 
-    Coloring capability is implmented in [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap) module.
+    Coloring capability is implemented in [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap) module.
 
 - **--colormap**=_field_=_spec_,_field_=_spec_,...
 
@@ -601,6 +682,11 @@ or `(?<c>\w)\g{c}`.
     different colors.
 
         greple --uniqcolor 'colou?r\w*'
+
+    When used with option **-i**, color is selected in case-insensitive
+    fashion.  If you want case-insensitive match and case-sensitive color
+    selection, indicate insensitiveness in the pattern rather than command
+    option (e.g. '_(?i)pattern_').
 
 - **--random**
 
@@ -808,7 +894,7 @@ or `(?<c>\w)\g{c}`.
         greple --if='s/\.Z$//:zcat' --if='s/\.g?z$//:gunzip -c'
 
     File with _.gpg_ suffix is filtered by **gpg** command.  In that case,
-    passphrase is asked for each file.  If you want to input passphrase
+    pass-phrase is asked for each file.  If you want to input pass-phrase
     only once to find from multiple files, use **-Mpgp** module.
 
     If the filter start with `&`, perl subroutine is called instead of
@@ -836,7 +922,7 @@ or `(?<c>\w)\g{c}`.
 
     Output filter command is executed only when matched string exists to
     avoid invoking many unnecessary processes.  No effect for option
-    **-c**.
+    **-l** and **-c**.
 
 - **--pf**=_filter_, **--pf**=_&func_
 
@@ -895,6 +981,13 @@ or `(?<c>\w)\g{c}`.
 
     Option **--end** is almost same as **--begin**, except that the function
     is called after the file processing.
+
+- **--prorogue**=_function_(_..._), **--prologue**=_function_=_..._
+- **--epilogue**=_function_(_..._), **--epilogue**=_function_=_..._
+
+    Option **--prologue** and **--epilogue** specify functions called before
+    and after processing.  During the execution, file is not opened and
+    therefore, file name is not given to those functions.
 
 - **-M**_module_::_function(...)_, **-M**_module_::_function=..._
 
@@ -1091,7 +1184,7 @@ on user's home directory.  Following directives can be used.
 
     See **pgp** module for example.
 
-- **autoload** _module_ _options_
+- **autoload** _module_ _options_ ...
 
     Define module which should be loaded automatically when specified
     option is found in the command arguments.
@@ -1137,61 +1230,50 @@ lines.
 
 # MODULE
 
-Modules can be specified only at the beginning of command line by
-**-M**_module_ option.  Name _module_ is prepended by **App::Greple**,
-so place the module file in `App/Greple/` directory in Perl library.
+You can expand the **greple** command using module.  Module files are
+placed at `App/Greple/` directory in Perl library, and therefor has
+**App::Greple::module** package name.
+
+In the command line, module have to be specified preceding any other
+options in the form of **-M**_module_.  However, it also can be
+specified at the beginning of option expansion.
 
 If the package name is declared properly, `__DATA__` section in the
-module file will be interpreted same as `.greplerc` file content.
+module file will be interpreted same as `.greplerc` file content.  So
+you can declare the module specific options there.  Functions declared
+in the module can be used from those options, it makes highly
+expandable option/programming interaction possible.
 
 Using **-M** without module argument will print available module list.
 Option **--man** will display module document when used with **-M**
-option.  Use **--show** option to see the module itself.
+option.  Use **--show** option to see the module itself.  Option
+**--path** will print the path of module file.
 
-See this sample module code.  This sample define options to search
+See this sample module code.  This sample defines options to search
 from pod, comment and other segment in Perl script.  Those capability
 can be implemented both in function and macro.
 
     package App::Greple::perl;
+
+    use Exporter 'import';
+    our @EXPORT      = qw(pod comment podcomment);
+    our %EXPORT_TAGS = ( );
+    our @EXPORT_OK   = qw();
     
-    BEGIN {
-        use Exporter   ();
-        our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
-    
-        $VERSION = sprintf "%d.%03d", q$Revision: 7.1 $ =~ /(\d+)/g;
-    
-        @ISA         = qw(Exporter);
-        @EXPORT      = qw(&pod &comment &podcomment);
-        %EXPORT_TAGS = ( );
-        @EXPORT_OK   = qw();
-    }
-    our @EXPORT_OK;
-    
-    END { }
+    use App::Greple::Common;
+    use App::Greple::Regions;
     
     my $pod_re = qr{^=\w+(?s:.*?)(?:\Z|^=cut\s*\n)}m;
     my $comment_re = qr{^(?:[ \t]*#.*\n)+}m;
     
     sub pod {
-        my @list;
-        while (/$pod_re/g) {
-            push(@list, [ $-[0], $+[0] ] );
-        }
-        @list;
+        match_regions(pattern => $pod_re);
     }
     sub comment {
-        my @list;
-        while (/$comment_re/g) {
-            push(@list, [ $-[0], $+[0] ] );
-        }
-        @list;
+        match_regions(pattern => $comment_re);
     }
     sub podcomment {
-        my @list;
-        while (/$pod_re|$comment_re/g) {
-            push(@list, [ $-[0], $+[0] ] );
-        }
-        @list;
+        match_regions(pattern => qr/$pod_re|$comment_re/);
     }
     
     1;
