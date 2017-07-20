@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 ##
 ## greple: extensible grep with lexical expression and region handling
 ##
@@ -144,6 +144,8 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --continue           continue after print function
     --begin=func         call function before search
     --end=func           call function after search
+    --prologue=func      call function before command execution
+    --epilogue=func      call function after command execution
   OTHER
     --norc               skip reading startup file
     --man                display command or module manual page
@@ -179,6 +181,8 @@ my @opt_exclude;
 my @opt_chdir;
 my @opt_begin;
 my @opt_end;
+my @opt_prologue;
+my @opt_epilogue;
 my $opt_noif;
 my $opt_all;
 my $opt_blockend;
@@ -281,6 +285,8 @@ my @optargs = (
     'glob=s'             => \@opt_glob,
     'begin=s'            => \@opt_begin,
     'end=s'              => \@opt_end,
+    'prologue=s'         => \@opt_prologue,
+    'epilogue=s'         => \@opt_epilogue,
     'clean!'             => \$opt_clean,
     'color=s'            => \$opt_color,
     'colormap|colormode|addcolor|cm:s'
@@ -702,14 +708,16 @@ my %stat = (
 ## Setup functions
 ##
 for my $set (
-    [ "print"  , \@opt_print  , 0 ],
-    [ "begin"  , \@opt_begin  , 0 ],
-    [ "end"    , \@opt_end    , 0 ],
-    [ "block"  , \@opt_block  , 1 ], # need &
-    [ "inside" , \@opt_inside , 1 ], # need &
-    [ "outside", \@opt_outside, 1 ], # need &
-    [ "include", \@opt_include, 1 ], # need &
-    [ "exclude", \@opt_exclude, 1 ], # need &
+    [ "print"   , \@opt_print   , 0 ],
+    [ "begin"   , \@opt_begin   , 0 ],
+    [ "end"     , \@opt_end     , 0 ],
+    [ "prologue", \@opt_prologue, 0 ],
+    [ "epilogue", \@opt_epilogue, 0 ],
+    [ "block"   , \@opt_block   , 1 ], # need &
+    [ "inside"  , \@opt_inside  , 1 ], # need &
+    [ "outside" , \@opt_outside , 1 ], # need &
+    [ "include" , \@opt_include , 1 ], # need &
+    [ "exclude" , \@opt_exclude , 1 ], # need &
     ) {
     my($cat, $opt, $pattern) = @$set;
     for (@{$opt}) {
@@ -795,6 +803,9 @@ if ($opt_d{s}) {
     $stat{time_start} = [times];
 }
 
+## --prologue
+map { $_->call() } @opt_prologue;
+
 grep_files();
 
 if ($opt_uniqcolor and $opt_d{m}) {
@@ -818,6 +829,9 @@ if ($opt_d{s}) {
 	    "\n";
     }
 }
+
+## --epilogue
+map { $_->call() } @opt_epilogue;
 
 close_stdout;
 
@@ -1090,6 +1104,8 @@ sub display_result {
 		$line += $block =~ tr/\n/\n/;
 	    }
 	}
+
+	return if $block eq "";
 
 	if ($need_filename and $opt_filestyle eq 'line') {
 	    my $s = $_file->("$file:");
@@ -2079,6 +2095,14 @@ full package name or export properly.
 
 Option B<--end> is almost same as B<--begin>, except that the function
 is called after the file processing.
+
+=item B<--prorogue>=I<function>(I<...>), B<--prologue>=I<function>=I<...>
+
+=item B<--epilogue>=I<function>(I<...>), B<--epilogue>=I<function>=I<...>
+
+Option B<--prologue> and B<--epilogue> specify functions called before
+and after processing.  During the execution, file is not opened and
+therefore, file name is not given to those functions.
 
 =item B<-M>I<module>::I<function(...)>, B<-M>I<module>::I<function=...>
 
