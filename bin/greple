@@ -556,7 +556,8 @@ unless ($opt_noif) {
 	[ sub { s/\.Z$//   }, 'zcat' ],
 	[ sub { s/\.g?z$// }, 'gunzip -c' ],
 	[ sub { m/\.pdf$/i }, 'pdftotext -nopgbrk - -' ],
-	[ sub { s/\.gpg$// }, 'gpg --quiet --no-mdc-warning --decrypt' ]);
+	[ sub { s/\.gpg$// }, 'gpg --quiet --no-mdc-warning --decrypt' ],
+	);
 }
 
 ##------------------------------------------------------------
@@ -803,10 +804,11 @@ if ($opt_d{s}) {
     $stat{time_start} = [times];
 }
 
-## --prologue
-map { $_->call() } @opt_prologue;
+for (@opt_prologue) { $_->call() }
 
 grep_files();
+
+for (@opt_epilogue) { $_->call() }
 
 if ($opt_uniqcolor and $opt_d{m}) {
     dump_uniqcolor();
@@ -829,9 +831,6 @@ if ($opt_d{s}) {
 	    "\n";
     }
 }
-
-## --epilogue
-map { $_->call() } @opt_epilogue;
 
 close_stdout;
 
@@ -1468,6 +1467,11 @@ I<offset> and I<length>.  Works like this:
 
 This option does not affect to search performance and command exit
 status.
+
+Note that B<grep> command also has same option, but it's behavior is
+different when invoked to multiple files.  B<greple> produces given
+number of output for each files, while B<grep> takes it as a total
+number of output.
 
 =item B<-A>[I<n>], B<--after-context>[=I<n>]
 
