@@ -111,21 +111,19 @@ sub is_ignorecase {   $_[0]->flag & FLAG_IGNORECASE };
 sub is_multiline  {   $_[0]->flag & FLAG_COOK       };
 sub is_function   {   $_[0]->flag & FLAG_FUNCTION   };
 
-my $wchar_re = qr{
-    [\p{East_Asian_Width=Wide}\p{East_Asian_Width=FullWidth}]
-}x;
+sub IsWide {
+    return <<'END';
++utf8::East_Asian_Width=Wide
++utf8::East_Asian_Width=FullWidth
+END
+}
 
-my $wclass_re = qr{
-    \[ (?: $wchar_re | \- )+ \]
-}x;
-
-my $wstr_re = qr{
-    (?: $wchar_re | $wclass_re )+
-}x;
+my $wclass_re = qr{ \[ \p{IsWide}+ (?: \- \p{IsWide}+ )* \] }x;
+my $wstr_re   = qr{ (?: \p{IsWide} | $wclass_re )+ }x;
 
 sub wstr {
     local $_ = shift;
-    my @wchars = m{ \G ( $wchar_re | $wclass_re ) }gx or die;
+    my @wchars = m{ \G ( \p{IsWide} | $wclass_re ) }gx or die;
     join '\\s*', @wchars;
 }
 
@@ -171,12 +169,12 @@ sub cook_pattern {
 	}egpx;
 
 	# ( [
-	$p =~ s/$wchar_re \K (?= [\(\[] )/(?>\\s*)/gx;
+	$p =~ s/\p{IsWide} \K (?= [\(\[] )/(?>\\s*)/gx;
 
 	# ) ]
 	$p =~ s{
 	    (# look-behind ending wchar
-	     \(\?<[=!][^\)]*$wchar_re\)	(?! [|] | $ )
+	     \(\?<[=!][^\)]*\p{IsWide}\)	(?! [|] | $ )
 	    )
 	    |
 	    (# skip look-ahead/behind
@@ -184,7 +182,7 @@ sub cook_pattern {
 	    )
 	    |
 	    (# whcar before ) or ]
-		$wchar_re [\)\]]+ [?]? (?! [|] | $ )
+		\p{IsWide} [\)\]]+ [?]? (?! [|] | $ )
 	    )
 	}{
 	    if (defined $1) {
