@@ -274,8 +274,8 @@ List example is like this:
     --cm 555/021,555/201,555/210 \
     --cm 555/012,555/102,555/120
 
-This is the example of RGB 6x6x6 bit 216 colors specification.  Left
-side of slash is foreground color, and left side is for background.
+This is the example of RGB 6x6x6 216 colors specification.  Left
+side of slash is foreground color, and right side is for background.
 This color list is accessed by index.
 
 Handler maintains hash and list objects, and labeled colors are stored
