@@ -3,6 +3,7 @@ package App::Greple::Pattern::Holder;
 use strict;
 use warnings;
 use Data::Dumper;
+use Carp;
 
 use Exporter 'import';
 our @EXPORT      = ();
@@ -31,7 +32,6 @@ sub append {
     }
 
     if ($arg->{flag} & FLAG_LEXICAL) {
-	$arg->{flag} &= ~FLAG_LEXICAL;
 	for (@_) {
 	    $obj->lexical_opt($arg, $_);
 	}
@@ -40,14 +40,16 @@ sub append {
 
     if ($arg->{flag} & FLAG_OR) {
 	$arg->{flag} &= ~FLAG_OR;
-	@_ = (join '|',
-	      map {
-		  ## Mask IGNORECASE to eliminate redundant designator.
-		  App::Greple::Pattern->new
-		      ($_, flag => $arg->{flag} & ~FLAG_IGNORECASE)->cooked
-	      } @_);
+	my $p = join('|',
+		     map {
+			 ## Mask IGNORECASE to eliminate redundant designator.
+			 App::Greple::Pattern->new
+			     ($_, flag => $arg->{flag} & ~FLAG_IGNORECASE)->cooked
+		     } @_);
 	$arg->{flag} |= FLAG_REGEX;
 	$arg->{flag} &= ~FLAG_COOK;
+	push @$obj, App::Greple::Pattern->new($p, flag => $arg->{flag});
+	return $obj;
     }
 
     for (@_) {
@@ -58,30 +60,32 @@ sub append {
 }
 
 sub lexical_opt {
-    my $obj = shift;
-    my $arg = shift;
-    my $opt = shift;
+    my($obj, $arg, $opt) = @_;
+
+    unless ($arg->{flag} & FLAG_LEXICAL) {
+	die "Unexpected flag value ($arg->{flag})";
+    }
+    my $orig_flag = $arg->{flag} & ~FLAG_LEXICAL;
 
     my @or;
-
     for (split /(?<!\\) +/, $opt) {
 
 	next if $_ eq "";
 
-	my $flag = $arg->{flag};
+	my $flag = $orig_flag;
 
-	if (s/^\&//) {					# &func(...)
-	    $flag |= FLAG_FUNCTION;
+	if (s/^\?//) {					# ?pattern
+	    push @or, $_;
+	    next;
+	}
+	elsif (s/^\+//) {				# +pattern
+	    $flag |= FLAG_REGEX | FLAG_REQUIRED;
 	}
 	elsif (s/^-//) {				# -pattern
 	    $flag |= FLAG_REGEX | FLAG_NEGATIVE;
 	}
-	elsif (s/^\?//) {				# ?pattern
-	    push @or, $_;
-	    $_ = '';
-	}
-	elsif (s/^\+//) {				# +pattern
-	    $flag |= FLAG_REGEX | FLAG_REQUIRED;
+	elsif (s/^\&//) {				# &func(...)
+	    $flag |= FLAG_FUNCTION;
 	}
 	else {						# else
 	    $flag |= FLAG_REGEX;
@@ -91,7 +95,7 @@ sub lexical_opt {
     }
 
     if (@or) {
-	my $flag = $arg->{flag} | FLAG_OR;
+	my $flag = $orig_flag | FLAG_OR;
 	$obj->append({ flag => $flag }, @or);
     }
 }

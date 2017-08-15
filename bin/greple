@@ -752,7 +752,7 @@ if ($opt_d{m}) {
 	    $pat->is_required ? 'must' :
 	    $pat->is_negative ? 'not ' :
 	    $pat->is_positive ? 'and ' : 'unknown';
-	my $target = $pat->cooked;
+	my $target = $pat->regex // $pat->string;
 	warn sprintf("  %s %s\n",
 		     $type,
 		     @colors > 1 ? index_color($i++, $target) : $target);

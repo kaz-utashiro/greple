@@ -58,7 +58,7 @@ sub setup {
     my $target = shift;
     my %opt = @_;
 
-    $obj->flag($opt{flag} // 0);
+    $obj->flag($opt{flag} // FLAG_NONE);
 
     if ($obj->is_function) {
 	if ($target->can('call')) {
@@ -77,8 +77,8 @@ sub setup {
 		     : $target);
 	$obj->regex(
 	    do {
-		my $cooked = $obj->cooked;
-		$obj->is_regex ? qr/$cooked/m : qr/\Q$cooked/m;
+		my $p = $obj->is_regex ? $obj->cooked : quotemeta($obj->cooked);
+		$obj->is_ignorecase ? qr/$p/mi : qr/$p/m;
 	    } );
     }
 
@@ -132,11 +132,9 @@ sub wstr {
 sub cook_pattern {
     my $p = shift;
     my %opt = @_;
-    my $opt_i = $opt{flag} & FLAG_IGNORECASE;
 
     if ($p =~ s/^\\Q//) {
-	$p = quotemeta($p);
-	goto RETURN;
+	return quotemeta($p);
     }
 
   COOK:
@@ -207,9 +205,7 @@ sub cook_pattern {
 	}{\\s+}gx;
     }
 
-  RETURN:
-
-    $opt_i ? "(?i)$p" : $p;
+    $p;
 }
 
 1;
