@@ -40,12 +40,12 @@ sub append {
 
     if ($arg->{flag} & FLAG_OR) {
 	$arg->{flag} &= ~FLAG_OR;
-	my $p = join('|',
-		     map {
-			 ## Mask IGNORECASE to eliminate redundant designator.
-			 App::Greple::Pattern->new
-			     ($_, flag => $arg->{flag} & ~FLAG_IGNORECASE)->cooked
-		     } @_);
+	my @p = map {
+	    App::Greple::Pattern->new
+		($_, flag => $arg->{flag} & ~FLAG_IGNORECASE)
+		->cooked;
+	} @_;
+	my $p = "(?x)\n" . join(" |\n", map { s/(\s)/\\$1/gr } @p);
 	$arg->{flag} |= FLAG_REGEX;
 	$arg->{flag} &= ~FLAG_COOK;
 	push @$obj, App::Greple::Pattern->new($p, flag => $arg->{flag});

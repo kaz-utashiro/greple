@@ -123,7 +123,7 @@ my $wstr_re   = qr{ (?: \p{IsWide} | $wclass_re )+ }x;
 
 sub wstr {
     local $_ = shift;
-    my @wchars = m{ \G ( \p{IsWide} | $wclass_re ) }gx or die;
+    my @wchars = m{ \G ( $wclass_re | \X ) }gx or die;
     join '\\s*', @wchars;
 }
 
@@ -182,7 +182,7 @@ sub cook_pattern {
 	    )
 	    |
 	    (# whcar before ) or ]
-		\p{IsWide} [\)\]]+ [?]? (?! [|] | $ )
+		\p{IsWide} [\)\]]+ [?]? (?! \\s\* | [|] | $ )
 	    )
 	}{
 	    if (defined $1) {
