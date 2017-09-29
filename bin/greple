@@ -648,7 +648,7 @@ my $need_color = (($opt_color eq 'always')
 if ($opt_d{c}) {
     my $dump = sub {
 	local $_ = Dumper shift;
-	s/(?<=')([\w\/]+)(?=')/color($1, $1)/ge;
+	s/(?<=')([^'\s]+)(?=')/color($1, $1)/ge;
 	$_;
     };
     warn 'colormap = ', $dump->(\%colormap);
