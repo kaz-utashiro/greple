@@ -182,7 +182,7 @@ sub cook_pattern {
 	    )
 	    |
 	    (# whcar before ) or ]
-		\p{IsWide} [\)\]]+ [?]? (?! \\s\* | [|] | $ )
+		\p{IsWide} [\)\]]+ [?]?+ (?! \\s\* | [|] | $ )
 	    )
 	}{
 	    if (defined $1) {
