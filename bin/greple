@@ -289,8 +289,7 @@ my @optargs = (
     'epilogue=s'         => \@opt_epilogue,
     'clean!'             => \$opt_clean,
     'color=s'            => \$opt_color,
-    'colormap|colormode|addcolor|cm:s'
-                         => \@opt_colormap,
+    'colormap|cm=s'      => \@opt_colormap,
     'nocolor|nocolour'   => sub { $opt_color = 'never' },
     'colorful!'          => \$opt_colorful,
     'face=s'             => \@opt_face,
