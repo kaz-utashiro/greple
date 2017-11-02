@@ -169,7 +169,7 @@ sub cook_pattern {
 	}egpx;
 
 	# ( [
-	$p =~ s/\p{IsWide} \K (?= [\(\[] )/(?>\\s*)/gx;
+	$p =~ s/\p{IsWide} \K (?= [\(\[] )/\\s*+/gx;
 
 	# ) ]
 	$p =~ s{
@@ -186,20 +186,20 @@ sub cook_pattern {
 	    )
 	}{
 	    if (defined $1) {
-		$1 . "(?>\\s*)";
+		$1 . "\\s*+";
 	    } elsif (defined $2) {
 		$2;
 	    } else {
-		$3 . "(?>\\s*)";
+		$3 . "\\s*+";
 	    }
 	}egx;
 
 	# convert space not preceded by \ to \s+,
-	# removing (?>\s*) arround it
+	# removing \s* and \s*+ arround it
 	$p =~ s{
-	    (?: \Q\s*\E | \Q(?>\s*)\E)*
+	    (?: \Q\s*\E \+?+ )*
 	    (?: (?<!\\) [ ] )+
-	    (?: \Q\s*\E | \Q(?>\s*)\E)*
+	    (?: \Q\s*\E \+?+ )*
 	}{\\s+}gx;
     }
 
