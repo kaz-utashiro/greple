@@ -44,6 +44,12 @@ sub on {
     my %arg = @_;
     delete $arg{&FILELABEL}; # no entry when called from -M otption.
 
+    if (defined (my $val = delete $arg{all})) {
+	for my $key (keys %flags) {
+	    $arg{$key} //= $val;
+	}
+    }
+
     for my $flag (keys %arg) {
 	my $e = $flags{$flag} or next;
 	if (ref $e eq 'CODE') {
