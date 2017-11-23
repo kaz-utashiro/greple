@@ -67,7 +67,8 @@ our @EXPORT_OK;
 
 END { }
 
-use Text::MBPrintf qw/mbsprintf mbwidth/;
+use Text::VisualWidth::PP qw/vwidth/;
+use Text::VisualPrintf qw/vsprintf/;
 
 sub print_tel {
     my %attr = @_;
@@ -83,14 +84,14 @@ sub print_tel {
     $fname =~ s/\s*<(.*)>\s*// and $jname = $1;
     $fname =~  s/\s*\[(.*)\]\s*// and @keys = split (/\s*,\s*/, $1);
     $name = $jname || $fname;
-    if (mbwidth($name) > 18) {
+    if (vwidth($name) > 18) {
 	$s .= "$name\n";
 	$name = '';
     }
     for my $data (@record) {
 	my($dummy, $tel, $addr) = split(/\t+/, $data);
 	$tel = '' if not defined $tel or length($tel) <= 2;
-	$s .= mbsprintf("%-18s %-16s %s\n", $name, $tel, $addr || '');
+	$s .= vsprintf("%-18s %-16s %s\n", $name, $tel, $addr || '');
 	$name = '';
     }
     $s;
