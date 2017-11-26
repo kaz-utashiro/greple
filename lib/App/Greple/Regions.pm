@@ -160,7 +160,7 @@ sub select_regions {
 	for (my $j = 0; $j < @list and $list[$j][0] < $from; $j++) {
 	    push @outside, [ @{$list[$j]} ];
 	}
-	while (@list and $list[0][1] <= $from) {
+	while (@list and $list[0][0] < $from and $list[0][1] <= $from) {
 	    shift @list;
 	}
 	for (my $j = 0; $j < @list and $list[$j][0] < $to; $j++) {
