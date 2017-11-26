@@ -1063,7 +1063,6 @@ sub display_result {
 	my $mark = "\001";
 	for my $matched (reverse @$result) {
 	    my($ms, $me, $pi) = @$matched;
-	    next if $ms == $me;
 
 	    $ms = max($ms - $block_start, 0);
 	    $me -= $block_start;
