@@ -49,23 +49,10 @@ package App::Greple::tel;
 
 use strict;
 use warnings;
-
 use Carp;
 
-BEGIN {
-    use Exporter   ();
-    our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
-
-    $VERSION = sprintf "%d.%03d", q$Revision: 1.1 $ =~ /(\d+)/g;
-
-    @ISA         = qw(Exporter);
-    @EXPORT      = qw(&print_tel);
-    %EXPORT_TAGS = ( );
-    @EXPORT_OK   = qw();
-}
-our @EXPORT_OK;
-
-END { }
+use parent qw(Exporter);
+our @EXPORT = qw(&print_tel);
 
 use Text::VisualWidth::PP qw/vwidth/;
 use Text::VisualPrintf qw/vsprintf/;
