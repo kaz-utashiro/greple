@@ -409,6 +409,11 @@ or `(?<c>\w)\g{c}`.
     This option does not affect to search performance and command exit
     status.
 
+    Note that **grep** command also has same option, but it's behavior is
+    different when invoked to multiple files.  **greple** produces given
+    number of output for each files, while **grep** takes it as a total
+    number of output.
+
 - **-A**\[_n_\], **--after-context**\[=_n_\]
 - **-B**\[_n_\], **--before-context**\[=_n_\]
 - **-C**\[_n_\], **--context**\[=_n_\]
