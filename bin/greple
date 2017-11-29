@@ -6,8 +6,8 @@
 ##
 ## Original: Mar 29 1991
 ##
-;; our($VERSION) = q$Revision: greple,v 7.1$ =~ /(\d+\.\d+)/g;
-;; my $rcsid = q$Id: greple,v 7.1 2017/03/06 03:29:33 utashiro Exp $;
+;; our($VERSION) = q$Revision: 7.2 $ =~ /(\d+\.\d+)/g;
+;; my $rcsid = q$Id: greple,v 7.2 2017/11/29 06:26:05 utashiro Exp $;
 ##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
