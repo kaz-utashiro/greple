@@ -112,20 +112,8 @@ use Data::Dumper;
 
 use App::Greple::Common;
 
-BEGIN {
-    use Exporter   ();
-    our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
-
-    $VERSION = sprintf "%d.%03d", q$Revision: 1.2 $ =~ /(\d+)/g;
-
-    @ISA         = qw(Exporter);
-    @EXPORT      = qw(&line &search_line);
-    %EXPORT_TAGS = ( );
-    @EXPORT_OK   = qw();
-}
-our @EXPORT_OK;
-
-END { }
+use Exporter qw(import);
+our @EXPORT = qw(&line &search_line);
 
 my $target = -1;
 my @lines;
