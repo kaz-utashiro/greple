@@ -65,7 +65,7 @@
          "web" : "https://github.com/kaz-utashiro/greple"
       }
    },
-   "version" : "7.2",
+   "version" : "8.1",
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
       "Kaz Utashiro <kaz@utashiro.com>",
