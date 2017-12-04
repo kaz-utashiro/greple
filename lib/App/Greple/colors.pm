@@ -10,6 +10,9 @@ greple -Mcolors
 
 package App::Greple::colors;
 
+use strict;
+use warnings;
+
 use Exporter qw(import);
 our @EXPORT = qw(marble);
 
