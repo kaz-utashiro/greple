@@ -44,7 +44,7 @@
          "requires" : {
             "Getopt::EX" : "v1.2.1",
             "List::Util" : "1.33",
-            "perl" : "5.008001"
+            "perl" : "5.014"
          }
       },
       "test" : {
@@ -69,6 +69,7 @@
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
       "Kaz Utashiro <kaz@utashiro.com>",
+      "Mohammad S Anwar <Mohammad.Anwar@yahoo.com>",
       "Toshifumi Sakaguchi <sischkg@gmail.com>"
    ]
 }
