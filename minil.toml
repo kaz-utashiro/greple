@@ -1,0 +1,8 @@
+name = "App-Greple"
+readme_from = "script/greple"
+script_files = [ "script/greple" ]
+# badges = ["travis"]
+authority="cpan:UTASHIRO"
+
+module_maker="ModuleBuildTiny"
+

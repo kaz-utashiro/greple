@@ -6,9 +6,6 @@
 ##
 ## Original: Mar 29 1991
 ##
-;; our($VERSION) = q$Revision: 7.2 $ =~ /(\d+\.\d+)/g;
-;; my $rcsid = q$Id: greple,v 7.2 2017/11/29 06:26:05 utashiro Exp $;
-##
 ## Use and redistribution for ANY PURPOSE are granted as long as all
 ## copyright notices are retained.  Redistribution with modification
 ## is allowed provided that you make your modified version obviously
@@ -20,7 +17,7 @@
 use strict;
 use warnings;
 
-require 5.010;
+require 5.014;
 
 use File::stat;
 use IO::Handle;
@@ -55,6 +52,7 @@ BEGIN {
 use Getopt::EX::Loader;
 use Getopt::EX::Func qw(parse_func);
 
+use App::Greple;
 use App::Greple::Common;
 use App::Greple::Util;
 use App::Greple::Grep;
@@ -63,6 +61,7 @@ use App::Greple::Pattern;
 use App::Greple::Pattern::Holder;
 use App::Greple::Filter;
 
+my $version = $App::Greple::VERSION;
 
 =head1 NAME
 
@@ -383,7 +382,7 @@ $ENV{'GREPLEOPTS'} and unshift @ARGV, shellwords($ENV{'GREPLEOPTS'});
 
 ## GetOptions
 my @SAVEDARGV = @ARGV;
-$parser->getoptions(@optargs) || pod2usage;
+$parser->getoptions(@optargs) || usage();
 
 our %opt_d;
 @opt_d = map { split // } @opt_d;
@@ -905,7 +904,7 @@ sub usage {
 	print "\n";
     }
 
-    print "$rcsid\n" if $rcsid =~ /:/;
+    print "Version: $version\n";
 
     exit 2;
 }
