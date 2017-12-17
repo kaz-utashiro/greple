@@ -351,7 +351,7 @@ sub blocknize {
 	last if $begin < 0;
     }
     if ($begin < 0) {
-	$begin = 0;
+	$begin = $opt{p} && /\A\n/ ? 1 : 0;
     } else {
 	$begin += length $delim;
     }

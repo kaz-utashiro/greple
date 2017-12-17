@@ -16,11 +16,8 @@ like(greple(q("イーハトーヴォ 五月"  t/JA.txt))->result,
 like(greple(q("イーハトーヴォ -五月" t/JA.txt))->result,
      qr/\Aあの.*\n\z/, "lexical NOT");
 
-TODO: {
-    local $TODO = "blank line at the top is included in paragraph.";
-    like(greple(q("イーハトーヴォ モリーオ" -p t/JA.txt))->result,
-	 qr/\A(.*\n){4}--\n\z/, "lexical AND with -p");
-}
+like(greple(q("イーハトーヴォ モリーオ" -p t/JA.txt))->result,
+     qr/\A(.*\n){4}--\n\z/, "lexical AND with -p with single blank line");
 
 like(greple(q("ファゼーロ ロザーロ" -p t/JA.txt))->result,
      qr/\A(.*\n){6}--\n\z/, "lexical AND with -p");
