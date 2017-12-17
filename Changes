@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.21 2017-12-17T04:51:32Z
+
+    - Handle beginning single empty line in paragraph mode. (Fixes #6)
+    - Wrote test code.
+    - Requires perl 5.014 (use s///r modifier, and package block)
+    - Not colorize function-colormap with -dc option. Fixes #5.
+
 8.2 2017-12-04T09:07:04Z
 
     - Fix to produce correct version number.
