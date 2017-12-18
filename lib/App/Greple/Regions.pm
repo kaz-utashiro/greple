@@ -3,6 +3,8 @@ package App::Greple::Regions;
 use strict;
 use warnings;
 use Carp;
+use Data::Dumper;
+$Data::Dumper::Sortkeys = 1;
 
 use Exporter 'import';
 our @EXPORT      = qw(REGION_INSIDE REGION_OUTSIDE
@@ -236,14 +238,17 @@ sub merge_regions {
     @out;
 }
 
-sub reverse_regions {
-    my $from = shift;
-    my $max = shift;
-    my @flat = (0, map(@$_, @$from), $max);
+use List::Util qw(pairmap);
 
-    grep { $_->[0] != $_->[1] }
-    map  { [ splice(@flat, 0, 2) ] }
-    0 .. @flat / 2 - 1;
+sub reverse_regions {
+    my $option = ref $_[0] eq 'HASH' ? shift : {};
+    my($from, $max) = @_;
+    my @reverse = do {
+	pairmap { [ $a, $b ] }
+	0, map( { $_->[0] => $_->[1] } @$from ), $max
+    };
+    return @reverse if $option->{leave_empty};
+    grep { $_->[0] != $_->[1] } @reverse
 }
 
 1;
