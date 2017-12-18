@@ -23,7 +23,7 @@ use File::stat;
 use IO::Handle;
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(min max first sum);
+use List::Util qw(min max first sum uniq);
 use Scalar::Util qw(blessed);
 use Cwd qw(getcwd abs_path);
 use Data::Dumper;
