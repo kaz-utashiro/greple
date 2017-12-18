@@ -138,35 +138,37 @@ sub cook_pattern {
   COOK:
     {
 	$p =~ s{
-	    (?<class>
-	     \[[^\]]*\] [\?\*]?	# character-class
+	    (?<match>
+	     (?<class>
+	      \[[^\]]*\] [\?\*]?	# character-class
+	     )
+	     |
+	     (?<ahead>
+	      \(\?[=!][^\)]*\)		# look-ahead pattern
+	     )
+	     |
+	     (?<behind>
+	      \(\?\<[=!][^\)]*\)	# look-behind pattern
+	     )
+	     |
+	     (?<wstr> $wstr_re)
+	     |
+	     (?<else> [A-Z0-9_]+ | . )
 	    )
-	    |
-	    (?<ahead>
-	     \(\?[=!][^\)]*\)	# look-ahead pattern
-	    )
-	    |
-	    (?<behind>
-	     \(\?\<[=!][^\)]*\)	# look-behind pattern
-	    )
-	    |
-	    (?<wstr> $wstr_re)
-	    |
-	    (?<else> [A-Z0-9_]+ | . )
 	}{
 	    if (defined $+{ahead}) {
-		${^MATCH}
+		$+{match}
 		    =~ s{\A \( \? [=!] \K
 			    ( (?: $wstr_re | \| )+ )
 			}{
 			    join '|', (map { wstr($_) } split /\|/, $1);
 			}erx;
 	    } elsif (defined $+{wstr}) {
-		wstr(${^MATCH});
+		wstr($+{match});
 	    } else {
-		${^MATCH};
+		$+{match};
 	    }
-	}egpx;
+	}egx;
 
 	# ( [
 	$p =~ s/\p{IsWide} \K (?= [\(\[] )/\\s*+/gx;

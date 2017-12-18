@@ -92,7 +92,7 @@ sub match_regions {
 
     no warnings 'utf8';
 
-    while (/$regex/gp) {
+    while (/($regex)/g) {
 	##
 	## this is much faster than:
 	## my($s, $e) = ($-[0], $+[0]);
@@ -100,7 +100,7 @@ sub match_regions {
 	## calling pos() cost is not neglective, either.
 	##
 	my $pos = pos();
-	push @regions, [ $pos - length ${^MATCH}, $pos ];
+	push @regions, [ $pos - length $1, $pos ];
     }
     @regions;
 }
