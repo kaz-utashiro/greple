@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.21_01 2017-12-18T08:49:26Z
+
+    - Require Getopt::EX 1.4.2
+    - Avoid to use /p modifier and ${^MATCH}.
+    - Use uniq() come with List::Util.
+    - Update reverse_regions and wrote test.
+
 8.21 2017-12-17T04:51:32Z
 
     - Handle beginning single empty line in paragraph mode. (Fixes #6)

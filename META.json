@@ -42,7 +42,7 @@
       },
       "runtime" : {
          "requires" : {
-            "Getopt::EX" : "v1.2.1",
+            "Getopt::EX" : "v1.4.2",
             "List::Util" : "1.45",
             "perl" : "5.014"
          }
@@ -65,7 +65,7 @@
          "web" : "https://github.com/kaz-utashiro/greple"
       }
    },
-   "version" : "8.21",
+   "version" : "8.21_01",
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
       "Kaz Utashiro <kaz@utashiro.com>",
