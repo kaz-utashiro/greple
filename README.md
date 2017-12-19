@@ -616,6 +616,12 @@ or `(?<c>\w)\g{c}`.
         TEXT      Unmatched normal text
         BLOCKEND  Block end mark
 
+    In current release, `BLOCKEND` mark is colored with `E` effect
+    recently implemented in [Getopt::EX](https://metacpan.org/pod/Getopt::EX) module, which allows to fill up
+    the line with background color.  This effect uses irregular escape
+    sequence, and you may need to define `LESSANSIENDCHARS` environment
+    as "mK" to see the result with [less](https://metacpan.org/pod/less) command.
+
 - **--colormap**=_&func_ **--colormap**=_sub{...}_
 
     You can also set the name of perl subroutine name or definition to be

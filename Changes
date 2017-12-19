@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.22 2017-12-19T02:13:32Z
+
+    - Use W/WE color for BLOCKEND mark.
+
 8.21_01 2017-12-18T08:49:26Z
 
     - Require Getopt::EX 1.4.2

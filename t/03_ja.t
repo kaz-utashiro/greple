@@ -16,16 +16,16 @@ like(greple(q("イーハトーヴォ 五月"  t/JA.txt))->result,
 like(greple(q("イーハトーヴォ -五月" t/JA.txt))->result,
      qr/\Aあの.*\n\z/, "lexical NOT");
 
-like(greple(q("イーハトーヴォ モリーオ" -p t/JA.txt))->result,
+like(greple(q("イーハトーヴォ モリーオ" --color=never -p t/JA.txt))->result,
      qr/\A(.*\n){4}--\n\z/, "lexical AND with -p with single blank line");
 
-like(greple(q("ファゼーロ ロザーロ" -p t/JA.txt))->result,
+like(greple(q("ファゼーロ ロザーロ" --color=never -p t/JA.txt))->result,
      qr/\A(.*\n){6}--\n\z/, "lexical AND with -p");
 
-like(greple(q("イーハトーヴォ -モリーオ" -p t/JA.txt))->result,
+like(greple(q("イーハトーヴォ -モリーオ" --color=never -p t/JA.txt))->result,
      qr/\A(.*\n){2}--\n\z/, "lexical NOT with -p");
 
-like(greple(q(イーハトーヴォ --paragraph t/JA.txt))->result,
+like(greple(q(イーハトーヴォ --color=never --paragraph t/JA.txt))->result,
      qr/(^.*\n){4}--\n(^.*\n){2}--\n/m, "paragraph mode");
 
 like(greple(q(-e "青いそら、 うつくしい森" t/JA.txt))->result,
