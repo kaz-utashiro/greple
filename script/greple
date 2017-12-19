@@ -289,7 +289,7 @@ my @optargs = (
     'clean!'             => \$opt_clean,
     'color=s'            => \$opt_color,
     'colormap|cm=s'      => \@opt_colormap,
-    'nocolor|nocolour'   => sub { $opt_color = 'never' },
+    'nocolor|no-color'   => sub { $opt_color = 'never' },
     'colorful!'          => \$opt_colorful,
     'face=s'             => \@opt_face,
     'uniqcolor|uc!'      => \$opt_uniqcolor,
@@ -594,7 +594,7 @@ my %colormap = (
     FILE     => "G",
     LINE     => "Y",
     TEXT     => "",
-    BLOCKEND => "",
+    BLOCKEND => "W/WE",
     );
 
 my @colors;
@@ -1691,6 +1691,12 @@ Another form of colormap option to specify the color for fields:
     TEXT      Unmatched normal text
     BLOCKEND  Block end mark
 
+In current release, C<BLOCKEND> mark is colored with C<E> effect
+recently implemented in L<Getopt::EX> module, which allows to fill up
+the line with background color.  This effect uses irregular escape
+sequence, and you may need to define C<LESSANSIENDCHARS> environment
+as "mK" to see the result with L<less> command.
+
 =item B<--colormap>=I<&func> B<--colormap>=I<sub{...}>
 
 You can also set the name of perl subroutine name or definition to be
@@ -2493,3 +2499,7 @@ allowed provided that you make your modified version obviously
 distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
 THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
 DISCLAIMED.
+
+=cut
+
+#  LocalWords:  greple
