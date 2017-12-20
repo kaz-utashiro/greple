@@ -630,13 +630,23 @@ if ($opt_ansicolor eq '24bit') {
 }
 
 if (@opt_face) {
-    my $remove = 0;
-    for my $flag (map { split // } @opt_face) {
-	if ($flag eq '-' or $flag eq '+') {
-	    $remove = $flag eq '-';
-	    next;
+    for my $opt (@opt_face) {
+	my($rm, $bg);
+	for my $s ($opt =~ m{[-+/]|[\w;{}]+}g) {
+	    if ($s eq '+') { $rm = 0; next }
+	    if ($s eq '-') { $rm = 1; next }
+	    if ($s eq '/') { $bg = 1; next }
+	    for my $c (@colors) {
+		if ($rm) {
+		    $c =~ s/[$s]//g;
+		} elsif ($bg) {
+		    $c .= '/' if $c !~ m'/';
+		    $c .= $s;
+		} else {
+		    $c = $s . $_;
+		}
+	    }
 	}
-	map { $remove ? s/$flag//g : s/^/$flag/ } @colors;
     }
 }
 
@@ -1641,6 +1651,7 @@ with other special effects :
     S  7 Stand-out (reverse video)
     V  8 Vanish (concealed)
     J  9 Junk (crossed out)
+    E    Erase Line
 
     ;  No effect
     X  No effect
@@ -1783,7 +1794,8 @@ Disabled by default.
 
 Set or unset specified I<effect> for all color specs.  Use `+'
 (optional) to set, and `-' to unset.  Effect is a single character
-expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash).
+expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash)
+or E (Erase Line).
 
 Next example remove D (double-struck) effect.
 
@@ -1792,6 +1804,11 @@ Next example remove D (double-struck) effect.
 Multiple effects can be set/unset at once.
 
     greple --face SF-D
+
+Use `/' to set effect to background.  Only `E' makes sense to use in
+background, though.
+
+    greple --face /E
 
 =back
 
