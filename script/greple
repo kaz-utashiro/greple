@@ -594,7 +594,7 @@ my %colormap = (
     FILE     => "G",
     LINE     => "Y",
     TEXT     => "",
-    BLOCKEND => "W/WE",
+    BLOCKEND => "/WE",
     );
 
 my @colors;
