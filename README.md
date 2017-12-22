@@ -566,6 +566,7 @@ or `(?<c>\w)\g{c}`.
         S  7 Stand-out (reverse video)
         V  8 Vanish (concealed)
         J  9 Junk (crossed out)
+        E    Erase Line
 
         ;  No effect
         X  No effect
@@ -708,7 +709,8 @@ or `(?<c>\w)\g{c}`.
 
     Set or unset specified _effect_ for all color specs.  Use \`+'
     (optional) to set, and \`-' to unset.  Effect is a single character
-    expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash).
+    expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash)
+    or E (Erase Line).
 
     Next example remove D (double-struck) effect.
 
@@ -717,6 +719,11 @@ or `(?<c>\w)\g{c}`.
     Multiple effects can be set/unset at once.
 
         greple --face SF-D
+
+    Use \`/' to set effect to background.  Only \`E' makes sense to use in
+    background, though.
+
+        greple --face /E
 
 ## BLOCKS
 

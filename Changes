@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.2201 2017-12-22T01:45:21Z
+
+    - Change default effect for BLOCKEND.
+    - Fix --face option to handle E in background.
+    - Refine reverse_regions.t code.
+
 8.22 2017-12-19T02:13:32Z
 
     - Use W/WE color for BLOCKEND mark.
