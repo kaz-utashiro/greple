@@ -91,13 +91,10 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -l                   list filename only
     -c                   print count of matched block only
     -n                   print line number
-    -h                   do not display filenames
-    -H                   always display filenames
+    -H, -h               do or do not display filenames
     -o                   print only the matching part
     -m n[,m]             max count of blocks to be shown
-    -A[n]                after match context
-    -B[n]                before match context
-    -C[n]                after and before match context
+    -A,-B,-C [n]         after/before/both match context
     --join               delete newline in the matched part
     --joinby=string      replace newline in the matched text by string
     --nonewline          do not add newline character at block end
@@ -134,8 +131,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --icode=name         specify file encoding
     --ocode=name         specify output encoding
   FILTER
-    --if=filter          input filter command
-    --of=filter          output filter command
+    --if,--of=filter     input/output filter command
     --pf=filter          post process filter command
     --noif               disable default input filter
   RUNTIME FUNCTION
