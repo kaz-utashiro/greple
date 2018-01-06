@@ -294,8 +294,8 @@ option --diff --subst --all --need 0 -h --of &subst_diff
 option --create --subst --all --need 0 -h --begin subst_create
 option --replace --subst --all --need 0 -h --begin subst_create(replace,suffix=.bak)
 
-builtin --subst_from=s @opt_subst_from
-builtin --subst_to=s   @opt_subst_to
-builtin --subst_file=s @opt_subst_file
-builtin --diffcmd=s    $opt_subst_diffcmd
-builtin -U=i           $opt_U
+builtin subst_from=s @opt_subst_from
+builtin subst_to=s   @opt_subst_to
+builtin subst_file=s @opt_subst_file
+builtin diffcmd=s    $opt_subst_diffcmd
+builtin U=i          $opt_U
