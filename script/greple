@@ -208,6 +208,7 @@ my $opt_filestyle = 'line';
 my $opt_linestyle = 'line';
 my %opt_conceal = (read => 1, skip => 0);
 my $opt_persist = 0;
+my %opt_format = (LINE => '%d:', FILE => '%s:');
 my $opt_usage;
 
 my $opt_c;
@@ -297,6 +298,7 @@ my @optargs = (
     'continue!'          => \$opt_continue,
     'conceal=i'          => \%opt_conceal,
     'persist!'           => \$opt_persist,
+    'format=s'           => \%opt_format,
     'usage:s'            => \$opt_usage,
     'M:s'                => sub {
 	warn "Use -M option at the beginning with module name.\n";
@@ -661,8 +663,8 @@ if ($opt_d{c}) {
 
 my($_file, $_line, $_text, $_blockend) = do {
     if ($need_color) {
-	sub { $color_handler->color('FILE'    , $_[0]) },
-	sub { $color_handler->color('LINE'    , $_[0]) },
+	sub { $color_handler->color('FILE'    , sprintf($opt_format{FILE}, $_[0])) },
+	sub { $color_handler->color('LINE'    , sprintf($opt_format{LINE}, $_[0])) },
 	sub { $color_handler->color('TEXT'    , $_[0]) },
 	sub { $color_handler->color('BLOCKEND', $_[0]) }
     }
@@ -1056,11 +1058,11 @@ sub display_result {
 	# when --filestyle and/or --linestyle is "separate"
 	grep { $_ }
 	do {
-	    print $_file->("$current_file:")
+	    print $_file->($current_file)
 		if $need_filename and $opt_filestyle eq 'separate';
 	},
 	do {
-	    print $_line->("$line:")
+	    print $_line->($line)
 		if $opt_n and $opt_linestyle eq 'separate';
 	}
 	and print "\n";
@@ -1098,7 +1100,7 @@ sub display_result {
 		my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
 		$block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
 			    my $s = $1 ? $opt_joinby
-				       : $_line->("$line:");
+				       : $_line->($line);
 			    $line += $increment;
 			    $s;
 			   }gse;
@@ -1110,7 +1112,7 @@ sub display_result {
 	return if $block eq "";
 
 	if ($need_filename and $opt_filestyle eq 'line') {
-	    my $s = $_file->("$file:");
+	    my $s = $_file->($file);
 	    $block =~ s/^/$s/mg;
 	}
 

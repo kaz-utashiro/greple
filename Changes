@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.2202 2018-01-18T10:45:36Z
+
+    - Fix the bug about look-behind pattern. (Fix #7)
+    - Fix wrong builtin lines in subst.pm
+    - Simplify usage message.
+
 8.2201 2017-12-22T01:45:21Z
 
     - Change default effect for BLOCKEND.

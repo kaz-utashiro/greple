@@ -23,13 +23,10 @@ greple - extensible grep with lexical expression and region handling
       -l                   list filename only
       -c                   print count of matched block only
       -n                   print line number
-      -h                   do not display filenames
-      -H                   always display filenames
+      -H, -h               do or do not display filenames
       -o                   print only the matching part
       -m n[,m]             max count of blocks to be shown
-      -A[n]                after match context
-      -B[n]                before match context
-      -C[n]                after and before match context
+      -A,-B,-C [n]         after/before/both match context
       --join               delete newline in the matched part
       --joinby=string      replace newline in the matched text by string
       --nonewline          do not add newline character at block end
@@ -66,8 +63,7 @@ greple - extensible grep with lexical expression and region handling
       --icode=name         specify file encoding
       --ocode=name         specify output encoding
     FILTER
-      --if=filter          input filter command
-      --of=filter          output filter command
+      --if,--of=filter     input/output filter command
       --pf=filter          post process filter command
       --noif               disable default input filter
     RUNTIME FUNCTION
@@ -644,7 +640,7 @@ or `(?<c>\w)\g{c}`.
         greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
 
     Experimentally, function can be combined with other normal color
-    specifications.  Also the form _&amp;func;_ can be repeated.
+    specifications.  Also the form _&func;_ can be repeated.
 
         greple --cm 'BF/544;sub{uc}'
 
