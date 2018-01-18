@@ -9,6 +9,9 @@ use t::Util;
 like(greple('-e "fox" t/SAMPLE.txt')->result,
      qr/\A(.*\n){1}\z/, "simple");
 
+like(greple('--re "^The.*\\\\n\\\\Kjumps" t/SAMPLE.txt')->result,
+     qr/\A(.*\n){1}\z/, "\\K");
+
 like(greple('-e "fox jumps" t/SAMPLE.txt')->result,
      qr/\A(.*\n){2}\z/, "multi-line");
 
