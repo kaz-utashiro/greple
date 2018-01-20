@@ -23,19 +23,17 @@ greple - extensible grep with lexical expression and region handling
       -l                   list filename only
       -c                   print count of matched block only
       -n                   print line number
-      -h                   do not display filenames
-      -H                   always display filenames
+      -H, -h               do or do not display filenames
       -o                   print only the matching part
       -m n[,m]             max count of blocks to be shown
-      -A[n]                after match context
-      -B[n]                before match context
-      -C[n]                after and before match context
+      -A,-B,-C [n]         after/before/both match context
       --join               delete newline in the matched part
       --joinby=string      replace newline in the matched text by string
       --nonewline          do not add newline character at block end
       --filestyle=style    how filename printed (once, separate, line)
       --linestyle=style    how line number printed (separate, line)
       --separate           set filestyle and linestyle both "separate"
+      --format LABEL=...   define line number and file name format
     FILE
       --glob=glob          glob target files
       --chdir              change directory before search
@@ -66,8 +64,7 @@ greple - extensible grep with lexical expression and region handling
       --icode=name         specify file encoding
       --ocode=name         specify output encoding
     FILTER
-      --if=filter          input filter command
-      --of=filter          output filter command
+      --if,--of=filter     input/output filter command
       --pf=filter          post process filter command
       --noif               disable default input filter
     RUNTIME FUNCTION
@@ -358,14 +355,16 @@ or `(?<c>\w)\g{c}`.
 - **-f** _file_, **--file**=_file_
 
     Specify the file which contains search pattern.  When file contains
-    multiple lines, patterns on each lines are search in OR context.
+    multiple lines, patterns on each lines are mixed together by OR
+    context.
 
     Blank line and the line starting with sharp (#) character is ignored.
     Two slashes (//) and following string are taken as a comment and
     removed with preceding spaces.
 
-    Multiple file can be specified, but they will be mixed into single
-    pattern.
+    When multiple files specified, each file produces individual pattern.
+
+    See **-Msubst** module.
 
 ## STYLES
 
@@ -484,6 +483,13 @@ or `(?<c>\w)\g{c}`.
     This is convenient to use block mode search and visiting each location
     from supporting tool, such as Emacs.
 
+- **--format** **LABEL**=_format_
+
+    Define the format string of line number (LINE) and file name (FILE) to
+    be displayed.  Default is:
+
+        --format LINE='%d:' --format FILE='%s:'
+
 ## FILES
 
 - **--glob**=_pattern_
@@ -527,23 +533,20 @@ or `(?<c>\w)\g{c}`.
 
 - **--colormap**=_spec_
 
-    Specify color map.  Default is RD: RED and BOLD.
+    Specify color map.
 
     Color specification is combination of single uppercase character
-    representing 8 colors :
+    representing basic colors, and (usually brighter) alternative colors in
+    lowercase :
 
-        R  Red
-        G  Green
-        B  Blue
-        C  Cyan
-        M  Magenta
-        Y  Yellow
-        K  Black
-        W  White
-
-    and alternative (usually brighter) colors in lowercase:
-
-        r, g, b, c, m, y, k, w
+        R  r   Red
+        G  g   Green
+        B  b   Blue
+        C  c   Cyan
+        M  m   Magenta
+        Y  y   Yellow
+        K  k   Black
+        W  w   White
 
     or RGB value and 24 grey levels if using ANSI 256 color terminal :
 
@@ -566,16 +569,10 @@ or `(?<c>\w)\g{c}`.
         S  7 Stand-out (reverse video)
         V  8 Vanish (concealed)
         J  9 Junk (crossed out)
+        E    Erase Line
 
         ;  No effect
         X  No effect
-
-    and arbitrary numbers beginning with "H", those are directly converted
-    into escape sequence.  Use "x" to indicate multiple numbers.  Remember
-    associated with Hollerith constants.
-
-        H4      underline
-        H1x3x7  bold / italic / stand-out
 
     If the spec includes `/`, left side is considered for foreground
     color and right side is for background.  If multiple colors are
@@ -607,7 +604,7 @@ or `(?<c>\w)\g{c}`.
 
     Coloring capability is implemented in [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap) module.
 
-- **--colormap**=_field_=_spec_,_field_=_spec_,...
+- **--colormap**=_field_=_spec_,...
 
     Another form of colormap option to specify the color for fields:
 
@@ -616,7 +613,14 @@ or `(?<c>\w)\g{c}`.
         TEXT      Unmatched normal text
         BLOCKEND  Block end mark
 
-- **--colormap**=_&func_ **--colormap**=_sub{...}_
+    In current release, `BLOCKEND` mark is colored with `E` effect
+    recently implemented in [Getopt::EX](https://metacpan.org/pod/Getopt::EX) module, which allows to fill up
+    the line with background color.  This effect uses irregular escape
+    sequence, and you may need to define `LESSANSIENDCHARS` environment
+    as "mK" to see the result with [less](https://metacpan.org/pod/less) command.
+
+- **--colormap**=_&func_
+- **--colormap**=_sub{...}_
 
     You can also set the name of perl subroutine name or definition to be
     called handling matched words.  Target word is passed as variable
@@ -637,7 +641,7 @@ or `(?<c>\w)\g{c}`.
         greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
 
     Experimentally, function can be combined with other normal color
-    specifications.  Also the form _&amp;func;_ can be repeated.
+    specifications.  Also the form _&func;_ can be repeated.
 
         greple --cm 'BF/544;sub{uc}'
 
@@ -702,7 +706,8 @@ or `(?<c>\w)\g{c}`.
 
     Set or unset specified _effect_ for all color specs.  Use \`+'
     (optional) to set, and \`-' to unset.  Effect is a single character
-    expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash).
+    expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash)
+    or E (Erase Line).
 
     Next example remove D (double-struck) effect.
 
@@ -711,6 +716,11 @@ or `(?<c>\w)\g{c}`.
     Multiple effects can be set/unset at once.
 
         greple --face SF-D
+
+    Use \`/' to set effect to background.  Only \`E' makes sense to use in
+    background, though.
+
+        greple --face /E
 
 ## BLOCKS
 
@@ -735,7 +745,8 @@ or `(?<c>\w)\g{c}`.
 
         greple --block='(?s).*'
 
-- **--block**=_pattern_, **--block**=_&sub_
+- **--block**=_pattern_
+- **--block**=_&sub_
 
     Specify the record block to display.  Default block is a single line.
 
@@ -912,7 +923,8 @@ or `(?<c>\w)\g{c}`.
     Disable default input filter.  Which means compressed files will not
     be decompressed automatically.
 
-- **--of**=_filter_, **--of**=_&func_
+- **--of**=_filter_
+- **--of**=_&func_
 
     Specify output filter which process the output of **greple** command.
     Filter command can be specified in multiple times, and they are
@@ -929,14 +941,16 @@ or `(?<c>\w)\g{c}`.
     avoid invoking many unnecessary processes.  No effect for option
     **-l** and **-c**.
 
-- **--pf**=_filter_, **--pf**=_&func_
+- **--pf**=_filter_
+- **--pf**=_&func_
 
     Similar to **--of** filter but invoked just once and takes care of
     entire output from **greple** command.
 
 ## RUNTIME FUNCTIONS
 
-- **--print**=_function_, **--print**=_sub{...}_
+- **--print**=_function_
+- **--print**=_sub{...}_
 
     Specify user defined function executed before data print.  Text to be
     printed is replaced by the result of the function.  Arbitrary function
@@ -975,26 +989,31 @@ or `(?<c>\w)\g{c}`.
     **--continue** forces to continue normal printing process after print
     function called.  So please be sure that all data being consistent.
 
-- **--begin**=_function_(_..._), **--begin**=_function_=_..._
+- **--begin**=_function_(_..._)
+- **--begin**=_function_=_..._
 
     Option **--begin** specify the function executed at the beginning of
     each file processing.  This _function_ have to be called from **main**
     package.  So if you define the function in the module package, use the
     full package name or export properly.
 
-- **--end**=_function_(_..._), **--end**=_function_=_..._
+- **--end**=_function_(_..._)
+- **--end**=_function_=_..._
 
     Option **--end** is almost same as **--begin**, except that the function
     is called after the file processing.
 
-- **--prorogue**=_function_(_..._), **--prologue**=_function_=_..._
-- **--epilogue**=_function_(_..._), **--epilogue**=_function_=_..._
+- **--prologue**=_function_(_..._)
+- **--prologue**=_function_=_..._
+- **--epilogue**=_function_(_..._)
+- **--epilogue**=_function_=_..._
 
     Option **--prologue** and **--epilogue** specify functions called before
     and after processing.  During the execution, file is not opened and
     therefore, file name is not given to those functions.
 
-- **-M**_module_::_function(...)_, **-M**_module_::_function=..._
+- **-M**_module_::_function(...)_
+- **-M**_module_::_function=..._
 
     Function can be given with module option, following module name.  In
     this form, the function will be called with module package name.  So
@@ -1315,10 +1334,6 @@ standard **grep** family command becomes to have similar capabilities,
 it is a time to clean up entire functionalities, totally remodel the
 option interfaces, and change the command name. (2013.11)
 
-# AUTHOR
-
-Kazumasa Utashiro
-
 # SEE ALSO
 
 [grep(1)](http://man.he.net/man1/grep), [perl(1)](http://man.he.net/man1/perl)
@@ -1327,13 +1342,13 @@ Kazumasa Utashiro
 
 [Getopt::EX](https://metacpan.org/pod/Getopt::EX)
 
+# AUTHOR
+
+Kazumasa Utashiro
+
 # LICENSE
 
-Copyright (c) 1991-2017 Kazumasa Utashiro
+Copyright 1991-2018 Kazumasa Utashiro
 
-Use and redistribution for ANY PURPOSE are granted as long as all
-copyright notices are retained.  Redistribution with modification is
-allowed provided that you make your modified version obviously
-distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
-THE AUTHOR \`\`AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
-DISCLAIMED.
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.

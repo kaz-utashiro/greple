@@ -2,16 +2,7 @@
 ##
 ## greple: extensible grep with lexical expression and region handling
 ##
-## Copyright (c) 1991-2017 Kazumasa Utashiro
-##
-## Original: Mar 29 1991
-##
-## Use and redistribution for ANY PURPOSE are granted as long as all
-## copyright notices are retained.  Redistribution with modification
-## is allowed provided that you make your modified version obviously
-## distinguishable from the original one.  THIS SOFTWARE IS PROVIDED
-## BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
-## DISCLAIMED.
+## Since Mar 29 1991
 ##
 
 use strict;
@@ -101,6 +92,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --filestyle=style    how filename printed (once, separate, line)
     --linestyle=style    how line number printed (separate, line)
     --separate           set filestyle and linestyle both "separate"
+    --format LABEL=...   define line number and file name format
   FILE
     --glob=glob          glob target files
     --chdir              change directory before search
@@ -1416,14 +1408,16 @@ value.
 =item B<-f> I<file>, B<--file>=I<file>
 
 Specify the file which contains search pattern.  When file contains
-multiple lines, patterns on each lines are search in OR context.
+multiple lines, patterns on each lines are mixed together by OR
+context.
 
 Blank line and the line starting with sharp (#) character is ignored.
 Two slashes (//) and following string are taken as a comment and
 removed with preceding spaces.
 
-Multiple file can be specified, but they will be mixed into single
-pattern.
+When multiple files specified, each file produces individual pattern.
+
+See B<-Msubst> module.
 
 =back
 
@@ -1551,6 +1545,13 @@ Shortcut for B<--filestyle>=I<separate> B<--linestyle>=I<separate>.
 This is convenient to use block mode search and visiting each location
 from supporting tool, such as Emacs.
 
+=item B<--format> B<LABEL>=I<format>
+
+Define the format string of line number (LINE) and file name (FILE) to
+be displayed.  Default is:
+
+    --format LINE='%d:' --format FILE='%s:'
+
 =back
 
 
@@ -1606,23 +1607,20 @@ Option B<--nocolor> is alias for B<--color>=I<never>.
 
 =item B<--colormap>=I<spec>
 
-Specify color map.  Default is RD: RED and BOLD.
+Specify color map.
 
 Color specification is combination of single uppercase character
-representing 8 colors :
+representing basic colors, and (usually brighter) alternative colors in
+lowercase :
 
-    R  Red
-    G  Green
-    B  Blue
-    C  Cyan
-    M  Magenta
-    Y  Yellow
-    K  Black
-    W  White
-
-and alternative (usually brighter) colors in lowercase:
-
-    r, g, b, c, m, y, k, w
+    R  r   Red
+    G  g   Green
+    B  b   Blue
+    C  c   Cyan
+    M  m   Magenta
+    Y  y   Yellow
+    K  k   Black
+    W  w   White
 
 or RGB value and 24 grey levels if using ANSI 256 color terminal :
 
@@ -1654,13 +1652,6 @@ with other special effects :
     ;  No effect
     X  No effect
 
-and arbitrary numbers beginning with "H", those are directly converted
-into escape sequence.  Use "x" to indicate multiple numbers.  Remember
-associated with Hollerith constants.
-
-    H4      underline
-    H1x3x7  bold / italic / stand-out
-
 If the spec includes C</>, left side is considered for foreground
 color and right side is for background.  If multiple colors are
 given in same spec, all indicators are produced in the order of
@@ -1691,7 +1682,7 @@ green and `baz' in blue.
 
 Coloring capability is implemented in L<Getopt::EX::Colormap> module.
 
-=item B<--colormap>=I<field>=I<spec>,I<field>=I<spec>,...
+=item B<--colormap>=I<field>=I<spec>,...
 
 Another form of colormap option to specify the color for fields:
 
@@ -1706,7 +1697,9 @@ the line with background color.  This effect uses irregular escape
 sequence, and you may need to define C<LESSANSIENDCHARS> environment
 as "mK" to see the result with L<less> command.
 
-=item B<--colormap>=I<&func> B<--colormap>=I<sub{...}>
+=item B<--colormap>=I<&func>
+
+=item B<--colormap>=I<sub{...}>
 
 You can also set the name of perl subroutine name or definition to be
 called handling matched words.  Target word is passed as variable
@@ -1837,7 +1830,9 @@ identical to following command.
 
     greple --block='(?s).*'
 
-=item B<--block>=I<pattern>, B<--block>=I<&sub>
+=item B<--block>=I<pattern>
+
+=item B<--block>=I<&sub>
 
 Specify the record block to display.  Default block is a single line.
 
@@ -2037,7 +2032,9 @@ responsible for process control.
 Disable default input filter.  Which means compressed files will not
 be decompressed automatically.
 
-=item B<--of>=I<filter>, B<--of>=I<&func>
+=item B<--of>=I<filter>
+
+=item B<--of>=I<&func>
 
 Specify output filter which process the output of B<greple> command.
 Filter command can be specified in multiple times, and they are
@@ -2054,7 +2051,9 @@ Output filter command is executed only when matched string exists to
 avoid invoking many unnecessary processes.  No effect for option
 B<-l> and B<-c>.
 
-=item B<--pf>=I<filter>, B<--pf>=I<&func>
+=item B<--pf>=I<filter>
+
+=item B<--pf>=I<&func>
 
 Similar to B<--of> filter but invoked just once and takes care of
 entire output from B<greple> command.
@@ -2067,7 +2066,9 @@ entire output from B<greple> command.
 
 =over 7
 
-=item B<--print>=I<function>, B<--print>=I<sub{...}>
+=item B<--print>=I<function>
+
+=item B<--print>=I<sub{...}>
 
 Specify user defined function executed before data print.  Text to be
 printed is replaced by the result of the function.  Arbitrary function
@@ -2106,27 +2107,37 @@ result returned from print function and finish the cycle.  Option
 B<--continue> forces to continue normal printing process after print
 function called.  So please be sure that all data being consistent.
 
-=item B<--begin>=I<function>(I<...>), B<--begin>=I<function>=I<...>
+=item B<--begin>=I<function>(I<...>)
+
+=item B<--begin>=I<function>=I<...>
 
 Option B<--begin> specify the function executed at the beginning of
 each file processing.  This I<function> have to be called from B<main>
 package.  So if you define the function in the module package, use the
 full package name or export properly.
 
-=item B<--end>=I<function>(I<...>), B<--end>=I<function>=I<...>
+=item B<--end>=I<function>(I<...>)
+
+=item B<--end>=I<function>=I<...>
 
 Option B<--end> is almost same as B<--begin>, except that the function
 is called after the file processing.
 
-=item B<--prorogue>=I<function>(I<...>), B<--prologue>=I<function>=I<...>
+=item B<--prologue>=I<function>(I<...>)
 
-=item B<--epilogue>=I<function>(I<...>), B<--epilogue>=I<function>=I<...>
+=item B<--prologue>=I<function>=I<...>
+
+=item B<--epilogue>=I<function>(I<...>)
+
+=item B<--epilogue>=I<function>=I<...>
 
 Option B<--prologue> and B<--epilogue> specify functions called before
 and after processing.  During the execution, file is not opened and
 therefore, file name is not given to those functions.
 
-=item B<-M>I<module>::I<function(...)>, B<-M>I<module>::I<function=...>
+=item B<-M>I<module>::I<function(...)>
+
+=item B<-M>I<module>::I<function=...>
 
 Function can be given with module option, following module name.  In
 this form, the function will be called with module package name.  So
@@ -2480,7 +2491,6 @@ can modify actual C<@ARGV> using it.  See B<find> module as a sample.
 
 =head1 HISTORY
 
-
 Most capability of B<greple> is derived from B<mg> command, which has
 been developing from early 1990's by the same author.  Because modern
 standard B<grep> family command becomes to have similar capabilities,
@@ -2488,14 +2498,7 @@ it is a time to clean up entire functionalities, totally remodel the
 option interfaces, and change the command name. (2013.11)
 
 
-=head1 AUTHOR
-
-
-Kazumasa Utashiro
-
-
 =head1 SEE ALSO
-
 
 L<grep(1)>, L<perl(1)>
 
@@ -2503,18 +2506,28 @@ L<github|http://kaz-utashiro.github.io/greple/>
 
 L<Getopt::EX>
 
+
+=head1 AUTHOR
+
+Kazumasa Utashiro
+
+
 =head1 LICENSE
 
+Copyright 1991-2018 Kazumasa Utashiro
 
-Copyright (c) 1991-2017 Kazumasa Utashiro
-
-Use and redistribution for ANY PURPOSE are granted as long as all
-copyright notices are retained.  Redistribution with modification is
-allowed provided that you make your modified version obviously
-distinguishable from the original one.  THIS SOFTWARE IS PROVIDED BY
-THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE
-DISCLAIMED.
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 =cut
 
-#  LocalWords:  greple
+#  LocalWords:  greple egrep foo baz yabba dabba doo ascii greplerc
+#  LocalWords:  regex readlist iname jpg jpeg gif png tbz tgz pdf RGB
+#  LocalWords:  perlre fgrep grep perl joinby KATAKANA InKatakana utf
+#  LocalWords:  nonewline filestyle linestyle chdir mtime nocolor jis
+#  LocalWords:  STDOUT colormap Cyan BLOCKEND LESSANSIENDCHARS setuid
+#  LocalWords:  sprintf regioncolor uniqcolor ansicolor nocolorful jp
+#  LocalWords:  struct sockaddr blockend icode euc shiftjis sjis zcat
+#  LocalWords:  ocode gunzip gpg FILELABEL substr eval misc unicode
+#  LocalWords:  GREPLEOPTS shellwords Katakana builtin pgp autoload
+#  LocalWords:  ENV App ARGV mg Kazumasa Utashiro github

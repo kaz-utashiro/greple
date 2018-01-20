@@ -4,7 +4,7 @@
       "Kazumasa Utashiro"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.0.10, CPAN::Meta::Converter version 2.143240",
+   "generated_by" : "Minilla/v3.0.14, CPAN::Meta::Converter version 2.143240",
    "license" : [
       "unknown"
    ],
@@ -65,11 +65,11 @@
          "web" : "https://github.com/kaz-utashiro/greple"
       }
    },
-   "version" : "8.2202",
+   "version" : "8.23",
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
-      "Toshifumi Sakaguchi <sischkg@gmail.com>",
+      "Kaz Utashiro <kaz@utashiro.com>",
       "Mohammad S Anwar <Mohammad.Anwar@yahoo.com>",
-      "Kaz Utashiro <kaz@utashiro.com>"
+      "Toshifumi Sakaguchi <sischkg@gmail.com>"
    ]
 }
