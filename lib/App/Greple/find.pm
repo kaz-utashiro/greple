@@ -40,6 +40,7 @@ use App::Greple::Common;
 my $path;
 my $chdir;
 my $debug;
+my @pid;
 
 sub set {
     my %arg = @_;
@@ -65,11 +66,15 @@ sub initialize {
     return unless @find;
 
     my $pid = open STDIN, '-|' // croak "process fork failed";
+    push @pid, $pid;
     return if $pid;
 
     unless ($find[0] =~ s/^!//) {
 	unshift @find, $path if defined $path;
 	unshift @find, 'find';
+    }
+    if (@pid > 1) {
+	print while <>;
     }
     exec @find or croak "Can't exec $find[0]";
 }
