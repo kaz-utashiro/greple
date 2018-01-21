@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.2301 2018-01-21T09:44:27Z
+
+    - Make --man option to work when default.pm found.
+
 8.23 2018-01-20T09:37:11Z
 
     - Implement --format option.

@@ -419,7 +419,8 @@ if ($opt_d{u}) {
 ## show man pages
 if ($opt_man or $opt_show or $opt_path) {
     my @bucket = $rcloader->buckets;
-    if (@bucket and (my $mod = $bucket[-1]->title) ne ".greplerc") {
+    if (@bucket and not default_module($bucket[-1])) {
+	my $mod = $bucket[-1]->title;
 	my @perldocopt = $opt_show ? '-m' : $opt_path ? '-l' : () ;
 	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
 	my $perldoc = $jp ? "perldocjp" : "perldoc";
@@ -430,6 +431,13 @@ if ($opt_man or $opt_show or $opt_path) {
     }
     pod2usage({-verbose => 2});
     die;
+}
+
+sub default_module {
+    my $mod = shift;
+    return 1 if $mod->title eq '.greplerc';
+    return 1 if $mod->title eq 'default';
+    return 0;
 }
 
 ## setup file encoding
