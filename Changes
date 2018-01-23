@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.2302 2018-01-23T10:51:23Z
+
+    - Push current directory to @INC for test.
+
 8.2301 2018-01-21T09:44:27Z
 
     - Make --man option to work when default.pm found.
