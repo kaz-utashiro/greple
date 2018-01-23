@@ -4,6 +4,8 @@ use utf8;
 use Test::More;
 use File::Spec;
 use open IO => ':utf8';
+
+use lib '.';
 use t::Util;
 
 like(greple('-e "fox" t/SAMPLE.txt')->result,

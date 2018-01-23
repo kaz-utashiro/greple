@@ -5,6 +5,7 @@ use Test::More;
 use File::Spec;
 use open IO => ':utf8';
 
+use lib '.';
 use t::Util;
 
 like(greple(q(イーハトーヴォ t/JA.txt))->result,

@@ -4,9 +4,10 @@ use utf8;
 use Test::More;
 use File::Spec;
 use open IO => ':utf8';
-use t::Util;
-
 use Text::ParseWords;
+
+use lib '.';
+use t::Util;
 
 my $lib    = File::Spec->rel2abs('lib');
 my $greple = File::Spec->rel2abs('script/greple');
