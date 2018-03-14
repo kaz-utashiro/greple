@@ -71,3 +71,11 @@ option --grey24-bg \
 	--cm w/L12,w/L13,w/L14,w/L15 \
 	--cm K/L16,K/L17,K/L18,K/L19 \
 	--cm K/L20,K/L21,K/L22,K/L23
+
+option --pastel \
+	--cm w/123,w/231,w/312 \
+	--cm w/321,w/231,w/312
+
+option --dark-pastel \
+	--cm w/012,w/120,w/201 \
+	--cm w/210,w/120,w/201

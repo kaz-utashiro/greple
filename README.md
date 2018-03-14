@@ -574,16 +574,16 @@ or `(?<c>\w)\g{c}`.
         ;  No effect
         X  No effect
 
-    If the spec includes `/`, left side is considered for foreground
-    color and right side is for background.  If multiple colors are
-    given in same spec, all indicators are produced in the order of
-    their presence.  As a result, the last one takes effect.
+    If the spec includes `/`, left side is considered to be as foreground
+    color and right side as background.  If multiple colors are given in
+    same spec, all indicators are produced in the order of their presence.
+    As a result, the last one takes effect.
 
     Effect characters are case insensitive, and can be found anywhere and
     in any order in color spec string.  Because `X` and `;` takes no
     effect, you can use them to improve readability, like `SxD;K/544`.
 
-    Samples:
+    Example:
 
         RGB  6x6x6    24bit           color
         ===  =======  =============   ==================

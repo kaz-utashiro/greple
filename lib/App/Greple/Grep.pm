@@ -78,7 +78,7 @@ sub prepare {
     ## build match result list
     ##
     my @result;
-    my %required = (yes => 0, no => 0);
+    my %count = (must => 0, posi => 0, nega => 0);
     my @patlist = $pat_holder->patterns;
     for my $i (0 .. $#patlist) {
 	my $pat = $patlist[$i];
@@ -94,10 +94,15 @@ sub prepare {
 	    if ($pat->is_positive) {
 		push @blocks, map { [ @$_ ] } @p;
 		$self->{stat}->{match_positive} += @p;
-		$required{yes}++;
-	    } else {
+		if ($pat->is_required) {
+		    $count{must}++;
+		} else {
+		    $count{posi}++;
+		}
+	    }
+	    else {
 		$self->{stat}->{match_negative} += @p;
-		$required{no}++;
+		$count{nega}++;
 	    }
 	    map { push @$_, $i } @p;
 	}
@@ -108,9 +113,8 @@ sub prepare {
     ##
     ## optimization for zero match
     ##
-    if ($required{yes} == 0 and $self->{need} > 0) {
-	return $self;
-    }
+    return $self if $self->{must} > 0 and $count{must} == 0;
+    return $self if $self->{need} > 0 and $count{posi} == 0;
 
     ##
     ## --inside, --outside

@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.2303 2018-03-14T04:30:52Z
+
+    - Fixed bug in zero-match optimization.
+
 8.2302 2018-01-23T10:51:23Z
 
     - Push current directory to @INC for test.
