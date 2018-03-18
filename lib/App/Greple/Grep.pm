@@ -78,7 +78,7 @@ sub prepare {
     ## build match result list
     ##
     my @result;
-    my %count = (must => 0, posi => 0, nega => 0);
+    my $positive_count = 0;
     my @patlist = $pat_holder->patterns;
     for my $i (0 .. $#patlist) {
 	my $pat = $patlist[$i];
@@ -90,31 +90,27 @@ sub prepare {
 	    }
 	};
 	my @p = $func->call(@args, &FILELABEL => $self->{filename});
-	if (@p) {
-	    if ($pat->is_positive) {
-		push @blocks, map { [ @$_ ] } @p;
-		$self->{stat}->{match_positive} += @p;
-		if ($pat->is_required) {
-		    $count{must}++;
-		} else {
-		    $count{posi}++;
-		}
-	    }
-	    else {
-		$self->{stat}->{match_negative} += @p;
-		$count{nega}++;
-	    }
-	    map { push @$_, $i } @p;
+	if (@p == 0) {
+	    return $self if $pat->is_required;
+	    next;
 	}
+	if ($pat->is_positive) {
+	    push @blocks, map { [ @$_ ] } @p;
+	    $self->{stat}->{match_positive} += @p;
+	    $positive_count++;
+	}
+	else {
+	    $self->{stat}->{match_negative} += @p;
+	}
+	map { push @$_, $i } @p;
 	push @result, \@p;
     }
     $self->{stat}->{match_block} += @blocks;
 
     ##
-    ## optimization for zero match
+    ## optimization for inadequate match
     ##
-    return $self if $self->{must} > 0 and $count{must} == 0;
-    return $self if $self->{need} > 0 and $count{posi} == 0;
+    return $self if $positive_count < $self->{need} + $self->{must};
 
     ##
     ## --inside, --outside

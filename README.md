@@ -48,7 +48,7 @@ greple - extensible grep with lexical expression and region handling
       --regioncolor        use different color for inside/outside regions
       --uniqcolor          use different color for unique string
       --random             use random color each time
-      --face               set/unset vidual effects
+      --face               set/unset visual effects
     BLOCK
       -p                   paragraph mode
       --all                print whole data
