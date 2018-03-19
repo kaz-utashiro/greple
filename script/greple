@@ -638,10 +638,10 @@ if (@opt_face) {
 		if ($rm) {
 		    $c =~ s/[$s]//g;
 		} elsif ($bg) {
-		    $c .= '/' if $c !~ m'/';
+		    $c .= '/' if ($c =~ tr'/'/') % 2 == 0;
 		    $c .= $s;
 		} else {
-		    $c = $s . $_;
+		    $c = $s . $c;
 		}
 	    }
 	}

@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.2305 2018-03-19T00:32:34Z
+
+    - Fixed bug in --face option handling.
+
 8.2304 2018-03-18T15:23:23Z
 
     - Better optimization for inadequate match.
