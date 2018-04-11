@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.2306 2018-04-11T01:39:31Z
+
+    - Fixed bug in Grep.pm.
+
+    Produced wrong result when required pattern matches,
+    and positive pattern does not match.
+
 8.2305 2018-03-19T00:32:34Z
 
     - Fixed bug in --face option handling.

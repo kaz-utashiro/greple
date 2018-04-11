@@ -641,7 +641,7 @@ or `(?<c>\w)\g{c}`.
         greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
 
     Experimentally, function can be combined with other normal color
-    specifications.  Also the form _&func;_ can be repeated.
+    specifications.  Also the form _&amp;func;_ can be repeated.
 
         greple --cm 'BF/544;sub{uc}'
 

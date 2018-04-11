@@ -92,6 +92,7 @@ sub prepare {
 	my @p = $func->call(@args, &FILELABEL => $self->{filename});
 	if (@p == 0) {
 	    return $self if $pat->is_required;
+	    push @result, \@p;
 	    next;
 	}
 	if ($pat->is_positive) {
