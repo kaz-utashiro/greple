@@ -59,6 +59,16 @@ sub append {
     $obj;
 }
 
+sub optimize {
+    my $obj = shift;
+
+    # collect required pattern at the top of list
+    @$obj = ( grep( {   $_->is_required } @$obj ),
+	      grep( { ! $_->is_required } @$obj ) );
+
+    $obj;
+}
+
 sub lexical_opt {
     my($obj, $arg, $opt) = @_;
 

@@ -494,7 +494,7 @@ for ([ \@opt_r,  FLAG_REGEX | FLAG_COOK | FLAG_REQUIRED ],
 {
     my($opt, $flag) = @$_;
     $pat_holder->append({ flag => $FLAG_BASE | $flag, type => 'pattern' },
-			@$opt) if @$opt;
+			@$opt)->optimize() if @$opt;
 }
 
 ##

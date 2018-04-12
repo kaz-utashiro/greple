@@ -92,18 +92,17 @@ sub prepare {
 	my @p = $func->call(@args, &FILELABEL => $self->{filename});
 	if (@p == 0) {
 	    return $self if $pat->is_required;
-	    push @result, \@p;
-	    next;
+	} else {
+	    if ($pat->is_positive) {
+		push @blocks, map { [ @$_ ] } @p;
+		$self->{stat}->{match_positive} += @p;
+		$positive_count++;
+	    }
+	    else {
+		$self->{stat}->{match_negative} += @p;
+	    }
+	    map { push @$_, $i } @p;
 	}
-	if ($pat->is_positive) {
-	    push @blocks, map { [ @$_ ] } @p;
-	    $self->{stat}->{match_positive} += @p;
-	    $positive_count++;
-	}
-	else {
-	    $self->{stat}->{match_negative} += @p;
-	}
-	map { push @$_, $i } @p;
 	push @result, \@p;
     }
     $self->{stat}->{match_block} += @blocks;
