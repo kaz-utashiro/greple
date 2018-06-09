@@ -36,15 +36,17 @@ use warnings;
 sub new {
     my $class = shift;
     my $obj = bless {
-	HASH => {},
-	LIST => [],
+	HASH  => {},
+	LIST  => [],
+	COUNT => [],
     }, $class;
     configure $obj @_ if @_;
     $obj;
 }
 
-sub hash { shift->{HASH} }
-sub list { shift->{LIST} }
+sub hash  { shift->{HASH}  }
+sub list  { shift->{LIST}  }
+sub count { shift->{COUNT} }
 
 sub configure {
     my $obj = shift;
@@ -59,7 +61,7 @@ sub index {
     my $obj = shift;
     local $_ = shift;
 
-    $obj->{HASH}->{$_} //= do {
+    my $index = $obj->{HASH}->{$_} //= do {
 	s/\n+//g    if $obj->{ignore_newline};
 	s/\s+//g    if $obj->{ignore_space};
 	s/\pS+//g   if $obj->{ignore_symbol};
@@ -71,6 +73,10 @@ sub index {
 	    $#{ $list };
 	};
     };
+
+    $obj->{COUNT}->[$index] += 1;
+
+    $index;
 }
 
 1;

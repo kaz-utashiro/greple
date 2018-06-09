@@ -686,9 +686,12 @@ my $uniq_color = new UniqIndex
     ignore_case => $opt_i;
 
 sub dump_uniqcolor {
-    my $list = $uniq_color->list;
+    my $list  = $uniq_color->list;
+    my $count = $uniq_color->count;
     for my $i (0 .. $#{ $list }) {
-	warn sprintf "%d %s\n", $i, index_color($i, $list->[$i]);
+	warn sprintf("%3d (%3d) %s\n",
+		     $i, $count->[$i],
+		     index_color($i, $list->[$i]));
     }
 }
 
