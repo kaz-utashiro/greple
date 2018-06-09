@@ -348,7 +348,7 @@ binmode STDERR, ":encoding(utf8)";
 
 require Getopt::Long;
 my $parser = new Getopt::Long::Parser
-    config => [ qw(bundling no_getopt_compat) ] ;
+    config => [ qw(bundling no_getopt_compat no_ignore_case) ] ;
 sub configure_getopt { $parser->configure(@_) }
 
 configure_getopt qw(debug) if $ENV{DEBUG_GETOPT};
