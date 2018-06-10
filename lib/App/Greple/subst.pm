@@ -120,7 +120,7 @@ use strict;
 use warnings;
 
 use Exporter 'import';
-our @EXPORT      = qw(&subst_begin &subst &subst_diff &subst_create);
+our @EXPORT      = qw(&subst_begin &subst &subst_diff &subst_create &subst_stat);
 our %EXPORT_TAGS = ( );
 our @EXPORT_OK   = qw();
 
@@ -142,6 +142,7 @@ my $current_file;
 my $contents;
 my %fromto;
 my @fromto;
+my @fromto_re;
 my @subst_diffcmd;
 
 sub debug {
@@ -199,6 +200,25 @@ sub subst_begin {
     subst_initialize if not $initialized;
 }
 
+sub subst_stat {
+    my %arg = @_;
+    $current_file = delete $arg{&FILELABEL} or die;
+
+    for my $list (@fromto_re) {
+	my($from_re, $to_re) = @$list;
+	if (my $from = (my @match = /$from_re/g)) {
+	    if ($to_re) {
+		my $to = (my @to = /$to_re/g);
+		printf "%4d, %4d %s, %s\n", $from, $to, $from_re, $to_re;
+	    } else {
+		printf "%4d       %s\n", $from, $from_re;
+	    }
+	}
+    }
+
+    $_ = "";
+}
+
 sub read_file {
     my $spec = shift;
 
@@ -211,9 +231,25 @@ sub read_file {
 	/\S/ or next;
 
 	my @param = grep { not m{^//+$} } split ' ';
-	next if @param < 2;
+	if (@param < 2) {
+	    push @fromto_re, [ @param ] if @param;
+	    next;
+	}
 	my($from, $to) = splice @param, -2, 2;
-	$from =~ s/\(\? \<? [=!] [^\)]* \)//gx; # rm look-behind/look-ahead
+	my($from_re, $to_re) = ($from, $to);
+
+	# head look-behind
+	while ($from =~ s/^\(\? \< ([=!]) [^\)]* \)//px) {
+	    $to_re = ${^MATCH} . $to_re if $1 eq '=';
+	}
+	# tail look-ahead
+	my @to_re;
+	while ($from =~ s/\(\? ([=!]) [^\)]* \)$//px) {
+	    unshift @to_re, ${^MATCH} if $1 eq '=';
+	}
+	$to_re = join '', $to_re, @to_re if @to_re;
+	push @fromto_re, [ $from_re, $to_re ];
+
 	set_fromto $from, $to;
     }
     close SPEC;
@@ -293,9 +329,12 @@ option --subst --begin subst_begin --colormap &subst
 option --diff --subst --all --need 0 -h --of &subst_diff
 option --create --subst --all --need 0 -h --begin subst_create
 option --replace --subst --all --need 0 -h --begin subst_create(replace,suffix=.bak)
+option --stat --subst --begin subst_stat
 
-builtin subst_from=s @opt_subst_from
-builtin subst_to=s   @opt_subst_to
-builtin subst_file=s @opt_subst_file
+# subst_from, subst_to, subst_file will be deplicated.
+builtin subst-from|subst_from=s @opt_subst_from
+builtin subst-to|subst_to=s     @opt_subst_to
+builtin subst-file|subst_file=s @opt_subst_file
+
 builtin diffcmd=s    $opt_subst_diffcmd
 builtin U=i          $opt_U
