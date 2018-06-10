@@ -199,7 +199,7 @@ sub prepare {
 	}
     }
 
-    show_match_table(\@match_table) if $opt_d{v};
+    show_match_table(\@match_table) if $opt_d{g};
 
     $self->{MATCH_TABLE} = \@match_table;
 
