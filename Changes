@@ -2,6 +2,14 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.24 2018-06-10T02:20:36Z
+
+    - Update -Mdebug module.
+    - Implement --stat option in -Msubst module.
+    - Add no_ignore_case option to Getopt::Long.
+    - Modify -Mdig spec to accept multiple directories and find option.
+    - Option --dm with --uc prints hit count of patterns.
+
 8.2306 2018-04-11T01:39:31Z
 
     - Fixed bug in Grep.pm.
