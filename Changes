@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.2501 2018-06-24T06:41:36Z
+
+    - Print matched count when -c is used with -l option.
+    - Add -do for default debug info.
+    - Use -ml option with perldoc to print module path.
+
 8.24 2018-06-10T02:20:36Z
 
     - Update -Mdebug module.
