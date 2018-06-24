@@ -999,7 +999,11 @@ sub grep_data {
     $splicer->($grep->result_ref) if $splicer;
 
     if ($opt_l) {
-	print "$current_file\n" if $matched;
+	if ($matched) {
+	    print $current_file;
+	    printf ":%d", scalar $grep->blocks if $opt_c;
+	    print "\n";
+	}
     }
     elsif ($opt_c) {
 	print "$current_file:" if $need_filename;
