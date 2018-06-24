@@ -421,7 +421,7 @@ if ($opt_man or $opt_show or $opt_path) {
     my @bucket = $rcloader->buckets;
     if (@bucket and not default_module($bucket[-1])) {
 	my $mod = $bucket[-1]->title;
-	my @perldocopt = $opt_show ? '-m' : $opt_path ? '-l' : () ;
+	my @perldocopt = $opt_show ? '-m' : $opt_path ? '-ml' : () ;
 	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
 	my $perldoc = $jp ? "perldocjp" : "perldoc";
 	$ENV{PERL5LIB} = join ':', @INC;
