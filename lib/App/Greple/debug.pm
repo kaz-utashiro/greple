@@ -28,7 +28,7 @@ are available.
     unused      -du  Show unused 1-char option name
 
 When used without function call, default target is enabled; currently
-C<getoptex>.
+C<getoptex> and C<option>.
 
     $ greple -Mdebug
 
@@ -111,7 +111,7 @@ sub switch {
     }
 }
 
-my @default = qw(getoptex);
+my @default = qw(getoptex option);
 
 my $called = 0;
 
