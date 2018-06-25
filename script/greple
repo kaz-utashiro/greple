@@ -936,6 +936,7 @@ sub open_nextfile {
     my $file;
     while (defined($file = shift(@ARGV)) ||
 	   defined($file = $opt_readlist && read_stdin)) {
+	$file = decode 'utf8', $file unless utf8::is_utf8 $file;
 	$file =~ s/\n+$//;
 
 	if (0) {}
