@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.26 2018-06-26T06:24:12Z
+
+    - Pass filename to filter functions.
+
 8.2502 2018-06-25T08:24:14Z
 
     - Decode utf8 file name from stdin.

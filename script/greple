@@ -951,7 +951,7 @@ sub open_nextfile {
 	}
 
 	if (my @filters = $filter_d->get_filters($file)) {
-	    push_input_filter(@filters);
+	    push_input_filter({ &FILELABEL => $file }, @filters);
 	}
 
 	if ($file_code eq 'binary') {
@@ -1012,7 +1012,9 @@ sub grep_data {
     }
     elsif (@{$grep->result_ref}) {
 	# open output filter
-	@opt_of && push_output_filter(\*STDOUT, @opt_of);
+	@opt_of && push_output_filter(
+	    { &FILEALBEL => $current_file },
+	    \*STDOUT, @opt_of);
 	display_result($grep);
 	@opt_of && recover_stdout;
     }

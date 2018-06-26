@@ -59,6 +59,7 @@ sub get_filters {
 
 push @EXPORT, qw(push_output_filter);
 sub push_output_filter {
+    my %arg = ref $_[0] eq 'HASH' ? %{+shift} : {};
     my $fh = shift;
     my $pkg = caller;
     for my $filter (reverse @_) {
@@ -81,11 +82,15 @@ sub push_output_filter {
 
 push @EXPORT, qw(push_input_filter);
 sub push_input_filter {
+    my %arg = ref $_[0] eq 'HASH' ? %{+shift} : {};
     my $pkg = caller;
     for my $filter (@_) {
 	$opt_d{m} and warn "Push input Filter: \"$filter\"\n";
 	if ($filter =~ /^&/ and
 	    my $f = parse_func({ PACKAGE => $pkg }, $filter)) {
+	    if ($arg{&FILELABEL}) {
+		$f->append(&FILELABEL => $arg{&FILELABEL});
+	    }
 	    ##
 	    ## intput filter function is responsible for process fork
 	    ##
