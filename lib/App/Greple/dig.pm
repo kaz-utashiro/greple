@@ -16,9 +16,14 @@ It is possible to specify AND condition after directories, in B<find>
 option format.  Next command will search all C source files under the
 current directory.
 
-    $ greple pattern -Mdig --dig . -name *.c
+    $ greple -Mdig pattern --dig . -name *.c
 
-    $ greple pattern -Mdig --dig . ( -name *.c -o -name *.h )
+    $ greple -Mdig pattern --dig . ( -name *.c -o -name *.h )
+
+You can use B<--dig> option without module declaration by setting it
+as autoload module in your F<~/.greplerc>.
+
+    autoload -Mdig --dig
 
 =cut
 

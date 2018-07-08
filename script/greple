@@ -60,6 +60,12 @@ my $version = $App::Greple::VERSION;
 greple - extensible grep with lexical expression and region handling
 
 
+=head1 VERSION
+
+
+Version 8.26
+
+
 =head1 SYNOPSIS
 
 
@@ -1285,7 +1291,7 @@ like this:
 Also B<dig> module implements more complex search.  It can be used
 simple as this:
 
-    greple -Mdig --dig .
+    greple -Mdig pattern --dig .
 
 but this command finally translated into following option list.
 
@@ -1293,7 +1299,7 @@ but this command finally translated into following option list.
         -type f ! -name .* ! -name *,v ! -name *~ 
         ! -iname *.jpg ! -iname *.jpeg ! -iname *.gif ! -iname *.png 
         ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf 
-        -print --
+        -print -- pattern
 
 
 =head1 OPTIONS
@@ -1968,7 +1974,7 @@ Interestingly enough, above example
 
 produces output, as a matter of fact.  Think of the situation
 searching, say, C<' PATTERN '> with this condition.  Matched area
-includes surrounding spaces, and meets the both condition partially.
+includes surrounding spaces, and satisfies both conditions partially.
 This match does not occur when option B<--strict> is given, either.
 
 =back
