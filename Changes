@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.27 2018-07-22T15:30:44Z
+
+    - Introduce --seqcolor, --sc option.
+
 8.26 2018-06-26T06:24:12Z
 
     - Pass filename to filter functions.

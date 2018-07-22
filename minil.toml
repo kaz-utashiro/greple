@@ -6,3 +6,7 @@ authority="cpan:UTASHIRO"
 
 module_maker="ModuleBuildTiny"
 
+[unsupported]
+os = [
+    "MSWin32",
+]

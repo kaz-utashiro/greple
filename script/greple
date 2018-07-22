@@ -63,7 +63,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.26
+Version 8.27
 
 
 =head1 SYNOPSIS
@@ -111,6 +111,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --ansicolor=s        ANSI color 16, 256 or 24bit
     --[no]256            same as --ansicolor 256 or 16
     --regioncolor        use different color for inside/outside regions
+    --seqcolor           use different color sequentially
     --uniqcolor          use different color for unique string
     --random             use random color each time
     --face               set/unset visual effects
@@ -185,6 +186,7 @@ my @opt_colormap;
 my $opt_colorful = 1;
 my @opt_face;
 my $opt_uniqcolor;
+my $opt_seqcolor;
 my $opt_random;
 my $opt_regioncolor;
 my $opt_icode;
@@ -288,6 +290,7 @@ my @optargs = (
     'colorful!'          => \$opt_colorful,
     'face=s'             => \@opt_face,
     'uniqcolor|uc!'      => \$opt_uniqcolor,
+    'seqcolor|sc!'       => \$opt_seqcolor,
     'random!'            => \$opt_random,
     'ansicolor=s'        => \$opt_ansicolor,
     '256!'               => sub { $opt_ansicolor = $_[1] ? '256' : '16' },
@@ -1048,6 +1051,13 @@ sub display_result {
     my $need_blockend =
 	$opt_blockend || $opt_p || $opt_A || $opt_B || @opt_block;
 
+    # --seqcolor, --random
+    my $indexer = do {
+	if    ($opt_seqcolor) { my $i = 0; sub { $i++ } }
+	elsif ($opt_random)   { sub { int rand @colors } }
+	else  { undef }
+    };
+
     my $line = 1;
     my $lastpos = 0;
     for my $result ($grep->result) {
@@ -1084,6 +1094,13 @@ sub display_result {
 	}
 	and print "\n";
 
+	# --seqcolor, --random
+	if ($indexer) {
+	    for (@$result) {
+		$_->[2] = $indexer->();
+	    }
+	}
+
 	my $mark = "\001";
 	for my $matched (reverse @$result) {
 	    my($ms, $me, $pi) = @$matched;
@@ -1100,12 +1117,8 @@ sub display_result {
 		}
 	    }
 
-	    # --random
-	    if ($opt_random) {
-		$pi = rand(@colors);
-	    }
 	    # --uniqcolor
-	    elsif ($opt_uniqcolor) {
+	    if ($opt_uniqcolor) {
 		$pi = $uniq_color->index($s);
 	    }
 
@@ -1765,8 +1778,8 @@ When single pattern is specified, first color in colormap is used for
 the pattern.  If multiple patterns and multiple colors are specified,
 each patterns are colored with corresponding colors cyclically.
 
-Option B<--regioncolor>, B<--uniqcolor> and B<--random> change this
-behavior.
+Option B<--regioncolor>, B<--uniqcolor>, B<--seqcolor> and B<--random>
+change this behavior.
 
 =item B<--ansicolor>=I<16>|I<256>|I<24bit>
 
@@ -1800,6 +1813,12 @@ When used with option B<-i>, color is selected in case-insensitive
 fashion.  If you want case-insensitive match and case-sensitive color
 selection, indicate insensitiveness in the pattern rather than command
 option (e.g. 'I<(?i)pattern>').
+
+=item B<--[no]seqcolor>, B<--[no]sc>
+
+Apply different color sequentially according to the order of
+appearance.
+Disabled by default.
 
 =item B<--random>
 

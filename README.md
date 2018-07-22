@@ -2,6 +2,10 @@
 
 greple - extensible grep with lexical expression and region handling
 
+# VERSION
+
+Version 8.27
+
 # SYNOPSIS
 
 **greple** \[**-M**_module_\] \[ **-options** \] pattern \[ file... \]
@@ -46,6 +50,7 @@ greple - extensible grep with lexical expression and region handling
       --ansicolor=s        ANSI color 16, 256 or 24bit
       --[no]256            same as --ansicolor 256 or 16
       --regioncolor        use different color for inside/outside regions
+      --seqcolor           use different color sequentially
       --uniqcolor          use different color for unique string
       --random             use random color each time
       --face               set/unset visual effects
@@ -219,7 +224,7 @@ like this:
 Also **dig** module implements more complex search.  It can be used
 simple as this:
 
-    greple -Mdig --dig .
+    greple -Mdig pattern --dig .
 
 but this command finally translated into following option list.
 
@@ -227,7 +232,7 @@ but this command finally translated into following option list.
         -type f ! -name .* ! -name *,v ! -name *~ 
         ! -iname *.jpg ! -iname *.jpeg ! -iname *.gif ! -iname *.png 
         ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf 
-        -print --
+        -print -- pattern
 
 # OPTIONS
 
@@ -661,8 +666,8 @@ or `(?<c>\w)\g{c}`.
     the pattern.  If multiple patterns and multiple colors are specified,
     each patterns are colored with corresponding colors cyclically.
 
-    Option **--regioncolor**, **--uniqcolor** and **--random** change this
-    behavior.
+    Option **--regioncolor**, **--uniqcolor**, **--seqcolor** and **--random**
+    change this behavior.
 
 - **--ansicolor**=_16_|_256_|_24bit_
 
@@ -696,6 +701,12 @@ or `(?<c>\w)\g{c}`.
     fashion.  If you want case-insensitive match and case-sensitive color
     selection, indicate insensitiveness in the pattern rather than command
     option (e.g. '_(?i)pattern_').
+
+- **--\[no\]seqcolor**, **--\[no\]sc**
+
+    Apply different color sequentially according to the order of
+    appearance.
+    Disabled by default.
 
 - **--random**
 
@@ -852,7 +863,7 @@ or `(?<c>\w)\g{c}`.
 
     produces output, as a matter of fact.  Think of the situation
     searching, say, `' PATTERN '` with this condition.  Matched area
-    includes surrounding spaces, and meets the both condition partially.
+    includes surrounding spaces, and satisfies both conditions partially.
     This match does not occur when option **--strict** is given, either.
 
 ## CHARACTER CODE
