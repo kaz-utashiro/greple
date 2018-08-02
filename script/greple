@@ -108,6 +108,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --nocolor            same as --color=never
     --colormap=color     R, G, B, C, M, Y etc.
     --colorful           use default multiple colors
+    --revindex           apply colormap in reverse order
     --ansicolor=s        ANSI color 16, 256 or 24bit
     --[no]256            same as --ansicolor 256 or 16
     --regioncolor        use different color for inside/outside regions
@@ -184,6 +185,7 @@ my $opt_color = 'auto';
 my $opt_ansicolor = '256';
 my @opt_colormap;
 my $opt_colorful = 1;
+my $opt_revindex;
 my @opt_face;
 my $opt_uniqcolor;
 my $opt_seqcolor;
@@ -288,6 +290,7 @@ my @optargs = (
     'colormap|cm=s'      => \@opt_colormap,
     'nocolor|no-color'   => sub { $opt_color = 'never' },
     'colorful!'          => \$opt_colorful,
+    'revindex|ri!'       => \$opt_revindex,
     'face=s'             => \@opt_face,
     'uniqcolor|uc!'      => \$opt_uniqcolor,
     'seqcolor|sc!'       => \$opt_seqcolor,
@@ -1096,7 +1099,7 @@ sub display_result {
 
 	# --seqcolor, --random
 	if ($indexer) {
-	    for (@$result) {
+	    for ($opt_revindex ? reverse @$result : @$result) {
 		$_->[2] = $indexer->();
 	    }
 	}
@@ -1780,6 +1783,11 @@ each patterns are colored with corresponding colors cyclically.
 
 Option B<--regioncolor>, B<--uniqcolor>, B<--seqcolor> and B<--random>
 change this behavior.
+
+=item B<--[no]revindex>, B<--[no]ri>
+
+Apply colormap in reverse order within each block.  This is sometmies
+useful when used with B<--seqcolor> option for right-adjusted data.
 
 =item B<--ansicolor>=I<16>|I<256>|I<24bit>
 
