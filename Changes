@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.2801 2018-08-02T02:26:37Z
+
+    - Fix bug in Filter.pm.
+
 8.27 2018-07-22T15:30:44Z
 
     - Introduce --seqcolor, --sc option.
