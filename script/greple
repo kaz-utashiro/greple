@@ -185,6 +185,7 @@ my $opt_color = 'auto';
 my $opt_ansicolor = '256';
 my @opt_colormap;
 my $opt_colorful = 1;
+my $opt_blockindex;
 my $opt_revindex;
 my @opt_face;
 my $opt_uniqcolor;
@@ -290,6 +291,7 @@ my @optargs = (
     'colormap|cm=s'      => \@opt_colormap,
     'nocolor|no-color'   => sub { $opt_color = 'never' },
     'colorful!'          => \$opt_colorful,
+    'blockindex|bi!'     => \$opt_blockindex,
     'revindex|ri!'       => \$opt_revindex,
     'face=s'             => \@opt_face,
     'uniqcolor|uc!'      => \$opt_uniqcolor,
@@ -1043,6 +1045,17 @@ sub grep_data {
     $matched;
 }
 
+package indexer {
+    sub new {
+	my $class = shift;
+	my $obj = { @_ };
+	$obj->{reset} //= sub {};
+	bless $obj, $class;
+    }
+    sub index { shift->{index}->() }
+    sub reset { shift->{reset}->() }
+}
+
 sub display_result {
     my $grep = shift;
     my $file = $grep->{filename};
@@ -1056,9 +1069,16 @@ sub display_result {
 
     # --seqcolor, --random
     my $indexer = do {
-	if    ($opt_seqcolor) { my $i = 0; sub { $i++ } }
-	elsif ($opt_random)   { sub { int rand @colors } }
-	else  { undef }
+	if ($opt_seqcolor) {
+	    my $i = 0;
+	    new indexer
+		index => sub { $i++ },
+		reset => $opt_blockindex ? sub { $i = 0 } : sub {};
+	}
+	elsif ($opt_random) {
+	    new indexer index => sub { int rand @colors };
+	}
+	else { undef }
     };
 
     my $line = 1;
@@ -1099,8 +1119,9 @@ sub display_result {
 
 	# --seqcolor, --random
 	if ($indexer) {
+	    $indexer->reset;
 	    for ($opt_revindex ? reverse @$result : @$result) {
-		$_->[2] = $indexer->();
+		$_->[2] = $indexer->index;
 	    }
 	}
 
