@@ -101,18 +101,17 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --format LABEL=...   define line number and file name format
   FILE
     --glob=glob          glob target files
-    --chdir              change directory before search
+    --chdir=dir          change directory before search
     --readlist           get filenames from stdin
   COLOR
     --color=when         use terminal color (auto, always, never)
     --nocolor            same as --color=never
     --colormap=color     R, G, B, C, M, Y etc.
     --colorful           use default multiple colors
-    --revindex           apply colormap in reverse order
+    --colorindex=flags   color index method: Ascend/Descend/Block/Random
     --ansicolor=s        ANSI color 16, 256 or 24bit
     --[no]256            same as --ansicolor 256 or 16
     --regioncolor        use different color for inside/outside regions
-    --seqcolor           use different color sequentially
     --uniqcolor          use different color for unique string
     --random             use random color each time
     --face               set/unset visual effects
@@ -185,11 +184,9 @@ my $opt_color = 'auto';
 my $opt_ansicolor = '256';
 my @opt_colormap;
 my $opt_colorful = 1;
-my $opt_blockindex;
-my $opt_revindex;
+my $opt_colorindex = '';
 my @opt_face;
 my $opt_uniqcolor;
-my $opt_seqcolor;
 my $opt_random;
 my $opt_regioncolor;
 my $opt_icode;
@@ -291,12 +288,13 @@ my @optargs = (
     'colormap|cm=s'      => \@opt_colormap,
     'nocolor|no-color'   => sub { $opt_color = 'never' },
     'colorful!'          => \$opt_colorful,
-    'blockindex|bi!'     => \$opt_blockindex,
-    'revindex|ri!'       => \$opt_revindex,
+    'colorindex|ci=s'    => \$opt_colorindex,
     'face=s'             => \@opt_face,
     'uniqcolor|uc!'      => \$opt_uniqcolor,
-    'seqcolor|sc!'       => \$opt_seqcolor,
-    'random!'            => \$opt_random,
+    'random!'            => sub {
+	if ($_[1]) { $opt_colorindex .= 'R' }
+	else       { $opt_colorindex =~ s/R//gi }
+    },
     'ansicolor=s'        => \$opt_ansicolor,
     '256!'               => sub { $opt_ansicolor = $_[1] ? '256' : '16' },
     'regioncolor|rc!'    => \$opt_regioncolor,
@@ -1045,15 +1043,16 @@ sub grep_data {
     $matched;
 }
 
-package indexer {
+package Indexer {
     sub new {
 	my $class = shift;
 	my $obj = { @_ };
-	$obj->{reset} //= sub {};
 	bless $obj, $class;
     }
-    sub index { shift->{index}->() }
-    sub reset { shift->{reset}->() }
+    sub index   { shift->{index}->() }
+    sub reset   { shift->{reset}->() }
+    sub block   { shift->{block}     }
+    sub reverse { shift->{reverse}   }
 }
 
 sub display_result {
@@ -1067,16 +1066,19 @@ sub display_result {
     my $need_blockend =
 	$opt_blockend || $opt_p || $opt_A || $opt_B || @opt_block;
 
-    # --seqcolor, --random
+    # --colorindex
     my $indexer = do {
-	if ($opt_seqcolor) {
+	my %ci = map { uc $_ => 1 } $opt_colorindex =~ /\w/g;
+	if ($ci{A} or $ci{D}) {
 	    my $i = 0;
-	    new indexer
+	    new Indexer
 		index => sub { $i++ },
-		reset => $opt_blockindex ? sub { $i = 0 } : sub {};
+		reset => sub { $i = 0 },
+		block => $ci{B},
+		reverse => $ci{D};
 	}
-	elsif ($opt_random) {
-	    new indexer index => sub { int rand @colors };
+	elsif ($ci{R}) {
+	    new Indexer index => sub { int rand @colors };
 	}
 	else { undef }
     };
@@ -1117,10 +1119,9 @@ sub display_result {
 	}
 	and print "\n";
 
-	# --seqcolor, --random
 	if ($indexer) {
-	    $indexer->reset;
-	    for ($opt_revindex ? reverse @$result : @$result) {
+	    $indexer->reset if $indexer->block;
+	    for ($indexer->reverse ? reverse @$result : @$result) {
 		$_->[2] = $indexer->index;
 	    }
 	}
@@ -1802,13 +1803,39 @@ When single pattern is specified, first color in colormap is used for
 the pattern.  If multiple patterns and multiple colors are specified,
 each patterns are colored with corresponding colors cyclically.
 
-Option B<--regioncolor>, B<--uniqcolor>, B<--seqcolor> and B<--random>
-change this behavior.
+Option B<--regioncolor>, B<--uniqcolor> and B<--colorindex> change
+this behavior.
 
-=item B<--[no]revindex>, B<--[no]ri>
+=item B<--colorindex>=I<spec>, B<--ci>=I<spec>
 
-Apply colormap in reverse order within each block.  This is sometmies
-useful when used with B<--seqcolor> option for right-adjusted data.
+Specify color index method by combination of spec characters.
+Meaningful combinations are B<A>, B<D>, B<AB>, B<DB> and B<R>.
+
+=over 4
+
+=item A (Ascending)
+
+Apply different color sequentially according to the order of
+appearance.
+
+=item D (Descending)
+
+Apply different color sequentially according to the reversed order of
+appearance.
+
+=item B (Block)
+
+Reset sequential index on every block.
+
+=item R (Random)
+
+Apply random color.
+
+=back
+
+=item B<--random>
+
+Shortcut for B<--colorindex=R>.
 
 =item B<--ansicolor>=I<16>|I<256>|I<24bit>
 
@@ -1842,17 +1869,6 @@ When used with option B<-i>, color is selected in case-insensitive
 fashion.  If you want case-insensitive match and case-sensitive color
 selection, indicate insensitiveness in the pattern rather than command
 option (e.g. 'I<(?i)pattern>').
-
-=item B<--[no]seqcolor>, B<--[no]sc>
-
-Apply different color sequentially according to the order of
-appearance.
-Disabled by default.
-
-=item B<--random>
-
-Use random selected color to display matched string each time.
-Disabled by default.
 
 =item B<--face>=[-+]I<effect>
 
@@ -2603,4 +2619,4 @@ it under the same terms as Perl itself.
 #  LocalWords:  struct sockaddr blockend icode euc shiftjis sjis zcat
 #  LocalWords:  ocode gunzip gpg FILELABEL substr eval misc unicode
 #  LocalWords:  GREPLEOPTS shellwords Katakana builtin pgp autoload
-#  LocalWords:  ENV App ARGV mg Kazumasa Utashiro github
+#  LocalWords:  ENV App ARGV mg Kazumasa Utashiro github colorindex
