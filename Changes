@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.29 2018-08-03T23:41:24Z
+
+    - Deprecate --seqcolor and introduce --colorindex option.
+
 8.2801 2018-08-02T02:26:37Z
 
     - Fix bug in Filter.pm.

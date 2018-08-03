@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.2801
+Version 8.29
 
 # SYNOPSIS
 
@@ -40,17 +40,17 @@ Version 8.2801
       --format LABEL=...   define line number and file name format
     FILE
       --glob=glob          glob target files
-      --chdir              change directory before search
+      --chdir=dir          change directory before search
       --readlist           get filenames from stdin
     COLOR
       --color=when         use terminal color (auto, always, never)
       --nocolor            same as --color=never
       --colormap=color     R, G, B, C, M, Y etc.
       --colorful           use default multiple colors
+      --colorindex=flags   color index method: Ascend/Descend/Block/Random
       --ansicolor=s        ANSI color 16, 256 or 24bit
       --[no]256            same as --ansicolor 256 or 16
       --regioncolor        use different color for inside/outside regions
-      --seqcolor           use different color sequentially
       --uniqcolor          use different color for unique string
       --random             use random color each time
       --face               set/unset visual effects
@@ -666,8 +666,35 @@ or `(?<c>\w)\g{c}`.
     the pattern.  If multiple patterns and multiple colors are specified,
     each patterns are colored with corresponding colors cyclically.
 
-    Option **--regioncolor**, **--uniqcolor**, **--seqcolor** and **--random**
-    change this behavior.
+    Option **--regioncolor**, **--uniqcolor** and **--colorindex** change
+    this behavior.
+
+- **--colorindex**=_spec_, **--ci**=_spec_
+
+    Specify color index method by combination of spec characters.
+    Meaningful combinations are **A**, **D**, **AB**, **DB** and **R**.
+
+    - A (Ascending)
+
+        Apply different color sequentially according to the order of
+        appearance.
+
+    - D (Descending)
+
+        Apply different color sequentially according to the reversed order of
+        appearance.
+
+    - B (Block)
+
+        Reset sequential index on every block.
+
+    - R (Random)
+
+        Apply random color.
+
+- **--random**
+
+    Shortcut for **--colorindex=R**.
 
 - **--ansicolor**=_16_|_256_|_24bit_
 
@@ -701,17 +728,6 @@ or `(?<c>\w)\g{c}`.
     fashion.  If you want case-insensitive match and case-sensitive color
     selection, indicate insensitiveness in the pattern rather than command
     option (e.g. '_(?i)pattern_').
-
-- **--\[no\]seqcolor**, **--\[no\]sc**
-
-    Apply different color sequentially according to the order of
-    appearance.
-    Disabled by default.
-
-- **--random**
-
-    Use random selected color to display matched string each time.
-    Disabled by default.
 
 - **--face**=\[-+\]_effect_
 
