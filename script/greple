@@ -63,7 +63,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.29
+Version 8.2901
 
 
 =head1 SYNOPSIS
@@ -510,7 +510,7 @@ for ([ \@opt_r,  FLAG_REGEX | FLAG_COOK | FLAG_REQUIRED ],
 }
 
 ##
-## set $count_must, $count_need and $opt_alow
+## set $count_must, $count_need and $opt_allow
 ##
 my $count_must = 0;
 my $count_need;
@@ -952,7 +952,7 @@ sub open_nextfile {
 	$file =~ s/\n+$//;
 
 	if (0) {}
-	elsif ($file =~ /^http:\/\//) {
+	elsif ($file =~ /^https?:\/\//) {
 	    open(STDIN, '-|') || exec("w3m -dump $file") || die "w3m: $!\n";
 	}
 	else {
@@ -1230,8 +1230,9 @@ number of required patterns.  So
     greple '+foo bar baz'
 
 commands implicitly set the option C<--need 1>, and consequently print
-all lines including `foo'.  If you want to search lines which includes
-either or both of `bar' and `baz', use like this:
+all lines including `foo'.  In other words, it makes other patterns
+optional.  If you want to search lines which includes either or both
+of `bar' and `baz', use like this:
 
     greple '+foo bar baz' --need 2
     greple '+foo bar baz' --need +1

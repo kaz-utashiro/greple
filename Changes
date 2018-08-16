@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.2901 2018-08-16T05:40:16Z
+
+    - Support https: as well as http:
+
 8.29 2018-08-03T23:41:24Z
 
     - Deprecate --seqcolor and introduce --colorindex option.

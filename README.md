@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.29
+Version 8.2901
 
 # SYNOPSIS
 
@@ -133,8 +133,9 @@ number of required patterns.  So
     greple '+foo bar baz'
 
 commands implicitly set the option `--need 1`, and consequently print
-all lines including \`foo'.  If you want to search lines which includes
-either or both of \`bar' and \`baz', use like this:
+all lines including \`foo'.  In other words, it makes other patterns
+optional.  If you want to search lines which includes either or both
+of \`bar' and \`baz', use like this:
 
     greple '+foo bar baz' --need 2
     greple '+foo bar baz' --need +1
