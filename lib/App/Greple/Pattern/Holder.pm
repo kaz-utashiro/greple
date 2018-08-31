@@ -78,7 +78,7 @@ sub lexical_opt {
     my $orig_flag = $arg->{flag} & ~FLAG_LEXICAL;
 
     my @or;
-    for (split /(?<!\\) +/, $opt) {
+    for (split /(?<!\\)\s+/, $opt) {
 
 	next if $_ eq "";
 
