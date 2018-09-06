@@ -1020,7 +1020,7 @@ sub grep_data {
     }
     elsif ($opt_c) {
 	print "$current_file:" if $need_filename;
-	print scalar $grep->blocks, "\n";
+	print scalar $grep->result, "\n";
     }
     elsif (@{$grep->result_ref}) {
 	# open output filter
