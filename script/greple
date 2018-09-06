@@ -63,7 +63,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.2901
+Version 8.30
 
 
 =head1 SYNOPSIS
@@ -84,6 +84,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -i                   ignore case
     --need=[+-]n         required positive match count
     --allow=[+-]n        acceptable negative match count
+    --matchcount=n[,m]   specify required match count for each block
   STYLE
     -l                   list filename only
     -c                   print count of matched block only
@@ -201,6 +202,7 @@ my $opt_clean;
 my $opt_readlist;
 my @opt_need;
 my @opt_allow;
+my $opt_matchcount;
 my $opt_strict = 0;
 my @opt_print;
 my $opt_continue;
@@ -237,6 +239,7 @@ my @optargs = (
     'fe=s'               => \@opt_fe,
     'need=s'             => \@opt_need,
     'allow=s'            => \@opt_allow,
+    'matchcount|mc=s'    => \$opt_matchcount,
     'i|ignore-case!'     => \$opt_i,
     'l'                  => \$opt_l,
     'c|count'            => \$opt_c,
@@ -550,6 +553,27 @@ my $count_allow = 0;
 	}
 	else {
 	    die "$_ is not valid count.\n"
+	}
+    }
+}
+
+##
+## --matchcount
+##
+my $count_match_sub;
+if (my $pat = $opt_matchcount) {
+    my($min, $max);
+    $count_match_sub = do {
+	if ($pat =~ /\A(\d+)?,(\d+)\z/) {
+	    my($min, $max) = (int($1//0), int($2));
+	    sub { $min <= $_[0] and $_[0] <= $max }
+	}
+	elsif ($pat =~ /\A(\d+),?\z/) {
+	    my $min = int($1);
+	    sub { $min <= $_[0] }
+	}
+	else {
+	    undef;
 	}
     }
 }
@@ -1002,6 +1026,7 @@ sub grep_data {
 	block        => \@opt_block,
 	must         => $count_must,
 	need         => $count_need,
+	countcheck   => $count_match_sub,
 	allow        => $count_allow,
 	strict       => $opt_strict,
 	region_index => $opt_regioncolor,
@@ -1468,6 +1493,20 @@ command.
 
 When the count I<n> is negative value, it is subtracted from default
 value.
+
+=item B<--matchcount>=I<min>[,I<max>], B<--mc>=I<min>[,I<max>]
+
+When option B<--matchcount> is specified, only blocks which have given
+match count will be shown.  Count I<min> and I<max> can be omitted,
+and single number is taken as I<min>.  Next commands print lines
+including semicolons; 3 or more, exactly 3, and 3 or less,
+respectively.
+
+    greple --matchcount=3 ';' file
+
+    greple --matchcount=3,3 ';' file
+
+    greple --matchcount=,3 ';' file
 
 =item B<-f> I<file>, B<--file>=I<file>
 
@@ -2621,3 +2660,4 @@ it under the same terms as Perl itself.
 #  LocalWords:  ocode gunzip gpg FILELABEL substr eval misc unicode
 #  LocalWords:  GREPLEOPTS shellwords Katakana builtin pgp autoload
 #  LocalWords:  ENV App ARGV mg Kazumasa Utashiro github colorindex
+#  LocalWords:  matchcount

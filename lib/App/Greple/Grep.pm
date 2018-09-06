@@ -222,6 +222,17 @@ sub compose {
 	or return $self;
 
     ##
+    ## --matchcount
+    ##
+    if (my $countcheck = $self->{countcheck}) {
+	@effective_index = do {
+	    grep { $countcheck->(int(@{$mp->[$_][POSI_LIST]})) }
+	    @effective_index;
+	}
+	or return $self;
+    }
+
+    ##
     ## --block with -ABC option
     ##
     if (@{$self->{block}} and ($self->{after} or $self->{before})) {

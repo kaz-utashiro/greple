@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.2901
+Version 8.30
 
 # SYNOPSIS
 
@@ -23,6 +23,7 @@ Version 8.2901
       -i                   ignore case
       --need=[+-]n         required positive match count
       --allow=[+-]n        acceptable negative match count
+      --matchcount=n[,m]   specify required match count for each block
     STYLE
       -l                   list filename only
       -c                   print count of matched block only
@@ -357,6 +358,20 @@ or `(?<c>\w)\g{c}`.
 
     When the count _n_ is negative value, it is subtracted from default
     value.
+
+- **--matchcount**=_min_\[,_max_\], **--mc**=_min_\[,_max_\]
+
+    When option **--matchcount** is specified, only blocks which have given
+    match count will be shown.  Count _min_ and _max_ can be omitted,
+    and single number is taken as _min_.  Next commands print lines
+    including semicolons; 3 or more, exactly 3, and 3 or less,
+    respectively.
+
+        greple --matchcount=3 ';' file
+
+        greple --matchcount=3,3 ';' file
+
+        greple --matchcount=,3 ';' file
 
 - **-f** _file_, **--file**=_file_
 
