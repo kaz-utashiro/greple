@@ -5,6 +5,7 @@ script_files = [ "script/greple" ]
 authority="cpan:UTASHIRO"
 
 module_maker="ModuleBuildTiny"
+license = "gpl_1"
 
 [unsupported]
 os = [
