@@ -573,7 +573,7 @@ if (my $pat = $opt_matchcount) {
 	    sub { $min <= $_[0] }
 	}
 	else {
-	    undef;
+	    die "$_ is not valid count.\n"
 	}
     }
 }
