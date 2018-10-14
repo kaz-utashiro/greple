@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.30
+Version 8.31
 
 # SYNOPSIS
 
@@ -81,6 +81,7 @@ Version 8.30
       --prologue=func      call function before command execution
       --epilogue=func      call function after command execution
     OTHER
+      --usage[=expand]     show this message
       --norc               skip reading startup file
       --man                display command or module manual page
       --show               display module file
@@ -554,7 +555,9 @@ or `(?<c>\w)\g{c}`.
 
 - **--colormap**=_spec_
 
-    Specify color map.
+    Specify color map.  Becuase this option is mostly implemented by
+    [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap) module, consult its document for detail and
+    up-to-date specification.
 
     Color specification is combination of single uppercase character
     representing basic colors, and (usually brighter) alternative colors in
@@ -571,12 +574,22 @@ or `(?<c>\w)\g{c}`.
 
     or RGB value and 24 grey levels if using ANSI 256 color terminal :
 
-        000000 .. FFFFFF : 24bit RGB colors
-        000 .. 555       : 6x6x6 RGB 216 colors
-        L00 .. L23       : 24 grey levels
+        (255,255,255)      : 24bit decimal RGB colors
+        #000000 .. #FFFFFF : 24bit hex RGB colors
+        #000    .. #FFF    : 12bit hex RGB 4096 colors
+        000 .. 555         : 6x6x6 RGB 216 colors
+        L00 .. L25         : Black (L00), 24 grey levels, White (L25)
 
-    >     Note that, when values are all same in 24bit RGB, it is converted to
-    >     24 grey level, otherwise 6x6x6 216 color.
+    >     Begining # can be omitted in 24bit RGB notation.
+    >
+    >     When values are all same in 24bit or 12bit RGB, it is converted to 24
+    >     grey level, otherwise 6x6x6 216 color.
+
+    or color names enclosed by angle bracket :
+
+        <red> <blue> <green> <cyan> <magenta> <yellow>
+        <aliceblue> <honeydue> <hotpink> <mooccasin>
+        <medium_aqua_marine>
 
     with other special effects :
 
@@ -606,13 +619,13 @@ or `(?<c>\w)\g{c}`.
 
     Example:
 
-        RGB  6x6x6    24bit           color
-        ===  =======  =============   ==================
-        B    005      0000FF        : blue foreground
-         /M     /505        /FF00FF : magenta background
-        K/W  000/555  000000/FFFFFF : black on white
-        R/G  500/050  FF0000/00FF00 : red on green
-        W/w  L03/L20  303030/c6c6c6 : grey on grey
+        RGB  6x6x6    12bit      24bit           color name
+        ===  =======  =========  =============  ==================
+        B    005      #00F       (0,0,255)      <blue>
+         /M     /505      /#F0F   /(255,0,255)  /<magenta>
+        K/W  000/555  #000/#FFF  000000/FFFFFF  <black>/<white>
+        R/G  500/050  #F00/#0F0  FF0000/00FF00  <red>/<green>
+        W/w  L03/L20  #333/#ccc  303030/c6c6c6  <dimgrey>/<lightgrey>
 
     Multiple colors can be specified separating by white space or comma,
     or by repeating options.  Those colors will be applied for each
@@ -1104,11 +1117,7 @@ interpreted as a bare word.
 
 ## OTHERS
 
-- **--norc**
-
-    Do not read startup file: `~/.greplerc`.
-
-- **--usage**
+- **--usage**\[=_expand_\]
 
     **Greple** print usage and exit with option **--usage**, or no valid
     parameter is not specified.  In this case, module option is displayed
@@ -1129,6 +1138,10 @@ interpreted as a bare word.
 - **--path**
 
     Show module file path.  Use with **-M** option.
+
+- **--norc**
+
+    Do not read startup file: `~/.greplerc`.
 
 - **--require**=_filename_
 

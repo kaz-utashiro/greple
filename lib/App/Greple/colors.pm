@@ -47,6 +47,9 @@ option	--dark \
 	--cm 555/122,555/212,555/221 \
 	--cm 555/222
 
+option --greyhex12 \
+	--cm #000,#111,#222,#333,#444,#555,#666,#777,#888,#AAA,#BBB,#CCC,#DDD,#EEE,#FFF
+
 option --greyhex \
 	--cm 080808,121212,1c1c1c,262626,303030,3a3a3a,444444,4e4e4e \
 	--cm 585858,626262,6c6c6c,767676,808080,8a8a8a,949494,9e9e9e \
@@ -61,16 +64,16 @@ option --greyhex-bg \
 	--cm 000000/d0d0d0,000000/dadada,000000/e4e4e4,000000/eeeeee
 
 option --grey24 \
-	--cm L00,L01,L02,L03,L04,L05,L06,L07,L08,L09,L10,L11 \
-	--cm L12,L13,L14,L15,L16,L17,L18,L19,L20,L21,L22,L23
+	--cm L01,L02,L03,L04,L05,L06,L07,L08,L09,L10,L11,L12 \
+	--cm L13,L14,L15,L16,L17,L18,L19,L20,L21,L22,L23,L24
 
 option --grey24-bg \
-	--cm w/L00,w/L01,w/L02,w/L03 \
-	--cm w/L04,w/L05,w/L06,w/L07 \
-	--cm w/L08,w/L09,w/L10,w/L11 \
-	--cm w/L12,w/L13,w/L14,w/L15 \
-	--cm K/L16,K/L17,K/L18,K/L19 \
-	--cm K/L20,K/L21,K/L22,K/L23
+	-cm w/L01,w/L02,w/L03,w/L04 \
+	-cm w/L05,w/L06,w/L07,w/L08 \
+	-cm w/L09,w/L10,w/L11,w/L12 \
+	-cm w/L13,w/L14,w/L15,w/L16 \
+	-cm K/L17,K/L18,K/L19,K/L20 \
+	-cm K/L21,K/L22,K/L23,K/L24
 
 option --pastel \
 	--cm w/123,w/231,w/312 \
