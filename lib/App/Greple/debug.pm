@@ -39,9 +39,9 @@ Specify required target with C<on> function like:
     $ greple -Mdebug::on=color,misc,option
 
 Calling C<debug::all()> enables all targets.  Exceptionally C<unused>
-is no enabled, because it immediately exits.
+is not enabled, because it immediately exits.
 
-Target name marked with C(-dx) can be enabled in that form.  Following
+Target name marked with C<-dx> can be enabled in that form.  Following
 commands are all equivalent.
 
     $ greple -Mdebug::on=color,misc,option
