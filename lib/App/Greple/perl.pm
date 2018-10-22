@@ -49,7 +49,8 @@ my $empty_re = qr{^(?:[ \t]*\n)+}m;
 sub setup {
     return $target if $target == \$_;
     my @pod     = match_regions(pattern => $pod_re);
-    my @comment = match_regions(pattern => $comment_re);
+    my @comment = select_regions([ match_regions(pattern => $comment_re) ],
+				 \@pod, REGION_OUTSIDE);
     my @data    = match_regions(pattern => $data_re);
     my @empty   = match_regions(pattern => $empty_re);
     my @doc     = merge_regions(@pod, @comment);
