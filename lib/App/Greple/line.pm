@@ -119,7 +119,10 @@ my $target = -1;
 my @lines;
 
 sub expand_line {
-    local $_ = shift;
+    my %opt = @_;
+    my $max = $opt{max} // croak "Error";
+    local $_ = $opt{spec} // croak "Error";
+
     if (m{^	(?<start> -\d+ | \d* )
 		(?:
 		  (?: \.\. | : ) (?<end> [-+]\d+ | \d* )
@@ -133,15 +136,15 @@ sub expand_line {
 	$}x) {
 	my($start, $end, $step, $lines) = @+{qw(start end step lines)};
 
-	return () if $start =~ /\d/ and $start > $#lines;
-	$start = max(0, $start + $#lines) if $start =~ /^-\d+$/;
+	return () if $start =~ /\d/ and $start > $max;
+	$start = max(0, $start + $max) if $start =~ /^-\d+$/;
 	$start ||= 1;
 
 	$end //= $start;
-	$end = max(0, $end + $#lines) if $end =~ /^-/;
-	$end ||= $#lines;
+	$end = max(0, $end + $max) if $end =~ /^-/;
+	$end ||= $max;
 	$end += $start if $end =~ s/^\+//;
-	$end = $#lines if $end > $#lines;
+	$end = $max if $end > $max;
 
 	$lines ||= 1;
 	$step  ||= $lines;
@@ -151,7 +154,7 @@ sub expand_line {
 	    @l = ([$start, $end]);
 	} else {
 	    for (my $i = $start; $i <= $end; $i += $step) {
-		push @l, [$i, min($#lines, $i + $lines - 1)];
+		push @l, [$i, min($max, $i + $lines - 1)];
 	    }
 	}
 	@l;
@@ -184,7 +187,7 @@ sub line {
     my @result = do {
 	map  { [ $lines[$_->[0]]->[0], $lines[$_->[1]]->[1] ] }
 	sort { $a->[0] <=> $b->[0] }
-	map  { expand_line $_ }
+	map  { expand_line spec => $_, max => $#lines }
 	keys %arg;
     };
     @result;
