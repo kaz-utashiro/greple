@@ -21,12 +21,12 @@ our @EXPORT_OK   = qw();
 use constant {
 
     REGION_AREA_MASK  => 1,
-    REGION_INSIDE     => 1,
-    REGION_OUTSIDE    => 0,
+    REGION_INSIDE     => 0,
+    REGION_OUTSIDE    => 1,
 
     REGION_SET_MASK   => 2,
-    REGION_UNION      => 2,
     REGION_INTERSECT  => 0,
+    REGION_UNION      => 2,
 };
 
 sub new {
@@ -44,13 +44,12 @@ sub new {
 
 sub spec         { shift -> {SPEC} }
 sub flag         { shift -> {FLAG} }
-sub is_union     { shift->flag & REGION_UNION  }
-sub is_intersect { not (shift -> is_union)     }
-sub is_inside    { shift->flag & REGION_INSIDE }
-sub is_outside   { not (shift -> is_inside)    }
+sub is_union     { (shift->flag & REGION_SET_MASK ) == REGION_UNION     }
+sub is_intersect { (shift->flag & REGION_SET_MASK ) == REGION_INTERSECT }
+sub is_inside    { (shift->flag & REGION_AREA_MASK) == REGION_INSIDE    }
+sub is_outside   { (shift->flag & REGION_AREA_MASK) == REGION_OUTSIDE   }
 
-{
-    package App::Greple::Regions::Holder;
+package App::Greple::Regions::Holder {
 
     sub new {
 	my $class = shift;
@@ -176,7 +175,7 @@ sub select_regions {
 	}
     }
     push @outside, @list;
-    ($flag & REGION_INSIDE) ? @inside : @outside;
+    (($flag & REGION_AREA_MASK) == REGION_INSIDE) ? @inside : @outside;
 }
 
 sub select_regions_strict {
@@ -202,7 +201,7 @@ sub select_regions_strict {
 	}
     }
     push @outside, @list;
-    ($flag & REGION_INSIDE) ? @inside : @outside;
+    (($flag & REGION_AREA_MASK) == REGION_INSIDE) ? @inside : @outside;
 }
 
 sub merge_regions {

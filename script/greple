@@ -509,8 +509,9 @@ for ([ \@opt_r,  FLAG_REGEX | FLAG_COOK | FLAG_REQUIRED ],
      [ \@opt_fe, FLAG_NONE                              ])
 {
     my($opt, $flag) = @$_;
+    next unless @$opt;
     $pat_holder->append({ flag => $FLAG_BASE | $flag, type => 'pattern' },
-			@$opt)->optimize() if @$opt;
+			@$opt)->optimize();
 }
 
 ##
@@ -856,7 +857,7 @@ grep_files();
 
 for (@opt_epilogue) { $_->call() }
 
-if ($opt_uniqcolor and $opt_d{m}) {
+if ($opt_uniqcolor and $opt_d{c}) {
     dump_uniqcolor();
 }
 
