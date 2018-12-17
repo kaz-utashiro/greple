@@ -111,59 +111,13 @@ use List::Util qw(min max);
 use Data::Dumper;
 
 use App::Greple::Common;
+use App::Greple::NumberUtil qw(range_list);
 
 use Exporter qw(import);
 our @EXPORT = qw(&line &search_line);
 
 my $target = -1;
 my @lines;
-
-sub expand_line {
-    my %opt = @_;
-    my $max = $opt{max} // croak "Error";
-    local $_ = $opt{spec} // croak "Error";
-
-    if (m{^	(?<start> -\d+ | \d* )
-		(?:
-		  (?: \.\. | : ) (?<end> [-+]\d+ | \d* )
-		  (?:
-		    : (?<step> \d* )
-		    (?:
-		      : (?<lines> \d* )
-		    )?
-		  )?
-		)?
-	$}x) {
-	my($start, $end, $step, $lines) = @+{qw(start end step lines)};
-
-	return () if $start =~ /\d/ and $start > $max;
-	$start = max(0, $start + $max) if $start =~ /^-\d+$/;
-	$start ||= 1;
-
-	$end //= $start;
-	$end = max(0, $end + $max) if $end =~ /^-/;
-	$end ||= $max;
-	$end += $start if $end =~ s/^\+//;
-	$end = $max if $end > $max;
-
-	$lines ||= 1;
-	$step  ||= $lines;
-
-	my @l;
-	if ($step == 1) {
-	    @l = ([$start, $end]);
-	} else {
-	    for (my $i = $start; $i <= $end; $i += $step) {
-		push @l, [$i, min($max, $i + $lines - 1)];
-	    }
-	}
-	@l;
-    }
-    else {
-	warn "Line format error: $_\n";
-	();
-    }
-}
 
 sub set_lines {
     @lines = ([0, 0]);
@@ -187,7 +141,7 @@ sub line {
     my @result = do {
 	map  { [ $lines[$_->[0]]->[0], $lines[$_->[1]]->[1] ] }
 	sort { $a->[0] <=> $b->[0] }
-	map  { expand_line spec => $_, max => $#lines }
+	map  { range_list spec => $_, min => 1, max => $#lines }
 	keys %arg;
     };
     @result;
