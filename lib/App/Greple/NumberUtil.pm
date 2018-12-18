@@ -106,7 +106,7 @@ sub range_list {
 	    $start = max($min, $start + $max);
 	}
 
-	if ($end//'' eq '') {
+	if (($end //= '') eq '') {
 	    $end = defined $max ? $max : $start;
 	}
 	elsif ($end =~ /^-/) {

@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3202 2018-12-18T02:41:07Z
+
+    - Bug fix in NumberUtil.pm.
+
 8.3201 2018-12-17T11:38:08Z
 
     - Update lib/line.pm and lib/NumberUtil.pm.
