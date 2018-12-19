@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3204 2018-12-19T05:38:00Z
+
+    - Discard NumberUtil.pm and use Getopt::EX::Numbers module.
+
 8.3203 2018-12-18T07:42:00Z
 
     - Bug fix in NumberUtil.pm (again).

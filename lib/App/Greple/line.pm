@@ -111,7 +111,7 @@ use List::Util qw(min max);
 use Data::Dumper;
 
 use App::Greple::Common;
-use App::Greple::NumberUtil qw(range_list);
+use Getopt::EX::Numbers;
 
 use Exporter qw(import);
 our @EXPORT = qw(&line &search_line);
@@ -138,10 +138,12 @@ sub line {
 	$target = \$_ ;
     }
 
+    my $numbers = new Getopt::EX::Numbers min => 1, max => $#lines;
+
     my @result = do {
 	map  { [ $lines[$_->[0]]->[0], $lines[$_->[1]]->[1] ] }
 	sort { $a->[0] <=> $b->[0] }
-	map  { range_list spec => $_, min => 1, max => $#lines }
+	map  { $numbers->parse($_)->range }
 	keys %arg;
     };
     @result;
