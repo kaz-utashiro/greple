@@ -114,7 +114,7 @@ use App::Greple::Common;
 use Getopt::EX::Numbers;
 
 use Exporter qw(import);
-our @EXPORT = qw(&line &search_line);
+our @EXPORT = qw(&line);
 
 my $target = -1;
 my @lines;
