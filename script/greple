@@ -769,7 +769,7 @@ for my $set (
     ) {
     my($cat, $opt, $pattern) = @$set;
     for (@{$opt}) {
-	next if $_->can('call');
+	next if blessed $_ and $_->can('call');
 	/^&\w+/ or next if $pattern;
 	$_ = parse_func($_) or die "$cat function format error: $_\n";
     }
