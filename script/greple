@@ -15,7 +15,6 @@ use IO::Handle;
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
 use List::Util qw(min max first sum uniq);
-use Scalar::Util qw(blessed);
 use Cwd qw(getcwd abs_path);
 use Data::Dumper;
 use Carp;
@@ -41,7 +40,7 @@ BEGIN {
 }
 
 use Getopt::EX::Loader;
-use Getopt::EX::Func qw(parse_func);
+use Getopt::EX::Func qw(parse_func callable);
 
 use App::Greple;
 use App::Greple::Common;
@@ -63,7 +62,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.3204
+Version 8.3205
 
 
 =head1 SYNOPSIS
@@ -769,7 +768,7 @@ for my $set (
     ) {
     my($cat, $opt, $pattern) = @$set;
     for (@{$opt}) {
-	next if blessed $_ and $_->can('call');
+	next if callable $_;
 	/^&\w+/ or next if $pattern;
 	$_ = parse_func($_) or die "$cat function format error: $_\n";
     }

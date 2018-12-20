@@ -11,10 +11,9 @@ our @EXPORT_OK   = qw();
 our @ISA = qw(App::Greple::Text);
 
 use Data::Dumper;
-use Scalar::Util qw(blessed);
 use List::Util qw(min max);
 
-use Getopt::EX::Func;
+use Getopt::EX::Func qw(callable);
 
 use App::Greple::Common;
 use App::Greple::Regions;
@@ -312,7 +311,7 @@ sub get_regions {
     my $pattern = shift;
 
     ## func object
-    if (blessed $pattern and $pattern->can('call')) {
+    if (callable $pattern) {
 	$pattern->call(&FILELABEL => $file);
     }
     ## pattern
