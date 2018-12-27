@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3206 2018-12-27T06:45:02Z
+
+    - Requires 'Getopt::EX', 'v1.13.1'
+
 8.3205 2018-12-20T08:27:04Z
 
     - Update to use Getopt::EX::Func::callable().
