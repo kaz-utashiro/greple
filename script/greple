@@ -1089,8 +1089,8 @@ sub display_result {
 	print $_file->($file), ":\n";
     }
 
-    my $need_blockend =
-	$opt_blockend || $opt_p || $opt_A || $opt_B || @opt_block;
+    my $need_blockend = $blockend ne '' &&
+	($opt_blockend || $opt_p || $opt_A || $opt_B || @opt_block);
 
     # --colorindex
     my $indexer = do {
@@ -1589,7 +1589,7 @@ B<--block> option, I<n> means number of paragraph or block.
 Actually, these options expand the area of logical operation.  It
 means
 
-    grep -C1 'foo bar baz'
+    greple -C1 'foo bar baz'
 
 matches following text.
 
@@ -1955,15 +1955,17 @@ background, though.
 
 Print the paragraph which contains the pattern.  Each paragraph is
 delimited by two or more successive newline characters by default.  Be
-aware that an empty line is not paragraph delimiter if which contains
-space characters.  Example:
+aware that an empty line is not a paragraph delimiter if which
+contains space characters.  Example:
 
     greple -np 'setuid script' /usr/man/catl/perl.l
 
     greple -pe '^struct sockaddr' /usr/include/sys/socket.h
 
 It changes the unit of context specified by B<-A>, B<-B>, B<-C>
-options.
+options.  Space grap between paragraphs are also treated as block
+unit.  Thus, option B<-pC2> will print with previous and after
+paragraph, and B<-pC1> will print with just sorrounding spaces.
 
 =item B<--all>
 
@@ -2629,15 +2631,6 @@ If special subroutine B<initialize()> is defined in the module, it is
 called at the beginning with C<Getopt::EX::Module> object as a
 first argument.  Second argument is the reference to C<@ARGV>, and you
 can modify actual C<@ARGV> using it.  See B<find> module as a sample.
-
-
-=head1 BUGS
-
-Due to the implementation of Perl, indexing in the big data takes long
-time when using internal multibyte data representation.  If option
-I<--icode=binary> or I<-o> contribute to speed up the execution, you
-are probably facing to this situation.  This program does not fit to
-search many patterns in huge file.
 
 
 =head1 HISTORY

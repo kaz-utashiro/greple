@@ -160,21 +160,23 @@ sub prepare {
 	for my $re (@{$self->{block}}) {
 	    push @blocks, get_regions($self->{filename}, \$_, $re);
 	}
-    	@blocks = merge_regions {nojoin => 1, destructive => 1}, @blocks;
+    	@blocks = merge_regions { nojoin => 1, destructive => 1 }, @blocks;
     }
     ##
     ## build block list from matched range
     ##
     elsif (@blocks) {
-	my $textp = \$_;
+	my $re = $self->{paragraph} ? qr/(?:\A|\n)\K\n+/ : qr/(?m)^/;
 	my %opt = (A => $self->{after},
 		   B => $self->{before},
-		   p => $self->{paragraph});
-	my $sub_blocknize = optimized_blocknize(\%opt);
+		   p => $self->{paragraph},
+		   border => [ match_borders $re ],
+	    );
+	my $blocker = smart_blocker(\%opt);
     	@blocks = merge_regions(
-	    {nojoin => 1, destructive => 1},
-	    map({[$sub_blocknize->(\%opt, $textp, $_->[0], $_->[1])]}
-		@blocks));
+	    { nojoin => 1, destructive => 1 },
+	    map( { [ $blocker->(\%opt, $_->[0], $_->[1]) ] }
+		 @blocks) );
     }
 
     my $bp = $self->{BLOCKS} = \@blocks;
@@ -320,72 +322,33 @@ sub get_regions {
     }
 }
 
-use constant {
-    PARAM_OPT  => 0,
-    PARAM_TEXT => 1,
-    PARAM_FROM => 2,
-    PARAM_TO   => 3,
-};
-
-sub optimized_blocknize {
-    my %opt = %{$_[PARAM_OPT]};
+sub smart_blocker {
+    my $opt = shift;
+    return \&blocker if $opt->{A} or $opt->{B};
     my($from, $to) = (-1, -1);
-    if ($opt{p} or $opt{A} or $opt{B}) {
-	\&blocknize;
-    } else {
-	sub {
-	    if ($from <= $_[PARAM_FROM] and $_[PARAM_TO] < $to) {
-		;
-	    } else {
-		($from, $to) = &blocknize;
-	    }
-	    ($from, $to);
+    sub {
+	if ($from <= $_[1] and $_[2] < $to) {
+	    return $from, $to;
 	}
+	($from, $to) = &blocker;
     }
 }
 
-sub blocknize {
-    my %opt = %{$_[PARAM_OPT]};			# option
-    local *_ = $_[PARAM_TEXT];			# text
-    my($from, $to) = @_[PARAM_FROM, PARAM_TO];	# range
-    my $matched = substr($_, $from, $to - $from);
+use List::BinarySearch qw(binsearch_pos);
 
-    my $delim = $opt{p} ? "\n\n" : "\n";
+sub blocker {
+    my($opt, $from, $to) = @_;
+    my $border = $opt->{border};
 
-    my $begin = $from;
-    for (my $c = $opt{B} + 1; $c; $c--) {
-	if ($opt{p}) {
-	    $begin-- while substr($_, $begin, 2) eq "\n\n";
-	}
-	$begin = rindex($_, $delim, $begin - length $delim);
-	last if $begin < 0;
-    }
-    if ($begin < 0) {
-	$begin = $opt{p} && /\A\n/ ? 1 : 0;
-    } else {
-	$begin += length $delim;
-    }
+    my $bi = binsearch_pos { $a <=> $b } $from, @$border;
+    $bi-- if $border->[$bi] != $from;
+    $bi = max 0, $bi - $opt->{B} if $opt->{B};
 
-    ##
-    ## This decision is quite difficult when the matched strings
-    ## contains multiple newlines at the end.  I'm not sure what
-    ## behavior is most intuitive.
-    ##
-    $to -= length $1 if $matched =~ /(\n{1,1})\z/;
-    pos($_) = $to;
+    my $ei = binsearch_pos { $a <=> $b } $to, @$border;
+    $ei++ if $ei == $bi;
+    $ei = min $#{$border}, $ei + $opt->{A} if $opt->{A};
 
-    my $end;
-    for (my $c = $opt{A} + 1; $c; $c--) {
-	if ($opt{p} ? /\G \n?+ (?:.+\n)* (\n+)/gx : /\G.*\n()/g) {
-	    $end = pos() - length $1;
-	    next;
-	}
-	$end = length $_;
-	last;
-    }
-    $end // die;
-
-    ($begin, $end);
+    @$border[ $bi, $ei ];
 }
 
 1;

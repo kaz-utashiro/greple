@@ -14,6 +14,8 @@ our @EXPORT      = qw(REGION_INSIDE REGION_OUTSIDE
 		      select_regions
 		      merge_regions
 		      reverse_regions
+		      match_borders
+		      borders_to_regions
 		      );
 our %EXPORT_TAGS = ( );
 our @EXPORT_OK   = qw();
@@ -40,6 +42,14 @@ sub new {
     configure $obj @_ if @_;
 
     $obj;
+}
+
+sub configure {
+    my $obj = shift;
+    while (@_ >= 2) {
+	$obj->{$_[0]} = $_[1];
+	splice @_, 0, 2;
+    }
 }
 
 sub spec         { shift -> {SPEC} }
@@ -72,14 +82,6 @@ package App::Greple::Regions::Holder {
 
     sub intersect {
 	grep { $_->is_intersect } shift->regions;
-    }
-}
-
-sub configure {
-    my $obj = shift;
-    while (@_ >= 2) {
-	$obj->{$_[0]} = $_[1];
-	splice @_, 0, 2;
     }
 }
 
@@ -248,6 +250,24 @@ sub reverse_regions {
     };
     return @reverse if $option->{leave_empty};
     grep { $_->[0] != $_->[1] } @reverse
+}
+
+sub match_borders {
+    my $regex = shift;
+    my @border = (0);
+    while (/$regex/gp) {
+	my $pos = pos();
+	for my $i ($pos - length ${^MATCH}, $pos) {
+	    push @border, $i if $border[-1] != $i;
+	}
+    }
+    push @border, length if $border[-1] != length;
+    @border;
+}
+
+sub borders_to_regions {
+    return () if @_ < 2;
+    map { [ $_[$_-1], $_[$_] ] } 1..$#_;
 }
 
 1;

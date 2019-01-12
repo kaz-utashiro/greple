@@ -11,6 +11,9 @@ use t::Util;
 like(greple('-e "fox" t/SAMPLE.txt')->result,
      qr/\A(.*\n){1}\z/, "simple");
 
+like(greple('-e "fox\\\\n" t/SAMPLE.txt')->result,
+     qr/\A(.*\n){1}\z/, "end with newline");
+
 like(greple('--re "^The.*\\\\n\\\\Kjumps" t/SAMPLE.txt')->result,
      qr/\A(.*\n){1}\z/, "\\K");
 
