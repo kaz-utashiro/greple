@@ -2631,6 +2631,15 @@ first argument.  Second argument is the reference to C<@ARGV>, and you
 can modify actual C<@ARGV> using it.  See B<find> module as a sample.
 
 
+=head1 BUGS
+
+Due to the implementation of Perl, indexing in the big data takes long
+time when using internal multibyte data representation.  If option
+I<--icode=binary> or I<-o> contribute to speed up the execution, you
+are probably facing to this situation.  This program does not fit to
+search many patterns in huge file.
+
+
 =head1 HISTORY
 
 Most capability of B<greple> is derived from B<mg> command, which has
@@ -2656,7 +2665,7 @@ Kazumasa Utashiro
 
 =head1 LICENSE
 
-Copyright 1991-2018 Kazumasa Utashiro
+Copyright 1991-2019 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

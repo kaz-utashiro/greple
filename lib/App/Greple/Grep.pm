@@ -147,9 +147,9 @@ sub prepare {
     }
 
     ##
-    ## --all
+    ## --all, --only-matching
     ##
-    if ($self->{all}) {
+    if ($self->{all} or $self->{only}) {
 	@blocks = ( [ 0, length $_ ] );
     }
     ##
