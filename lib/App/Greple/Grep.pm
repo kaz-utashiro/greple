@@ -131,7 +131,7 @@ sub prepare {
 		push @{$tmp[$resi]}, @l;
 	    }
 	}
-	@result = map { [ merge_regions {destructive => 1}, @$_ ] } @tmp;
+	@result = map { [ merge_regions { destructive => 1 }, @$_ ] } @tmp;
     }
 
     ##
@@ -147,37 +147,31 @@ sub prepare {
     }
 
     ##
-    ## --all, --only-matching
+    ## Setup BLOCKS
     ##
-    if ($self->{all} or $self->{only}) {
-	@blocks = ( [ 0, length $_ ] );
-    }
-    ##
-    ## --block
-    ##
-    elsif (@{$self->{block}}) {
-	@blocks = ();
-	for my $re (@{$self->{block}}) {
-	    push @blocks, get_regions($self->{filename}, \$_, $re);
+    my $bp = $self->{BLOCKS} = [ do {
+	if ($self->{all} or $self->{only}) {	# --all, --only-matching
+	    ( [ 0, length ] );
 	}
-    	@blocks = merge_regions { nojoin => 1, destructive => 1 }, @blocks;
-    }
-    ##
-    ## build block list from matched range
-    ##
-    elsif (@blocks) {
-	my %opt = (A => $self->{after},
-		   B => $self->{before},
-		   border => [ match_borders $self->{border} ],
-	    );
-	my $blocker = smart_blocker(\%opt);
-    	@blocks = merge_regions(
-	    { nojoin => 1, destructive => 1 },
-	    map( { [ $blocker->(\%opt, $_->[0], $_->[1]) ] }
-		 @blocks) );
-    }
-
-    my $bp = $self->{BLOCKS} = \@blocks;
+	elsif (@{$self->{block}}) {		# --block
+	    my $text = \$_;
+	    merge_regions { nojoin => 1, destructive => 1 }, map {
+		get_regions($self->{filename}, $text, $_);
+	    } @{$self->{block}};
+	}
+	elsif (@blocks) {			# from matched range
+	    my %opt = ( A => $self->{after},
+		        B => $self->{before},
+		        border => [ match_borders $self->{border} ] );
+	    my $blocker = smart_blocker(\%opt);
+	    merge_regions { nojoin => 1, destructive => 1 }, map {
+		[ $blocker->(\%opt, $_->[0], $_->[1]) ]
+	    } @blocks;
+	}
+	else {
+	    ();
+	}
+    } ];
 
     ##
     ## build match table
@@ -323,10 +317,10 @@ sub get_regions {
 sub smart_blocker {
     my $opt = shift;
     return \&blocker if $opt->{A} or $opt->{B};
-    my($from, $to) = (-1, -1);
+    my $from = my $to = -1;
     sub {
 	if ($from <= $_[1] and $_[2] < $to) {
-	    return $from, $to;
+	    return($from, $to);
 	}
 	($from, $to) = &blocker;
     }
@@ -343,7 +337,7 @@ sub blocker {
     $bi = max 0, $bi - $opt->{B} if $opt->{B};
 
     my $ei = binsearch_pos { $a <=> $b } $to, @$border;
-    $ei++ if $ei == $bi;
+    $ei++ if $ei == $bi and $ei < $#{$border};
     $ei = min $#{$border}, $ei + $opt->{A} if $opt->{A};
 
     @$border[ $bi, $ei ];

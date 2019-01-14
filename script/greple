@@ -564,23 +564,20 @@ my $count_allow = 0;
 ##
 ## --matchcount
 ##
-my $count_match_sub;
-if (my $pat = $opt_matchcount) {
-    my($min, $max);
-    $count_match_sub = do {
-	if ($pat =~ /\A(\d+)?,(\d+)\z/) {
-	    my($min, $max) = (int($1//0), int($2));
-	    sub { $min <= $_[0] and $_[0] <= $max }
-	}
-	elsif ($pat =~ /\A(\d+),?\z/) {
-	    my $min = int($1);
-	    sub { $min <= $_[0] }
-	}
-	else {
-	    die "$_ is not valid count.\n"
-	}
+my $count_match_sub = sub {
+    local $_ = shift or return undef;
+    if (/\A(\d+)?,(\d+)\z/) {
+	my($min, $max) = (int($1//0), int($2));
+	sub { $min <= $_[0] and $_[0] <= $max }
     }
-}
+    elsif (/\A(\d+),?\z/) {
+	my $min = int($1);
+	sub { $min <= $_[0] }
+    }
+    else {
+	die "$_ is not valid count.\n"
+    }
+}->($opt_matchcount);
 
 ##
 ## setup input/output filter
@@ -1981,6 +1978,8 @@ It changes the unit of context specified by B<-A>, B<-B>, B<-C>
 options.  Space grap between paragraphs are also treated as block
 unit.  Thus, option B<-pC2> will print with previous and after
 paragraph, and B<-pC1> will print with just sorrounding spaces.
+
+You can create original paragraph pattern by B<--border> option.
 
 =item B<--all>
 

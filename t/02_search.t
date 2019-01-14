@@ -23,6 +23,12 @@ like(greple('-e "fox jumps" t/SAMPLE.txt')->result,
 like(greple('-e ^ t/SAMPLE.txt')->result,
      qr/\A(.*\n){28}\z/, "-e ^");
 
+is(greple('-e "^" /dev/null')->result,
+     '', "-e ^ /dev/null");
+
+is(greple('-e "\\\\z" t/SAMPLE.txt')->result,
+     '', "-e \\z");
+
 is(greple('-e ^ --color=never t/SAMPLE.txt')->result,
      `cat t/SAMPLE.txt`, "-e ^ --color=never");
 
