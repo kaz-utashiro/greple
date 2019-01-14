@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.3206
+Version 8.33
 
 # SYNOPSIS
 
@@ -58,6 +58,7 @@ Version 8.3206
     BLOCK
       -p                   paragraph mode
       --all                print whole data
+      --border=pattern     specify the border pattern
       --block=pattern      specify the block of records
       --blockend=s         specify the block end mark (Default: "--\n")
     REGION
@@ -446,7 +447,7 @@ or `(?<c>\w)\g{c}`.
     Actually, these options expand the area of logical operation.  It
     means
 
-        grep -C1 'foo bar baz'
+        greple -C1 'foo bar baz'
 
     matches following text.
 
@@ -784,15 +785,17 @@ or `(?<c>\w)\g{c}`.
 
     Print the paragraph which contains the pattern.  Each paragraph is
     delimited by two or more successive newline characters by default.  Be
-    aware that an empty line is not paragraph delimiter if which contains
-    space characters.  Example:
+    aware that an empty line is not a paragraph delimiter if which
+    contains space characters.  Example:
 
         greple -np 'setuid script' /usr/man/catl/perl.l
 
         greple -pe '^struct sockaddr' /usr/include/sys/socket.h
 
     It changes the unit of context specified by **-A**, **-B**, **-C**
-    options.
+    options.  Space grap between paragraphs are also treated as block
+    unit.  Thus, option **-pC2** will print with previous and after
+    paragraph, and **-pC1** will print with just sorrounding spaces.
 
 - **--all**
 
@@ -801,19 +804,24 @@ or `(?<c>\w)\g{c}`.
 
         greple --block='(?s).*'
 
+- **--border**=_pattern_
+
+    Specify record block border pattern.  Default block is a single line
+    and use `(?m)^` as a pattern.  Paragraph mode uses `(?:\A|\n)\K\n+`,
+    which means continuous newlines at the beginning of text or following
+    another newline.
+
+    Next command treat the data as a series of 10-line unit.
+
+        greple -n --border='(.*\n){1,10}'
+
+    Contrary to the next **--block** option, **--border** never produce
+    disjoint records.
+
 - **--block**=_pattern_
 - **--block**=_&sub_
 
     Specify the record block to display.  Default block is a single line.
-
-    Next example behave almost same as **--paragraph** option, but is less
-    efficient.
-
-        greple --block='(.+\n)+'
-
-    Next command treat the data as a series of 10-line blocks.
-
-        greple -n --block='(.*\n){1,10}'
 
     When blocks are not continuous and there are gaps between them, the
     match occurred outside blocks are ignored.
@@ -1404,7 +1412,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 1991-2018 Kazumasa Utashiro
+Copyright 1991-2019 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

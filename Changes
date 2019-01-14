@@ -2,6 +2,16 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.33 2019-01-14T07:46:39Z
+
+    - Introduce --border option with new algorithm.
+
+    Record separation strategy was completely reimplemented, and the
+    performance was significantly improved.  Sometimes almost 100
+    times faster.  This is due to the implementation of perl.
+    Indexing in the large text using internal multi-byte character
+    representation is terribly slow.
+
 8.3206 2018-12-27T06:45:02Z
 
     - Requires 'Getopt::EX', 'v1.13.1'
