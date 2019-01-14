@@ -166,11 +166,9 @@ sub prepare {
     ## build block list from matched range
     ##
     elsif (@blocks) {
-	my $re = $self->{paragraph} ? qr/(?:\A|\n)\K\n+/ : qr/(?m)^/;
 	my %opt = (A => $self->{after},
 		   B => $self->{before},
-		   p => $self->{paragraph},
-		   border => [ match_borders $re ],
+		   border => [ match_borders $self->{border} ],
 	    );
 	my $blocker = smart_blocker(\%opt);
     	@blocks = merge_regions(

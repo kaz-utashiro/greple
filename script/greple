@@ -118,6 +118,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
   BLOCK
     -p                   paragraph mode
     --all                print whole data
+    --border=pattern     specify the border pattern
     --block=pattern      specify the block of records
     --blockend=s         specify the block end mark (Default: "--\n")
   REGION
@@ -168,6 +169,7 @@ my @opt_of;
 my @opt_pf;
 my @opt_glob;
 my @opt_icode;
+my $opt_border;
 my @opt_block;
 my @opt_inside;
 my @opt_outside;
@@ -273,6 +275,7 @@ my @optargs = (
     'of=s'               => \@opt_of,
     'pf=s'               => \@opt_pf,
     'noif'               => \$opt_noif,
+    'border=s'           => \$opt_border,
     'block=s'            => \@opt_block,
     'blockend:s'         => \$opt_blockend,
     'inside=s'           => \@opt_inside,
@@ -732,6 +735,18 @@ sub dump_uniqcolor {
     }
 }
 
+##
+## border regex
+##
+my $border_re = do {
+    if ($opt_border) {
+	qr/$opt_border/;	# custom
+    } elsif ($opt_p) {
+	qr/(?:\A|\n)\K\n+/;	# paragraph
+    } else {
+	qr/(?m)^/;		# line
+    }
+};		    
 
 my $blockend = "--\n";
 if (defined $opt_blockend) {
@@ -1019,9 +1034,9 @@ sub grep_data {
 	filename     => $current_file,
 	pattern      => $pat_holder,
 	regions      => $regions,
+	border       => $border_re,
 	after        => $opt_A,
 	before       => $opt_B,
-	paragraph    => $opt_p,
 	only         => $opt_o,
 	all          => $opt_all,
 	block        => \@opt_block,
@@ -1974,20 +1989,25 @@ identical to following command.
 
     greple --block='(?s).*'
 
+=item B<--border>=I<pattern>
+
+Specify record block border pattern.  Default block is a single line
+and use C<(?m)^> as a pattern.  Paragraph mode uses C<(?:\A|\n)\K\n+>,
+which means continuous newlines at the beginning of text or following
+another newline.
+
+Next command treat the data as a series of 10-line unit.
+
+    greple -n --border='(.*\n){1,10}'
+
+Contrary to the next B<--block> option, B<--border> never produce
+disjoint records.
+
 =item B<--block>=I<pattern>
 
 =item B<--block>=I<&sub>
 
 Specify the record block to display.  Default block is a single line.
-
-Next example behave almost same as B<--paragraph> option, but is less
-efficient.
-
-    greple --block='(.+\n)+'
-
-Next command treat the data as a series of 10-line blocks.
-
-    greple -n --block='(.*\n){1,10}'
 
 When blocks are not continuous and there are gaps between them, the
 match occurred outside blocks are ignored.
