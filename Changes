@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3301 2019-01-15T04:23:51Z
+
+    - Fix trivial bug to seach "\z" and misc udpate.
+
 8.33 2019-01-14T07:46:39Z
 
     - Introduce --border option with new algorithm.

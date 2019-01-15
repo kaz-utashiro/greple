@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.33
+Version 8.3301
 
 # SYNOPSIS
 
@@ -796,6 +796,8 @@ or `(?<c>\w)\g{c}`.
     options.  Space grap between paragraphs are also treated as block
     unit.  Thus, option **-pC2** will print with previous and after
     paragraph, and **-pC1** will print with just sorrounding spaces.
+
+    You can create original paragraph pattern by **--border** option.
 
 - **--all**
 
