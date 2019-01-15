@@ -2,6 +2,10 @@
 
 greple - extensible grep with lexical expression and region handling
 
+# VERSION
+
+Version 8.3301
+
 # SYNOPSIS
 
 **greple** \[**-M**_module_\] \[ **-options** \] pattern \[ file... \]
@@ -19,6 +23,7 @@ greple - extensible grep with lexical expression and region handling
       -i                   ignore case
       --need=[+-]n         required positive match count
       --allow=[+-]n        acceptable negative match count
+      --matchcount=n[,m]   specify required match count for each block
     STYLE
       -l                   list filename only
       -c                   print count of matched block only
@@ -36,22 +41,24 @@ greple - extensible grep with lexical expression and region handling
       --format LABEL=...   define line number and file name format
     FILE
       --glob=glob          glob target files
-      --chdir              change directory before search
+      --chdir=dir          change directory before search
       --readlist           get filenames from stdin
     COLOR
       --color=when         use terminal color (auto, always, never)
       --nocolor            same as --color=never
       --colormap=color     R, G, B, C, M, Y etc.
       --colorful           use default multiple colors
+      --colorindex=flags   color index method: Ascend/Descend/Block/Random
       --ansicolor=s        ANSI color 16, 256 or 24bit
       --[no]256            same as --ansicolor 256 or 16
       --regioncolor        use different color for inside/outside regions
       --uniqcolor          use different color for unique string
       --random             use random color each time
-      --face               set/unset vidual effects
+      --face               set/unset visual effects
     BLOCK
       -p                   paragraph mode
       --all                print whole data
+      --border=pattern     specify the border pattern
       --block=pattern      specify the block of records
       --blockend=s         specify the block end mark (Default: "--\n")
     REGION
@@ -75,6 +82,7 @@ greple - extensible grep with lexical expression and region handling
       --prologue=func      call function before command execution
       --epilogue=func      call function after command execution
     OTHER
+      --usage[=expand]     show this message
       --norc               skip reading startup file
       --man                display command or module manual page
       --show               display module file
@@ -128,8 +136,9 @@ number of required patterns.  So
     greple '+foo bar baz'
 
 commands implicitly set the option `--need 1`, and consequently print
-all lines including \`foo'.  If you want to search lines which includes
-either or both of \`bar' and \`baz', use like this:
+all lines including \`foo'.  In other words, it makes other patterns
+optional.  If you want to search lines which includes either or both
+of \`bar' and \`baz', use like this:
 
     greple '+foo bar baz' --need 2
     greple '+foo bar baz' --need +1
@@ -219,7 +228,7 @@ like this:
 Also **dig** module implements more complex search.  It can be used
 simple as this:
 
-    greple -Mdig --dig .
+    greple -Mdig pattern --dig .
 
 but this command finally translated into following option list.
 
@@ -227,7 +236,7 @@ but this command finally translated into following option list.
         -type f ! -name .* ! -name *,v ! -name *~ 
         ! -iname *.jpg ! -iname *.jpeg ! -iname *.gif ! -iname *.png 
         ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf 
-        -print --
+        -print -- pattern
 
 # OPTIONS
 
@@ -352,6 +361,20 @@ or `(?<c>\w)\g{c}`.
     When the count _n_ is negative value, it is subtracted from default
     value.
 
+- **--matchcount**=_min_\[,_max_\], **--mc**=_min_\[,_max_\]
+
+    When option **--matchcount** is specified, only blocks which have given
+    match count will be shown.  Count _min_ and _max_ can be omitted,
+    and single number is taken as _min_.  Next commands print lines
+    including semicolons; 3 or more, exactly 3, and 3 or less,
+    respectively.
+
+        greple --matchcount=3 ';' file
+
+        greple --matchcount=3,3 ';' file
+
+        greple --matchcount=,3 ';' file
+
 - **-f** _file_, **--file**=_file_
 
     Specify the file which contains search pattern.  When file contains
@@ -424,7 +447,7 @@ or `(?<c>\w)\g{c}`.
     Actually, these options expand the area of logical operation.  It
     means
 
-        grep -C1 'foo bar baz'
+        greple -C1 'foo bar baz'
 
     matches following text.
 
@@ -533,7 +556,9 @@ or `(?<c>\w)\g{c}`.
 
 - **--colormap**=_spec_
 
-    Specify color map.
+    Specify color map.  Becuase this option is mostly implemented by
+    [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap) module, consult its document for detail and
+    up-to-date specification.
 
     Color specification is combination of single uppercase character
     representing basic colors, and (usually brighter) alternative colors in
@@ -550,12 +575,22 @@ or `(?<c>\w)\g{c}`.
 
     or RGB value and 24 grey levels if using ANSI 256 color terminal :
 
-        000000 .. FFFFFF : 24bit RGB colors
-        000 .. 555       : 6x6x6 RGB 216 colors
-        L00 .. L23       : 24 grey levels
+        (255,255,255)      : 24bit decimal RGB colors
+        #000000 .. #FFFFFF : 24bit hex RGB colors
+        #000    .. #FFF    : 12bit hex RGB 4096 colors
+        000 .. 555         : 6x6x6 RGB 216 colors
+        L00 .. L25         : Black (L00), 24 grey levels, White (L25)
 
-    >     Note that, when values are all same in 24bit RGB, it is converted to
-    >     24 grey level, otherwise 6x6x6 216 color.
+    >     Begining # can be omitted in 24bit RGB notation.
+    >
+    >     When values are all same in 24bit or 12bit RGB, it is converted to 24
+    >     grey level, otherwise 6x6x6 216 color.
+
+    or color names enclosed by angle bracket :
+
+        <red> <blue> <green> <cyan> <magenta> <yellow>
+        <aliceblue> <honeydue> <hotpink> <mooccasin>
+        <medium_aqua_marine>
 
     with other special effects :
 
@@ -574,24 +609,24 @@ or `(?<c>\w)\g{c}`.
         ;  No effect
         X  No effect
 
-    If the spec includes `/`, left side is considered for foreground
-    color and right side is for background.  If multiple colors are
-    given in same spec, all indicators are produced in the order of
-    their presence.  As a result, the last one takes effect.
+    If the spec includes `/`, left side is considered to be as foreground
+    color and right side as background.  If multiple colors are given in
+    same spec, all indicators are produced in the order of their presence.
+    As a result, the last one takes effect.
 
     Effect characters are case insensitive, and can be found anywhere and
     in any order in color spec string.  Because `X` and `;` takes no
     effect, you can use them to improve readability, like `SxD;K/544`.
 
-    Samples:
+    Example:
 
-        RGB  6x6x6    24bit           color
-        ===  =======  =============   ==================
-        B    005      0000FF        : blue foreground
-         /M     /505        /FF00FF : magenta background
-        K/W  000/555  000000/FFFFFF : black on white
-        R/G  500/050  FF0000/00FF00 : red on green
-        W/w  L03/L20  303030/c6c6c6 : grey on grey
+        RGB  6x6x6    12bit      24bit           color name
+        ===  =======  =========  =============  ==================
+        B    005      #00F       (0,0,255)      <blue>
+         /M     /505      /#F0F   /(255,0,255)  /<magenta>
+        K/W  000/555  #000/#FFF  000000/FFFFFF  <black>/<white>
+        R/G  500/050  #F00/#0F0  FF0000/00FF00  <red>/<green>
+        W/w  L03/L20  #333/#ccc  303030/c6c6c6  <dimgrey>/<lightgrey>
 
     Multiple colors can be specified separating by white space or comma,
     or by repeating options.  Those colors will be applied for each
@@ -641,7 +676,7 @@ or `(?<c>\w)\g{c}`.
         greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
 
     Experimentally, function can be combined with other normal color
-    specifications.  Also the form _&func;_ can be repeated.
+    specifications.  Also the form _&amp;func;_ can be repeated.
 
         greple --cm 'BF/544;sub{uc}'
 
@@ -661,8 +696,35 @@ or `(?<c>\w)\g{c}`.
     the pattern.  If multiple patterns and multiple colors are specified,
     each patterns are colored with corresponding colors cyclically.
 
-    Option **--regioncolor**, **--uniqcolor** and **--random** change this
-    behavior.
+    Option **--regioncolor**, **--uniqcolor** and **--colorindex** change
+    this behavior.
+
+- **--colorindex**=_spec_, **--ci**=_spec_
+
+    Specify color index method by combination of spec characters.
+    Meaningful combinations are **A**, **D**, **AB**, **DB** and **R**.
+
+    - A (Ascending)
+
+        Apply different color sequentially according to the order of
+        appearance.
+
+    - D (Descending)
+
+        Apply different color sequentially according to the reversed order of
+        appearance.
+
+    - B (Block)
+
+        Reset sequential index on every block.
+
+    - R (Random)
+
+        Apply random color.
+
+- **--random**
+
+    Shortcut for **--colorindex=R**.
 
 - **--ansicolor**=_16_|_256_|_24bit_
 
@@ -697,11 +759,6 @@ or `(?<c>\w)\g{c}`.
     selection, indicate insensitiveness in the pattern rather than command
     option (e.g. '_(?i)pattern_').
 
-- **--random**
-
-    Use random selected color to display matched string each time.
-    Disabled by default.
-
 - **--face**=\[-+\]_effect_
 
     Set or unset specified _effect_ for all color specs.  Use \`+'
@@ -728,15 +785,19 @@ or `(?<c>\w)\g{c}`.
 
     Print the paragraph which contains the pattern.  Each paragraph is
     delimited by two or more successive newline characters by default.  Be
-    aware that an empty line is not paragraph delimiter if which contains
-    space characters.  Example:
+    aware that an empty line is not a paragraph delimiter if which
+    contains space characters.  Example:
 
         greple -np 'setuid script' /usr/man/catl/perl.l
 
         greple -pe '^struct sockaddr' /usr/include/sys/socket.h
 
     It changes the unit of context specified by **-A**, **-B**, **-C**
-    options.
+    options.  Space grap between paragraphs are also treated as block
+    unit.  Thus, option **-pC2** will print with previous and after
+    paragraph, and **-pC1** will print with just sorrounding spaces.
+
+    You can create original paragraph pattern by **--border** option.
 
 - **--all**
 
@@ -745,19 +806,24 @@ or `(?<c>\w)\g{c}`.
 
         greple --block='(?s).*'
 
+- **--border**=_pattern_
+
+    Specify record block border pattern.  Default block is a single line
+    and use `(?m)^` as a pattern.  Paragraph mode uses `(?:\A|\n)\K\n+`,
+    which means continuous newlines at the beginning of text or following
+    another newline.
+
+    Next command treat the data as a series of 10-line unit.
+
+        greple -n --border='(.*\n){1,10}'
+
+    Contrary to the next **--block** option, **--border** never produce
+    disjoint records.
+
 - **--block**=_pattern_
 - **--block**=_&sub_
 
     Specify the record block to display.  Default block is a single line.
-
-    Next example behave almost same as **--paragraph** option, but is less
-    efficient.
-
-        greple --block='(.+\n)+'
-
-    Next command treat the data as a series of 10-line blocks.
-
-        greple -n --block='(.*\n){1,10}'
 
     When blocks are not continuous and there are gaps between them, the
     match occurred outside blocks are ignored.
@@ -852,7 +918,7 @@ or `(?<c>\w)\g{c}`.
 
     produces output, as a matter of fact.  Think of the situation
     searching, say, `' PATTERN '` with this condition.  Matched area
-    includes surrounding spaces, and meets the both condition partially.
+    includes surrounding spaces, and satisfies both conditions partially.
     This match does not occur when option **--strict** is given, either.
 
 ## CHARACTER CODE
@@ -1061,11 +1127,7 @@ interpreted as a bare word.
 
 ## OTHERS
 
-- **--norc**
-
-    Do not read startup file: `~/.greplerc`.
-
-- **--usage**
+- **--usage**\[=_expand_\]
 
     **Greple** print usage and exit with option **--usage**, or no valid
     parameter is not specified.  In this case, module option is displayed
@@ -1086,6 +1148,10 @@ interpreted as a bare word.
 - **--path**
 
     Show module file path.  Use with **-M** option.
+
+- **--norc**
+
+    Do not read startup file: `~/.greplerc`.
 
 - **--require**=_filename_
 
@@ -1348,7 +1414,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 1991-2018 Kazumasa Utashiro
+Copyright 1991-2019 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
