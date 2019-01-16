@@ -169,7 +169,7 @@ sub prepare {
 	    } @blocks;
 	}
 	else {
-	    ();
+	    ( [ 0, length ] );			# nothing matched
 	}
     } ];
 
