@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-require 5.014;
+use v5.14;
 
 use File::stat;
 use IO::Handle;
@@ -634,7 +634,7 @@ my %colormap = (
 
 my @colors;
 
-require Getopt::EX::Colormap;
+use Getopt::EX::Colormap;
 my $color_handler = new Getopt::EX::Colormap
     HASH => \%colormap,
     LIST => \@colors,
@@ -853,6 +853,42 @@ if ($opt_conceal{read}) {
     $after_read  = sub { recover_stderr };
 }
 
+use Getopt::EX::Colormap qw(ansi_code);
+use constant {
+    EL  => ansi_code('{EL}'),  # Erase Line
+    ED  => ansi_code('{ED}'),  # Erase Display
+    SCP => ansi_code('{SCP}'), # Store Cursor Position
+    RCP => ansi_code('{RCP}'), # Restore Cursor Position
+    CR  => "\r",
+};
+
+my($progress_show, $progress_reset) = do {
+    my $n;
+    my $print = sub { print STDERR SCP, @_, CR, RCP };
+    my $start = do {
+	if ($opt_d{n} and $opt_d{f}) {
+	    sub { $print->(++$n, " ", $current_file, ED) }
+	}
+	elsif ($opt_d{n}) {
+	    sub { $print->(++$n) }
+	}
+	elsif ($opt_d{f}) {
+	    sub { print STDERR $current_file, ":\n" }
+	}
+	else {
+	    undef;
+	}
+    };
+    my $end = do {
+	if ($opt_d{n}) {
+	    sub { print STDERR ED if $n }
+	} else {
+	    undef;
+	}
+    };
+    ($start, $end);
+};
+
 ##------------------------------------------------------------
 ## now ready to run.
 ##
@@ -867,6 +903,10 @@ for (@opt_prologue) { $_->call() }
 grep_files();
 
 for (@opt_epilogue) { $_->call() }
+
+if ($opt_d{n}) {
+    print STDERR ED;
+}
 
 if ($opt_uniqcolor and $opt_d{c}) {
     dump_uniqcolor();
@@ -931,8 +971,6 @@ sub grep_files {
 	    }
 	    binmode STDOUT, ':raw';
 	}
-
-	warn $current_file, ":\n" if $opt_d{f};
 
 	my $matched = grep_data(\$content);
 
@@ -1019,6 +1057,8 @@ sub open_nextfile {
 sub grep_data {
     local *_ = shift;
 
+    $progress_show->() if $progress_show;
+
     ##
     ## --begin
     ##
@@ -1051,16 +1091,19 @@ sub grep_data {
 
     if ($opt_l) {
 	if ($matched) {
+	    $progress_reset->() if $progress_reset;
 	    print $current_file;
 	    printf ":%d", scalar $grep->blocks if $opt_c;
 	    print "\n";
 	}
     }
     elsif ($opt_c) {
+	$progress_reset->() if $progress_reset;
 	print "$current_file:" if $need_filename;
 	print scalar $grep->result, "\n";
     }
     elsif (@{$grep->result_ref}) {
+	$progress_reset->() if $progress_reset;
 	# open output filter
 	@opt_of && push_output_filter(
 	    { &FILEALBEL => $current_file },
@@ -1098,7 +1141,7 @@ sub display_result {
     my $file = $grep->{filename};
 
     if ($need_filename and $opt_filestyle eq 'once') {
-	print $_file->($file), ":\n";
+	print $_file->($file), "\n";
     }
 
     my $need_blockend = $blockend ne '' &&
@@ -1666,7 +1709,9 @@ from supporting tool, such as Emacs.
 Define the format string of line number (LINE) and file name (FILE) to
 be displayed.  Default is:
 
-    --format LINE='%d:' --format FILE='%s:'
+    --format LINE='%d:'
+
+    --format FILE='%s:'
 
 =back
 
@@ -2439,6 +2484,11 @@ Next command will show strings in binary file.
 
 When processing all files as binary data, use B<--icode=binary>
 instead.
+
+=item B<-Mdebug>, -B<-d>I<x>
+
+Debug option is decribed in L<App::Greple::debug> module.
+
 
 =back
 
