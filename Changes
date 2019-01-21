@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3302 2019-01-21T09:43:00Z
+
+    - Introduce -dn option.
+    - Update -Mline module.
+    - Fix some bugs.
+
 8.3301 2019-01-15T04:23:51Z
 
     - Fix trivial bug to seach "\z" and misc udpate.

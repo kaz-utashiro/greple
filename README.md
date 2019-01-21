@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.3301
+Version 8.3302
 
 # SYNOPSIS
 
@@ -511,7 +511,9 @@ or `(?<c>\w)\g{c}`.
     Define the format string of line number (LINE) and file name (FILE) to
     be displayed.  Default is:
 
-        --format LINE='%d:' --format FILE='%s:'
+        --format LINE='%d:'
+
+        --format FILE='%s:'
 
 ## FILES
 
@@ -1189,6 +1191,10 @@ interpreted as a bare word.
 
     When processing all files as binary data, use **--icode=binary**
     instead.
+
+- **-Mdebug**, -**-d**_x_
+
+    Debug option is decribed in [App::Greple::debug](https://metacpan.org/pod/App::Greple::debug) module.
 
 # ENVIRONMENT and STARTUP FILE
 
