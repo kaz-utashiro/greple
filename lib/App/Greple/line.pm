@@ -103,6 +103,7 @@ named F<L>?  Stop substitution by placing C<--> before target files.
 
 package App::Greple::line;
 
+use v5.14;
 use strict;
 use warnings;
 
@@ -110,34 +111,24 @@ use Carp;
 use List::Util qw(min max);
 use Data::Dumper;
 
-use App::Greple::Common;
-use Getopt::EX::Numbers;
-
 use Exporter qw(import);
 our @EXPORT = qw(&line);
 
-my $target = -1;
-my @lines;
-
-sub set_lines {
-    @lines = ([0, 0]);
-    my $off = 0;
-    while (/\G(.*(?:\n|\z))/mg) {
-	## never use @+ here for performance reason
-	push @lines, [ $off, $off + length $1 ];
-	$off += length $1;
-    }
-}
+use App::Greple::Common;
+use App::Greple::Regions qw(match_borders borders_to_regions);
 
 sub line {
     my %arg = @_ ;
     my $file = delete $arg{&FILELABEL} or die;
+    state $target = -1;
+    state @lines;
 
     if ($target != \$_) {
-	set_lines;
-	$target = \$_ ;
+	@lines = ([0, 0], borders_to_regions match_borders qr/(?m)^/);
+	$target = \$_;
     }
 
+    use Getopt::EX::Numbers;
     my $numbers = new Getopt::EX::Numbers min => 1, max => $#lines;
 
     my @result = do {
