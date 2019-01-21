@@ -21,9 +21,10 @@ Kazumasa Utashiro
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 1991-2017 Kazumasa Utashiro
+Copyright 1991-2019 Kazumasa Utashiro
 
-Use and redistribution for ANY PURPOSE are granted as long as all copyright notices are retained. Redistribution with modification is allowed provided that you make your modified version obviously distinguishable from the original one. THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED.
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 =cut
 
