@@ -21,7 +21,7 @@ of the file:
     greple -Mline -L 200 -C10 file
 
 If you don't like lines displayed with color, use B<--nocolor> option
-or set colormap to something invalid like B<--cm=0>.
+or set colormap to something do nothing like B<--cm=x>.
 
 Multiple lines can be specified by joining with comma:
 
@@ -124,7 +124,7 @@ sub line {
     state @lines;
 
     if ($target != \$_) {
-	@lines = ([0, 0], borders_to_regions match_borders qr/(?m)^/);
+	@lines = ([0, 0], borders_to_regions match_borders qr/^/m);
 	$target = \$_;
     }
 

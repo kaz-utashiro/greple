@@ -706,7 +706,10 @@ my($_file, $_line, $_text, $_blockend) = do {
 	sub { $color_handler->color('BLOCKEND', $_[0]) }
     }
     else {
-	( sub { $_[0] } ) x 4
+	( sub { sprintf($opt_format{FILE}, $_[0]) },
+	  sub { sprintf($opt_format{LINE}, $_[0]) },
+	  sub { $_[0] },
+	  sub { $_[0] } )
     }
 };
 
@@ -2020,7 +2023,7 @@ contains space characters.  Example:
     greple -pe '^struct sockaddr' /usr/include/sys/socket.h
 
 It changes the unit of context specified by B<-A>, B<-B>, B<-C>
-options.  Space grap between paragraphs are also treated as block
+options.  Space gap between paragraphs are also treated as block
 unit.  Thus, option B<-pC2> will print with previous and after
 paragraph, and B<-pC1> will print with just sorrounding spaces.
 
