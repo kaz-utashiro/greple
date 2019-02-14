@@ -698,6 +698,10 @@ if ($opt_d{c}) {
     warn 'colors = ', $dump->(\@colors);
 }
 
+for (values %opt_format) {
+    s{\\(.)}{ { t => "\t" }->{$1} // $1 }egx;
+}
+
 my($_file, $_line, $_text, $_blockend) = do {
     if ($need_color) {
 	sub { $color_handler->color('FILE'    , sprintf($opt_format{FILE}, $_[0])) },
@@ -1715,6 +1719,13 @@ be displayed.  Default is:
     --format LINE='%d:'
 
     --format FILE='%s:'
+
+Format string is passed to C<sprintf> function.  Tab character can be
+expressed as C<\t>.
+
+Next example will show line numebers in five digits with tab space:
+
+    --format LINE='%05d\t'
 
 =back
 
