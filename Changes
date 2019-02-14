@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3303 2019-02-14T02:14:50Z
+
+    - Fix bug of LINE/FILE format with --nocolor option.
+    - Accept \t in --format option.
+
 8.3302 2019-01-21T09:43:00Z
 
     - Introduce -dn option.

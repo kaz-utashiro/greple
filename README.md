@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.3302
+Version 8.3303
 
 # SYNOPSIS
 
@@ -515,6 +515,13 @@ or `(?<c>\w)\g{c}`.
 
         --format FILE='%s:'
 
+    Format string is passed to `sprintf` function.  Tab character can be
+    expressed as `\t`.
+
+    Next example will show line numebers in five digits with tab space:
+
+        --format LINE='%05d\t'
+
 ## FILES
 
 - **--glob**=_pattern_
@@ -795,7 +802,7 @@ or `(?<c>\w)\g{c}`.
         greple -pe '^struct sockaddr' /usr/include/sys/socket.h
 
     It changes the unit of context specified by **-A**, **-B**, **-C**
-    options.  Space grap between paragraphs are also treated as block
+    options.  Space gap between paragraphs are also treated as block
     unit.  Thus, option **-pC2** will print with previous and after
     paragraph, and **-pC1** will print with just sorrounding spaces.
 
