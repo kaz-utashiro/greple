@@ -99,6 +99,10 @@ Using this module, it is impossible to give single C<L> in command
 line arguments.  Use like B<--le=L> to search C<L>.  You have a file
 named F<L>?  Stop substitution by placing C<--> before target files.
 
+=head1 SEE ALSO
+
+L<Getopt::EX::Numbers>
+
 =cut
 
 package App::Greple::line;

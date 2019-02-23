@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3304 2019-02-23T02:23:09Z
+
+    - Update for Getopt::EX 24bit color interface change.
+
 8.3303 2019-02-14T02:14:50Z
 
     - Fix bug of LINE/FILE format with --nocolor option.

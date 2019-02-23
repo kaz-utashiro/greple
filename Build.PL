@@ -8,7 +8,5 @@ use strict;
 
 use Module::Build::Tiny 0.035;
 
-die "OS unsupported\n" if $^O eq "MSWin32";
-
 Build_PL();
 
