@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.3304
+Version 8.3305
 
 # SYNOPSIS
 
