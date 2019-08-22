@@ -22,6 +22,7 @@ use Carp;
 use utf8;
 use Encode;
 use Encode::Guess;
+use open IO => ':utf8', ':std';
 
 ##
 ## Setting utf8 warnings fatal makes it easy to find code conversion
@@ -356,9 +357,6 @@ sub setopt {
 	}
     }
 }
-
-binmode STDERR, ":encoding(utf8)";
-
 
 ##
 ## @ARGV staff
