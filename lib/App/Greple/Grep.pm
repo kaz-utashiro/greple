@@ -114,8 +114,7 @@ sub prepare {
     ##
     ## --inside, --outside
     ##
-    my @reg_union = $self->{regions}->union;
-    if (@reg_union) {
+    if (my @reg_union = $self->{regions}->union) {
 	my @tmp = map { [] } @result;
 	for my $regi (0 .. $#reg_union) {
 	    my $reg = $reg_union[$regi];

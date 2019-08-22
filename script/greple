@@ -633,11 +633,9 @@ my %colormap = (
 my @colors;
 
 use Getopt::EX::Colormap;
-my $color_handler = new Getopt::EX::Colormap
-    HASH => \%colormap,
-    LIST => \@colors,
-    ;
-$color_handler->load_params(@opt_colormap);
+my $color_handler = Getopt::EX::Colormap
+    ->new(HASH => \%colormap, LIST => \@colors)
+    ->load_params(@opt_colormap);
 
 my @default_color =
     $opt_ansicolor eq '16'
@@ -746,7 +744,7 @@ my $border_re = do {
     } elsif ($opt_p) {
 	qr/(?:\A|\n)\K\n+/;	# paragraph
     } else {
-	qr/(?m)^/;		# line
+	qr/^/m;			# line
     }
 };		    
 
