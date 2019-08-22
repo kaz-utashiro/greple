@@ -39,6 +39,7 @@ expand (#no_version)	! -name *,v
 expand (#no_backup)	! -name *~ ! -name *.swp
 expand (#no_image) 	! -iname *.jpg  ! -iname *.jpeg \
 			! -iname *.gif  ! -iname *.png  \
+			! -iname *.ico  \
 			! -iname *.heic ! -iname *.heif
 expand (#no_archive)	! -iname *.tar  ! -iname *.tbz  ! -iname *.tgz
 expand (#no_pdf)	! -iname *.pdf
