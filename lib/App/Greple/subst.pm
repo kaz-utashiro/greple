@@ -6,9 +6,9 @@ subst - Greple module for text substitution
 
 greple -Msubst [ options ]
 
-  --subst_file spec_file
-  --subst_from string
-  --subst_to   string
+  --subst-file spec_file
+  --subst-from string
+  --subst-to   string
 
   --diff
   --diffcmd command
@@ -19,18 +19,18 @@ greple -Msubst [ options ]
 
 This B<greple> module supports word substitution in text data.
 
-Substitution can be indicated by option B<--subst_from> and
-B<--subst_to>, or specification file.
+Substitution can be indicated by option B<--subst-from> and
+B<--subst-to>, or specification file.
 
 Next command replaces all string "FROM" to "TO".
 
-  greple -Msubst --subst_from FROM --subst_to TO FROM
+  greple -Msubst --subst-from FROM --subst-to TO FROM
 
 Of course, you should rather use B<sed> in this case.  Option
-B<--subst_from> and B<--subst_to> can be repeated, and substitution is
+B<--subst-from> and B<--subst-to> can be repeated, and substitution is
 done in order.
 
-Using B<--subst_file> option, you can prepare these substitution list
+Using B<--subst-file> option, you can prepare these substitution list
 in the file.  Suppose the file cotains following data:
 
     Monday     Mon.
@@ -43,7 +43,7 @@ in the file.  Suppose the file cotains following data:
 
 Next command converts day-of-week name to abbreviation form.
 
-    greple -Msubst --subst_file SPEC '\b[A-Z][a-z]+' ...
+    greple -Msubst --subst-file SPEC '\b[A-Z][a-z]+' ...
 
 Field "//" in spec file is ignored, so this file can be written like
 this:
@@ -59,7 +59,7 @@ this:
 You can use same file by B<greple>'s B<-f> option and string after
 "//" is ignored as a comment in that case.
 
-    greple -Msubst --subst_file SPEC -f SPEC ...
+    greple -Msubst --subst-file SPEC -f SPEC ...
 
 This is equivalent to search next pattern, and replace them.  This is
 bad example, though.
