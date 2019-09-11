@@ -63,7 +63,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.3305
+Version 8.3306
 
 
 =head1 SYNOPSIS
@@ -1109,7 +1109,7 @@ sub grep_data {
 	$progress_reset->() if $progress_reset;
 	# open output filter
 	@opt_of && push_output_filter(
-	    { &FILEALBEL => $current_file },
+	    { &FILELABEL => $current_file },
 	    \*STDOUT, @opt_of);
 	display_result($grep);
 	@opt_of && recover_stdout;

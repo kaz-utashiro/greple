@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3306 2019-09-11T02:11:49Z
+
+    - Oops!  Fixed typo.
+
 8.3305 2019-08-22T08:55:38Z
 
     - Set default IO to utf8 and minor fixes.
