@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.3301
+Version 8.34
 
 # SYNOPSIS
 
@@ -511,7 +511,16 @@ or `(?<c>\w)\g{c}`.
     Define the format string of line number (LINE) and file name (FILE) to
     be displayed.  Default is:
 
-        --format LINE='%d:' --format FILE='%s:'
+        --format LINE='%d:'
+
+        --format FILE='%s:'
+
+    Format string is passed to `sprintf` function.  Tab character can be
+    expressed as `\t`.
+
+    Next example will show line numebers in five digits with tab space:
+
+        --format LINE='%05d\t'
 
 ## FILES
 
@@ -676,7 +685,7 @@ or `(?<c>\w)\g{c}`.
         greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
 
     Experimentally, function can be combined with other normal color
-    specifications.  Also the form _&amp;func;_ can be repeated.
+    specifications.  Also the form _&func;_ can be repeated.
 
         greple --cm 'BF/544;sub{uc}'
 
@@ -783,19 +792,19 @@ or `(?<c>\w)\g{c}`.
 
 - **-p**, **--paragraph**
 
-    Print the paragraph which contains the pattern.  Each paragraph is
-    delimited by two or more successive newline characters by default.  Be
-    aware that an empty line is not a paragraph delimiter if which
-    contains space characters.  Example:
+    Print a paragraph which contains the pattern.  Each paragraph is
+    delimited by two or more successive newlines by default.  Be aware
+    that an empty line is not a paragraph delimiter if which contains
+    space characters.  Example:
 
         greple -np 'setuid script' /usr/man/catl/perl.l
 
         greple -pe '^struct sockaddr' /usr/include/sys/socket.h
 
     It changes the unit of context specified by **-A**, **-B**, **-C**
-    options.  Space grap between paragraphs are also treated as block
-    unit.  Thus, option **-pC2** will print with previous and after
-    paragraph, and **-pC1** will print with just sorrounding spaces.
+    options.  Space gap between paragraphs are also treated as block
+    unit.  Thus, option **-pC2** will print with previous and next
+    paragraph, while **-pC1** will print with just sorrounding spaces.
 
     You can create original paragraph pattern by **--border** option.
 
@@ -809,9 +818,10 @@ or `(?<c>\w)\g{c}`.
 - **--border**=_pattern_
 
     Specify record block border pattern.  Default block is a single line
-    and use `(?m)^` as a pattern.  Paragraph mode uses `(?:\A|\n)\K\n+`,
+    and use `(?m)^` as a pattern.  Paragraph mode uses `(?:\A|\R)\K\R+`,
     which means continuous newlines at the beginning of text or following
-    another newline.
+    another newline (`\R` means more general linebreaks including
+    `\r\n`; consult [perlrebackslash](https://metacpan.org/pod/perlrebackslash) for detail).
 
     Next command treat the data as a series of 10-line unit.
 
@@ -1189,6 +1199,10 @@ interpreted as a bare word.
 
     When processing all files as binary data, use **--icode=binary**
     instead.
+
+- **-Mdebug**, -**-d**_x_
+
+    Debug option is decribed in [App::Greple::debug](https://metacpan.org/pod/App::Greple::debug) module.
 
 # ENVIRONMENT and STARTUP FILE
 
