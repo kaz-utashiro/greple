@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.34 2019-09-17T09:22:36Z
+
+    - Use continuous \R (linebreak) as paragraph delimitter.
+
 8.3306 2019-09-11T02:11:49Z
 
     - Oops!  Fixed typo.
