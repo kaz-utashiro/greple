@@ -41,7 +41,6 @@ package Greple {
 	my $pid = (my $fh = new IO::File)->open('-|') // die "open: $@\n";
 	if ($pid == 0) {
 	    open STDERR, ">&STDOUT";
-	    close STDIN;
 	    greple(@{$obj->{OPTION}});
 	    exit 1;
 	}
