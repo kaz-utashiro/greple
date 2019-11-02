@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3402 2019-11-02T00:05:53Z
+
+    - Make --icode=binary option to work.
+
 8.3401 2019-09-18T11:51:09Z
 
     - Put t/09_filter.t test in TODO block.

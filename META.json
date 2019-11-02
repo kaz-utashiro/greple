@@ -4,7 +4,7 @@
       "Kazumasa Utashiro"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.1.5, CPAN::Meta::Converter version 2.143240",
+   "generated_by" : "Minilla/v3.1.6, CPAN::Meta::Converter version 2.143240",
    "license" : [
       "perl_5"
    ],
@@ -66,7 +66,7 @@
          "web" : "https://github.com/kaz-utashiro/greple"
       }
    },
-   "version" : "8.3401",
+   "version" : "8.3402",
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
       "Kaz Utashiro <kaz@utashiro.com>",

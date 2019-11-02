@@ -63,7 +63,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.3401
+Version 8.3402
 
 
 =head1 SYNOPSIS
@@ -264,8 +264,8 @@ my @optargs = (
     'f|file=s'           => \@opt_f,
     'readlist!'          => \$opt_readlist,
     'd=s'                => \@opt_d,
-    'man'                => \$opt_man,
-    'show'               => \$opt_show,
+    'man|doc'            => \$opt_man,
+    'show|less'          => \$opt_show,
     'path'               => \$opt_path,
     'icode=s'            => \@opt_icode,
     'ocode=s'            => \$opt_ocode,
@@ -437,13 +437,22 @@ if ($opt_man or $opt_show or $opt_path) {
     my @bucket = $rcloader->buckets;
     if (@bucket and not default_module($bucket[-1])) {
 	my $mod = $bucket[-1]->title;
-	my @perldocopt = $opt_show ? '-m' : $opt_path ? '-ml' : () ;
 	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
 	my $perldoc = $jp ? "perldocjp" : "perldoc";
 	$ENV{PERL5LIB} = join ':', @INC;
-	my $command = "$perldoc @perldocopt App::Greple::$mod";
-	warn $command, "\n" if $opt_d{m};
-	exec $command or die $!;
+	my $module = "App::Greple::$mod";
+	if ($opt_man) {
+	    exec "$perldoc $module" or die $!;
+	} else {
+	    my $file = `$perldoc -ml $module`;
+	    if ($opt_path) {
+		say $file;
+	    } else {
+		my $pager = $ENV{PAGER} || 'less';
+		exec "$pager $file" or die $!;
+	    }
+	}
+	exit;
     }
     pod2usage({-verbose => 2});
     die;
@@ -1045,7 +1054,7 @@ sub open_nextfile {
 	}
 
 	if ($file_code eq 'binary') {
-	    # binmode STDIN, ":raw";
+	    binmode STDIN, ":raw";
 	} else {
 	    binmode STDIN, ":encoding($file_code)";
 	}
@@ -1611,7 +1620,9 @@ Display filename always.
 
 =item B<-o>, B<--only-matching>
 
-Print matched string only.
+Print matched string only.  Newline character is printed after matched
+string if it does not end with newline.  Use B<--no-newline> option if
+you don't need extra newline.
 
 =item B<-m> I<n>[,I<m>], B<--max-count>=I<n>[,I<m>]
 
@@ -1684,9 +1695,10 @@ documents within Perl script.
 =item B<--[no]newline>
 
 Since B<greple> can handle arbitrary blocks other than normal text
-lines, they sometimes do not end by newline character.  In that case,
-extra newline is appended at the end of block to be shown.  Option
-B<--nonewline> disables this behavior.
+lines, they sometimes do not end with newline character.  Option B<-o>
+makes similar situation.  In that case, extra newline is appended at
+the end of block to be shown.  Option B<--no-newline> disables this
+behavior.
 
 =item B<--filestyle>=I<line>|I<once>|I<separate>, B<--fs>
 
@@ -1784,7 +1796,7 @@ up-to-date specification.
 
 Color specification is combination of single uppercase character
 representing basic colors, and (usually brighter) alternative colors in
-lowercase :
+lowercase:
 
     R  r   Red
     G  g   Green
@@ -1795,7 +1807,7 @@ lowercase :
     K  k   Black
     W  w   White
 
-or RGB value and 24 grey levels if using ANSI 256 color terminal :
+or RGB value and 24 grey levels if using ANSI 256 color terminal:
 
     (255,255,255)      : 24bit decimal RGB colors
     #000000 .. #FFFFFF : 24bit hex RGB colors
@@ -1812,13 +1824,13 @@ grey level, otherwise 6x6x6 216 color.
 
 =back
 
-or color names enclosed by angle bracket :
+or color names enclosed by angle bracket:
 
     <red> <blue> <green> <cyan> <magenta> <yellow>
     <aliceblue> <honeydue> <hotpink> <mooccasin>
     <medium_aqua_marine>
 
-with other special effects :
+with other special effects:
 
     Z  0 Zero (reset)
     D  1 Double-struck (boldface)
@@ -1835,10 +1847,10 @@ with other special effects :
     ;  No effect
     X  No effect
 
-If the spec includes C</>, left side is considered to be as foreground
-color and right side as background.  If multiple colors are given in
-same spec, all indicators are produced in the order of their presence.
-As a result, the last one takes effect.
+If the spec includes C</>, left side is considered as foreground color
+and right side as background.  If multiple colors are given in same
+spec, all indicators are produced in the order of their presence.  As
+a result, the last one takes effect.
 
 Effect characters are case insensitive, and can be found anywhere and
 in any order in color spec string.  Because C<X> and C<;> takes no
@@ -2419,12 +2431,12 @@ expanded, supply something not empty to B<--usage> option, like:
 
     greple -Mmodule --usage=expand
 
-=item B<--man>
+=item B<--man>, B<--doc>
 
 Show manual page.
 Display module's manual page when used with B<-M> option.
 
-=item B<--show>
+=item B<--show>, B<--less>
 
 Show module file contents.  Use with B<-M> option.
 
@@ -2493,10 +2505,10 @@ Next command will show strings in binary file.
 
     greple -o --re '(?a)\w{4,}' --persist --uc /bin/*
 
-When processing all files as binary data, use B<--icode=binary>
+If you want read all files as binary data, use B<--icode=binary>
 instead.
 
-=item B<-Mdebug>, -B<-d>I<x>
+=item B<-Mdebug>, B<-d>I<x>
 
 Debug option is decribed in L<App::Greple::debug> module.
 

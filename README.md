@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.3401
+Version 8.3402
 
 # SYNOPSIS
 
@@ -413,7 +413,9 @@ or `(?<c>\w)\g{c}`.
 
 - **-o**, **--only-matching**
 
-    Print matched string only.
+    Print matched string only.  Newline character is printed after matched
+    string if it does not end with newline.  Use **--no-newline** option if
+    you don't need extra newline.
 
 - **-m** _n_\[,_m_\], **--max-count**=_n_\[,_m_\]
 
@@ -483,9 +485,10 @@ or `(?<c>\w)\g{c}`.
 - **--\[no\]newline**
 
     Since **greple** can handle arbitrary blocks other than normal text
-    lines, they sometimes do not end by newline character.  In that case,
-    extra newline is appended at the end of block to be shown.  Option
-    **--nonewline** disables this behavior.
+    lines, they sometimes do not end with newline character.  Option **-o**
+    makes similar situation.  In that case, extra newline is appended at
+    the end of block to be shown.  Option **--no-newline** disables this
+    behavior.
 
 - **--filestyle**=_line_|_once_|_separate_, **--fs**
 
@@ -571,7 +574,7 @@ or `(?<c>\w)\g{c}`.
 
     Color specification is combination of single uppercase character
     representing basic colors, and (usually brighter) alternative colors in
-    lowercase :
+    lowercase:
 
         R  r   Red
         G  g   Green
@@ -582,7 +585,7 @@ or `(?<c>\w)\g{c}`.
         K  k   Black
         W  w   White
 
-    or RGB value and 24 grey levels if using ANSI 256 color terminal :
+    or RGB value and 24 grey levels if using ANSI 256 color terminal:
 
         (255,255,255)      : 24bit decimal RGB colors
         #000000 .. #FFFFFF : 24bit hex RGB colors
@@ -595,13 +598,13 @@ or `(?<c>\w)\g{c}`.
     >     When values are all same in 24bit or 12bit RGB, it is converted to 24
     >     grey level, otherwise 6x6x6 216 color.
 
-    or color names enclosed by angle bracket :
+    or color names enclosed by angle bracket:
 
         <red> <blue> <green> <cyan> <magenta> <yellow>
         <aliceblue> <honeydue> <hotpink> <mooccasin>
         <medium_aqua_marine>
 
-    with other special effects :
+    with other special effects:
 
         Z  0 Zero (reset)
         D  1 Double-struck (boldface)
@@ -618,10 +621,10 @@ or `(?<c>\w)\g{c}`.
         ;  No effect
         X  No effect
 
-    If the spec includes `/`, left side is considered to be as foreground
-    color and right side as background.  If multiple colors are given in
-    same spec, all indicators are produced in the order of their presence.
-    As a result, the last one takes effect.
+    If the spec includes `/`, left side is considered as foreground color
+    and right side as background.  If multiple colors are given in same
+    spec, all indicators are produced in the order of their presence.  As
+    a result, the last one takes effect.
 
     Effect characters are case insensitive, and can be found anywhere and
     in any order in color spec string.  Because `X` and `;` takes no
@@ -1146,12 +1149,12 @@ interpreted as a bare word.
 
         greple -Mmodule --usage=expand
 
-- **--man**
+- **--man**, **--doc**
 
     Show manual page.
     Display module's manual page when used with **-M** option.
 
-- **--show**
+- **--show**, **--less**
 
     Show module file contents.  Use with **-M** option.
 
@@ -1197,10 +1200,10 @@ interpreted as a bare word.
 
         greple -o --re '(?a)\w{4,}' --persist --uc /bin/*
 
-    When processing all files as binary data, use **--icode=binary**
+    If you want read all files as binary data, use **--icode=binary**
     instead.
 
-- **-Mdebug**, -**-d**_x_
+- **-Mdebug**, **-d**_x_
 
     Debug option is decribed in [App::Greple::debug](https://metacpan.org/pod/App::Greple::debug) module.
 
