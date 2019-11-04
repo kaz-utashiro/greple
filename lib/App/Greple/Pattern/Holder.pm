@@ -110,6 +110,8 @@ sub lexical_opt {
     }
 }
 
+use Getopt::EX::Numbers;
+
 sub load_file {
     my $obj = shift;
     my $arg = ref $_[0] eq 'HASH' ? shift : {};
@@ -118,6 +120,7 @@ sub load_file {
     my $flag = ( $arg->{flag} // 0 ) | FLAG_REGEX | FLAG_COOK | FLAG_OR;
 
     for my $file (@_) {
+	my $select = (!-f $file and $file =~ s/\[([\d:,]+)\]$//) ? $1 : undef;
 	open my $fh, '<:encoding(utf8)', $file or die "$file: $!\n";
 	my @p = do {
 	    map  { chomp ; s{\s*//.*}{} ; $_ }
@@ -125,6 +128,17 @@ sub load_file {
 	    <$fh>
 	};
 	close $fh;
+	if ($select //= $arg->{select}) {
+	    my $numbers = new Getopt::EX::Numbers max => 0+@p;
+	    my @select = do {
+		map  { $_ - 1 }
+		sort { $a <=> $b }
+		grep { $_ <= @p }
+		map  { $numbers->parse($_)->sequence }
+		split /,/, $select;
+	    };
+	    @p = @p[@select];
+	}
 	$obj->append({ flag => $flag }, @p);
     }
 }

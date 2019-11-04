@@ -63,7 +63,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.3402
+Version 8.35
 
 
 =head1 SYNOPSIS
@@ -219,6 +219,7 @@ my $opt_usage;
 my $opt_c;
 my @opt_d = ();
 my @opt_f;
+my $opt_select;
 my $opt_h;
 my $opt_i;
 my $opt_n;
@@ -262,6 +263,7 @@ my @optargs = (
     'C|context:2'        => \$opt_C,
     'all'                => \$opt_all,
     'f|file=s'           => \@opt_f,
+    'select=s'           => \$opt_select,
     'readlist!'          => \$opt_readlist,
     'd=s'                => \@opt_d,
     'man|doc'            => \$opt_man,
@@ -497,9 +499,13 @@ my $pat_holder = new App::Greple::Pattern::Holder;
 my $FLAG_BASE = FLAG_NONE;
 $FLAG_BASE |= FLAG_IGNORECASE if $opt_i;
 
+use Getopt::EX::Numbers;
+
 if (@opt_f) {
     for my $opt_f (@opt_f) {
-	$pat_holder->append({ flag => $FLAG_BASE, type => 'file' },
+	$pat_holder->append({ flag => $FLAG_BASE, type => 'file',
+			      $opt_select ? (select => $opt_select) : (),
+			    },
 			    $opt_f);
     }
 } else {
@@ -1588,7 +1594,26 @@ removed with preceding spaces.
 
 When multiple files specified, each file produces individual pattern.
 
+If the file name is followed by `[index]` string, it is treated as
+specified by B<--select> option.  Next two commands are equivalent.
+
+    greple -f pattern_file'[1,5:7]'
+
+    greple -f pattern_file --select 1,5:7
+
 See B<-Msubst> module.
+
+=item B<--select>=I<index>
+
+When you want to choose specific pattern in the pattern file provided
+by B<-f> option, use B<--select> option.  I<index> is number list
+separated by comma (,) character and each numbers are interpreted by
+L<Getopt::EX::Numbers> module.  Take a look at the module document for
+detail.
+
+Next command use 1st and 5,6,7th pattern in the file.
+
+    greple -f pattern_file --select 1,5:7
 
 =back
 

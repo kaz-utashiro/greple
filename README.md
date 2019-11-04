@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.3402
+Version 8.35
 
 # SYNOPSIS
 
@@ -387,7 +387,26 @@ or `(?<c>\w)\g{c}`.
 
     When multiple files specified, each file produces individual pattern.
 
+    If the file name is followed by \`\[index\]\` string, it is treated as
+    specified by **--select** option.  Next two commands are equivalent.
+
+        greple -f pattern_file'[1,5:7]'
+
+        greple -f pattern_file --select 1,5:7
+
     See **-Msubst** module.
+
+- **--select**=_index_
+
+    When you want to choose specific pattern in the pattern file provided
+    by **-f** option, use **--select** option.  _index_ is number list
+    separated by comma (,) character and each numbers are interpreted by
+    [Getopt::EX::Numbers](https://metacpan.org/pod/Getopt::EX::Numbers) module.  Take a look at the module document for
+    detail.
+
+    Next command use 1st and 5,6,7th pattern in the file.
+
+        greple -f pattern_file --select 1,5:7
 
 ## STYLES
 
