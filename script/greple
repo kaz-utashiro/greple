@@ -79,7 +79,8 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --le pattern         lexical expression (same as bare pattern)
     --re pattern         regular expression
     --fe pattern         fixed expression
-    --file file          file contains search pattern
+    -f, --file file      file contains search pattern
+    --select index       select indexed pattern from -f file
   MATCH
     -i                   ignore case
     --need=[+-]n         required positive match count
