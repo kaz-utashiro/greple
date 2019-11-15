@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.35
+Version 8.36
 
 # SYNOPSIS
 
@@ -18,7 +18,8 @@ Version 8.35
       --le pattern         lexical expression (same as bare pattern)
       --re pattern         regular expression
       --fe pattern         fixed expression
-      --file file          file contains search pattern
+      -f, --file file      file contains search pattern
+      --select index       select indexed pattern from -f file
     MATCH
       -i                   ignore case
       --need=[+-]n         required positive match count
@@ -273,6 +274,15 @@ or `(?<c>\w)\g{c}`.
     means \`?A|B ?C|D' is equivalent to \`?A|B|C|D'.  If you want to mean
     \`(A or B) and (C or D)', use AND syntax instead: \`A|B C|D'.
 
+    This is the summary of start character for **--le** option:
+
+        +  Required pattern
+        -  Negative match pattern
+        ?  Alternative pattern
+        &  Function call (see next section)
+
+- **--le**=**&**_function_
+
     If the pattern start with ampersand (\`&'), it is treated as a
     function, and the function is called instead of searching pattern.
     Function call interface is same as the one for block/region options.
@@ -283,12 +293,13 @@ or `(?<c>\w)\g{c}`.
 
         greple -n '&odd_line' file
 
-    This is the summary of start character for **--le** option:
-
-        +  Required pattern
-        -  Negative match pattern
-        ?  Alternative pattern
-        &  Function call
+    This version experimentally support callback function for each
+    pattern.  Region list returned by function can have two extra element
+    besides start/end position.  Third element is index.  Fourth element
+    is callback function pointer which is called to produce string to be
+    shown in command output.  Callback function takes four argument (start
+    position, end position, index, matched string) and returns replacement
+    string.
 
 - **-e** _pattern_, **--and**=_pattern_
 

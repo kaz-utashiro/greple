@@ -63,7 +63,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.35
+Version 8.36
 
 
 =head1 SYNOPSIS
@@ -1228,11 +1228,15 @@ sub display_result {
 
 	my $mark = "\001";
 	for my $matched (reverse @$result) {
-	    my($ms, $me, $pi) = @$matched;
+	    my($ms, $me, $pi, $code) = @$matched;
 
 	    $ms = max($ms - $block_start, 0);
 	    $me -= $block_start;
 	    my $s = substr($block, $ms, $me - $ms);
+
+	    if (ref $code eq 'CODE') {
+		$s = $code->($ms, $me, $pi, $s);
+	    }
 
 	    if ($opt_join) {
 		if ($opt_n and $opt_linestyle eq 'line') {
@@ -1480,6 +1484,15 @@ Multiple `?' preceded tokens are treated all mixed together.  That
 means `?A|B ?C|D' is equivalent to `?A|B|C|D'.  If you want to mean
 `(A or B) and (C or D)', use AND syntax instead: `A|B C|D'.
 
+This is the summary of start character for B<--le> option:
+
+    +  Required pattern
+    -  Negative match pattern
+    ?  Alternative pattern
+    &  Function call (see next section)
+
+=item B<--le>=B<&>I<function>
+
 If the pattern start with ampersand (`&'), it is treated as a
 function, and the function is called instead of searching pattern.
 Function call interface is same as the one for block/region options.
@@ -1490,12 +1503,13 @@ lines like this:
 
     greple -n '&odd_line' file
 
-This is the summary of start character for B<--le> option:
-
-    +  Required pattern
-    -  Negative match pattern
-    ?  Alternative pattern
-    &  Function call
+This version experimentally support callback function for each
+pattern.  Region list returned by function can have two extra element
+besides start/end position.  Third element is index.  Fourth element
+is callback function pointer which is called to produce string to be
+shown in command output.  Callback function takes four argument (start
+position, end position, index, matched string) and returns replacement
+string.
 
 =item B<-e> I<pattern>, B<--and>=I<pattern>
 

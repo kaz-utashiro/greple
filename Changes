@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.36 2019-11-15T03:33:37Z
+
+    - Implement call-back function returned by --le &funciton.
+
 8.35 2019-11-04T11:12:56Z
 
     - Implement --select option works with -f option.
