@@ -1172,9 +1172,9 @@ sub display_result {
 	if ($ci{A} or $ci{D}) {
 	    my $i = 0;
 	    new Indexer
-		index => sub { $i++ },
-		reset => sub { $i = 0 },
-		block => $ci{B},
+		index   => sub { $i++   },
+		reset   => sub { $i = 0 },
+		block   => $ci{B},
 		reverse => $ci{D};
 	}
 	elsif ($ci{R}) {
@@ -2002,6 +2002,11 @@ Reset sequential index on every block.
 =item R (Random)
 
 Apply random color.
+
+=item N (Normal)
+
+Reset to normal behavior.  Because the last option takes effect,
+B<--ci=N> can be used to reset the behavior set by previous options.
 
 =back
 
