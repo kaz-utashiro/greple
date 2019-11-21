@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.34
+Version 8.38
 
 # SYNOPSIS
 
@@ -18,7 +18,8 @@ Version 8.34
       --le pattern         lexical expression (same as bare pattern)
       --re pattern         regular expression
       --fe pattern         fixed expression
-      --file file          file contains search pattern
+      -f, --file file      file contains search pattern
+      --select index       select indexed pattern from -f file
     MATCH
       -i                   ignore case
       --need=[+-]n         required positive match count
@@ -77,6 +78,7 @@ Version 8.34
     RUNTIME FUNCTION
       --print=func         print function
       --continue           continue after print function
+      --callback=func      callback function for matched string
       --begin=func         call function before search
       --end=func           call function after search
       --prologue=func      call function before command execution
@@ -273,6 +275,15 @@ or `(?<c>\w)\g{c}`.
     means \`?A|B ?C|D' is equivalent to \`?A|B|C|D'.  If you want to mean
     \`(A or B) and (C or D)', use AND syntax instead: \`A|B C|D'.
 
+    This is the summary of start character for **--le** option:
+
+        +  Required pattern
+        -  Negative match pattern
+        ?  Alternative pattern
+        &  Function call (see next section)
+
+- **--le**=**&**_function_
+
     If the pattern start with ampersand (\`&'), it is treated as a
     function, and the function is called instead of searching pattern.
     Function call interface is same as the one for block/region options.
@@ -283,12 +294,13 @@ or `(?<c>\w)\g{c}`.
 
         greple -n '&odd_line' file
 
-    This is the summary of start character for **--le** option:
-
-        +  Required pattern
-        -  Negative match pattern
-        ?  Alternative pattern
-        &  Function call
+    This version experimentally support callback function for each
+    pattern.  Region list returned by function can have two extra element
+    besides start/end position.  Third element is index.  Fourth element
+    is callback function pointer which is called to produce string to be
+    shown in command output.  Callback function takes four argument (start
+    position, end position, index, matched string) and returns replacement
+    string.
 
 - **-e** _pattern_, **--and**=_pattern_
 
@@ -387,7 +399,26 @@ or `(?<c>\w)\g{c}`.
 
     When multiple files specified, each file produces individual pattern.
 
-    See **-Msubst** module.
+    If the file name is followed by \`\[index\]\` string, it is treated as
+    specified by **--select** option.  Next two commands are equivalent.
+
+        greple -f pattern_file'[1,5:7]'
+
+        greple -f pattern_file --select 1,5:7
+
+    See [App::Greple::subst](https://metacpan.org/pod/App::Greple::subst) module.
+
+- **--select**=_index_
+
+    When you want to choose specific pattern in the pattern file provided
+    by **-f** option, use **--select** option.  _index_ is number list
+    separated by comma (,) character and each numbers are interpreted by
+    [Getopt::EX::Numbers](https://metacpan.org/pod/Getopt::EX::Numbers) module.  Take a look at the module document for
+    detail.
+
+    Next command use 1st and 5,6,7th pattern in the file.
+
+        greple -f pattern_file --select 1,5:7
 
 ## STYLES
 
@@ -413,7 +444,9 @@ or `(?<c>\w)\g{c}`.
 
 - **-o**, **--only-matching**
 
-    Print matched string only.
+    Print matched string only.  Newline character is printed after matched
+    string if it does not end with newline.  Use **--no-newline** option if
+    you don't need extra newline.
 
 - **-m** _n_\[,_m_\], **--max-count**=_n_\[,_m_\]
 
@@ -483,9 +516,10 @@ or `(?<c>\w)\g{c}`.
 - **--\[no\]newline**
 
     Since **greple** can handle arbitrary blocks other than normal text
-    lines, they sometimes do not end by newline character.  In that case,
-    extra newline is appended at the end of block to be shown.  Option
-    **--nonewline** disables this behavior.
+    lines, they sometimes do not end with newline character.  Option **-o**
+    makes similar situation.  In that case, extra newline is appended at
+    the end of block to be shown.  Option **--no-newline** disables this
+    behavior.
 
 - **--filestyle**=_line_|_once_|_separate_, **--fs**
 
@@ -571,7 +605,7 @@ or `(?<c>\w)\g{c}`.
 
     Color specification is combination of single uppercase character
     representing basic colors, and (usually brighter) alternative colors in
-    lowercase :
+    lowercase:
 
         R  r   Red
         G  g   Green
@@ -582,7 +616,7 @@ or `(?<c>\w)\g{c}`.
         K  k   Black
         W  w   White
 
-    or RGB value and 24 grey levels if using ANSI 256 color terminal :
+    or RGB value and 24 grey levels if using ANSI 256 color terminal:
 
         (255,255,255)      : 24bit decimal RGB colors
         #000000 .. #FFFFFF : 24bit hex RGB colors
@@ -595,13 +629,13 @@ or `(?<c>\w)\g{c}`.
     >     When values are all same in 24bit or 12bit RGB, it is converted to 24
     >     grey level, otherwise 6x6x6 216 color.
 
-    or color names enclosed by angle bracket :
+    or color names enclosed by angle bracket:
 
         <red> <blue> <green> <cyan> <magenta> <yellow>
         <aliceblue> <honeydue> <hotpink> <mooccasin>
         <medium_aqua_marine>
 
-    with other special effects :
+    with other special effects:
 
         Z  0 Zero (reset)
         D  1 Double-struck (boldface)
@@ -618,10 +652,10 @@ or `(?<c>\w)\g{c}`.
         ;  No effect
         X  No effect
 
-    If the spec includes `/`, left side is considered to be as foreground
-    color and right side as background.  If multiple colors are given in
-    same spec, all indicators are produced in the order of their presence.
-    As a result, the last one takes effect.
+    If the spec includes `/`, left side is considered as foreground color
+    and right side as background.  If multiple colors are given in same
+    spec, all indicators are produced in the order of their presence.  As
+    a result, the last one takes effect.
 
     Effect characters are case insensitive, and can be found anywhere and
     in any order in color spec string.  Because `X` and `;` takes no
@@ -730,6 +764,11 @@ or `(?<c>\w)\g{c}`.
     - R (Random)
 
         Apply random color.
+
+    - N (Normal)
+
+        Reset to normal behavior.  Because the last option takes effect,
+        **--ci=N** can be used to reset the behavior set by previous options.
 
 - **--random**
 
@@ -1030,29 +1069,9 @@ or `(?<c>\w)\g{c}`.
 
     Specify user defined function executed before data print.  Text to be
     printed is replaced by the result of the function.  Arbitrary function
-    can be defined in `.greplerc` file.  Matched data is placed in
-    variable `$_`.  Other information is passed by key-value pair in the
-    arguments.  Filename is passed by `&FILELABEL` key, as described
-    later.  Matched information is passed by `matched` key, in the form
-    of perl array reference: `[[start,end],[start,end]...]`.
-
-    Simplest function is **--print**='_sub{$\_}_'.  Coloring capability can
-    be used like this:
-
-        # ~/.greplerc
-        __PERL__
-        sub print_simple {
-            my %attr = @_;
-            for my $r (reverse @{$attr{matched}}) {
-                my($s, $e) = @$r;
-                substr($_, $s, $e - $s, main::color('B', substr($_, $s, $e - $s)));
-            }
-            $_;
-        }
-
-    Then, you can use this function in the command line.
-
-        greple --print=print_simple ...
+    can be defined in `.greplerc` file or module.  Matched data is placed
+    in variable `$_`.  Filename is passed by `&FILELABEL` key, as
+    described later.
 
     It is possible to use multiple **--print** options.  In that case,
     second function will get the result of the first function.  The
@@ -1064,6 +1083,14 @@ or `(?<c>\w)\g{c}`.
     result returned from print function and finish the cycle.  Option
     **--continue** forces to continue normal printing process after print
     function called.  So please be sure that all data being consistent.
+
+- **--callback**=_function_(_..._)
+
+    Callback function is called before printing every matched pattern with
+    four labeled parameters: **start**, **end**, **index** and **match**,
+    which corresponds to start and end position in the text, pattern
+    index, and the matched string.  Matched string in the text is replaced
+    by returned string from the funciton.
 
 - **--begin**=_function_(_..._)
 - **--begin**=_function_=_..._
@@ -1146,12 +1173,12 @@ interpreted as a bare word.
 
         greple -Mmodule --usage=expand
 
-- **--man**
+- **--man**, **--doc**
 
     Show manual page.
     Display module's manual page when used with **-M** option.
 
-- **--show**
+- **--show**, **--less**
 
     Show module file contents.  Use with **-M** option.
 
@@ -1197,10 +1224,10 @@ interpreted as a bare word.
 
         greple -o --re '(?a)\w{4,}' --persist --uc /bin/*
 
-    When processing all files as binary data, use **--icode=binary**
+    If you want read all files as binary data, use **--icode=binary**
     instead.
 
-- **-Mdebug**, -**-d**_x_
+- **-Mdebug**, **-d**_x_
 
     Debug option is decribed in [App::Greple::debug](https://metacpan.org/pod/App::Greple::debug) module.
 
