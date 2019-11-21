@@ -139,6 +139,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
   RUNTIME FUNCTION
     --print=func         print function
     --continue           continue after print function
+    --callback=func      callback function for matched string
     --begin=func         call function before search
     --end=func           call function after search
     --prologue=func      call function before command execution
@@ -182,6 +183,7 @@ my @opt_begin;
 my @opt_end;
 my @opt_prologue;
 my @opt_epilogue;
+my @opt_callback;
 my $opt_noif;
 my $opt_all;
 my $opt_blockend;
@@ -293,6 +295,7 @@ my @optargs = (
     'end=s'              => \@opt_end,
     'prologue=s'         => \@opt_prologue,
     'epilogue=s'         => \@opt_epilogue,
+    'callback=s'         => \@opt_callback,
     'clean!'             => \$opt_clean,
     'color=s'            => \$opt_color,
     'colormap|cm=s'      => \@opt_colormap,
@@ -791,6 +794,7 @@ for my $set (
     [ "end"     , \@opt_end     , 0 ],
     [ "prologue", \@opt_prologue, 0 ],
     [ "epilogue", \@opt_epilogue, 0 ],
+    [ "callback", \@opt_callback, 0 ],
     [ "block"   , \@opt_block   , 1 ], # need &
     [ "inside"  , \@opt_inside  , 1 ], # need &
     [ "outside" , \@opt_outside , 1 ], # need &
@@ -1103,6 +1107,7 @@ sub grep_data {
 	strict       => $opt_strict,
 	region_index => $opt_regioncolor,
 	stat         => \%stat,
+	callback     => @opt_callback ? $opt_callback[-1] : undef,
 	)->run;
     my $matched = $grep->matched;
 
@@ -1228,14 +1233,24 @@ sub display_result {
 
 	my $mark = "\001";
 	for my $matched (reverse @$result) {
-	    my($ms, $me, $pi, $code) = @$matched;
-
-	    $ms = max($ms - $block_start, 0);
-	    $me -= $block_start;
+	    my($start, $end, $pi, $callback) = @$matched;
+	    my $ms = max($start - $block_start, 0);
+	    my $me = $end - $block_start;
 	    my $s = substr($block, $ms, $me - $ms);
 
-	    if (ref $code eq 'CODE') {
-		$s = $code->($ms, $me, $pi, $s);
+	    ## run callback function
+	    if ($callback) {
+		if (ref $callback eq 'CODE') {
+		    $s = $callback->($start, $end, $pi, $s);
+		}
+		elsif (callable $callback) {
+		    $s = $callback->call(
+			&FILELABEL => $file,
+			start => $start,
+			end   => $end,
+			index => $pi,
+			match => $s);
+		}
 	    }
 
 	    if ($opt_join) {
@@ -2382,6 +2397,14 @@ When B<--print> option is given, B<greple> will immediately print the
 result returned from print function and finish the cycle.  Option
 B<--continue> forces to continue normal printing process after print
 function called.  So please be sure that all data being consistent.
+
+=item B<--callback>=I<function>(I<...>)
+
+Callback function is called before printing every matched pattern with
+four labeled parameters: B<start>, B<end>, B<index> and B<match>,
+which corresponds to start and end position in the text, pattern
+index, and the matched string.  Matched string in the text is replaced
+by returned string from the funciton.
 
 =item B<--begin>=I<function>(I<...>)
 

@@ -100,7 +100,10 @@ sub prepare {
 	    else {
 		$self->{stat}->{match_negative} += @p;
 	    }
-	    map { push @$_, $i } @p;
+	    map { $_->[2] //= $i } @p;
+	    if (my $callback = $self->{callback}) {
+		map { $_->[3] //= $callback } @p;
+	    }
 	}
 	push @result, \@p;
     }
