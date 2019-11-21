@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.37 2019-11-21T06:59:34Z
+
+    - Make --print function not to receive region information.
+    - Implement --callback option.
+    - Describe --ci=N can reset the behavior.
+
 8.36 2019-11-15T03:33:37Z
 
     - Implement call-back function returned by --le &funciton.

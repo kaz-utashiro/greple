@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.36
+Version 8.37
 
 # SYNOPSIS
 
@@ -78,6 +78,7 @@ Version 8.36
     RUNTIME FUNCTION
       --print=func         print function
       --continue           continue after print function
+      --callback=func      callback function for matched string
       --begin=func         call function before search
       --end=func           call function after search
       --prologue=func      call function before command execution
@@ -764,6 +765,11 @@ or `(?<c>\w)\g{c}`.
 
         Apply random color.
 
+    - N (Normal)
+
+        Reset to normal behavior.  Because the last option takes effect,
+        **--ci=N** can be used to reset the behavior set by previous options.
+
 - **--random**
 
     Shortcut for **--colorindex=R**.
@@ -1063,29 +1069,9 @@ or `(?<c>\w)\g{c}`.
 
     Specify user defined function executed before data print.  Text to be
     printed is replaced by the result of the function.  Arbitrary function
-    can be defined in `.greplerc` file.  Matched data is placed in
-    variable `$_`.  Other information is passed by key-value pair in the
-    arguments.  Filename is passed by `&FILELABEL` key, as described
-    later.  Matched information is passed by `matched` key, in the form
-    of perl array reference: `[[start,end],[start,end]...]`.
-
-    Simplest function is **--print**='_sub{$\_}_'.  Coloring capability can
-    be used like this:
-
-        # ~/.greplerc
-        __PERL__
-        sub print_simple {
-            my %attr = @_;
-            for my $r (reverse @{$attr{matched}}) {
-                my($s, $e) = @$r;
-                substr($_, $s, $e - $s, main::color('B', substr($_, $s, $e - $s)));
-            }
-            $_;
-        }
-
-    Then, you can use this function in the command line.
-
-        greple --print=print_simple ...
+    can be defined in `.greplerc` file or module.  Matched data is placed
+    in variable `$_`.  Filename is passed by `&FILELABEL` key, as
+    described later.
 
     It is possible to use multiple **--print** options.  In that case,
     second function will get the result of the first function.  The
@@ -1097,6 +1083,14 @@ or `(?<c>\w)\g{c}`.
     result returned from print function and finish the cycle.  Option
     **--continue** forces to continue normal printing process after print
     function called.  So please be sure that all data being consistent.
+
+- **--callback**=_function_(_..._)
+
+    Callback function is called before printing every matched pattern with
+    four labeled parameters: **start**, **end**, **index** and **match**,
+    which corresponds to start and end position in the text, pattern
+    index, and the matched string.  Matched string in the text is replaced
+    by returned string from the funciton.
 
 - **--begin**=_function_(_..._)
 - **--begin**=_function_=_..._
