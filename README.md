@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.37
+Version 8.38
 
 # SYNOPSIS
 
@@ -406,7 +406,7 @@ or `(?<c>\w)\g{c}`.
 
         greple -f pattern_file --select 1,5:7
 
-    See **-Msubst** module.
+    See [App::Greple::subst](https://metacpan.org/pod/App::Greple::subst) module.
 
 - **--select**=_index_
 

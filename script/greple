@@ -63,7 +63,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.37
+Version 8.38
 
 
 =head1 SYNOPSIS
@@ -1631,7 +1631,7 @@ specified by B<--select> option.  Next two commands are equivalent.
 
     greple -f pattern_file --select 1,5:7
 
-See B<-Msubst> module.
+See L<App::Greple::subst> module.
 
 =item B<--select>=I<index>
 

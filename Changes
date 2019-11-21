@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.38 2019-11-21T07:11:46Z
+
+    - Remove -Msubst module.
+
 8.37 2019-11-21T06:59:34Z
 
     - Make --print function not to receive region information.
