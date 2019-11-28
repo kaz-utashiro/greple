@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3801 2019-11-28T10:25:51Z
+
+    - Make --no-regioncolor to cancel default automatic action.
+
 8.38 2019-11-21T07:11:46Z
 
     - Remove -Msubst module.
