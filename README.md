@@ -93,6 +93,14 @@ Version 8.3801
       --persist            continue even after encoding error
       -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
+# INSTALL
+
+## CPANMINUS
+
+    $ cpanm App::Greple
+    or
+    $ curl -sL http://cpanmin.us | perl - App::Greple
+
 # DESCRIPTION
 
 ## MULTIPLE KEYWORDS

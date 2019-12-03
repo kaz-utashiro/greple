@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.38
+Version 8.3801
 
 # SYNOPSIS
 
@@ -92,6 +92,14 @@ Version 8.38
       --conceal=type       conceal run time errors
       --persist            continue even after encoding error
       -d flags             display info (f:file d:dir c:color m:misc s:stat)
+
+# INSTALL
+
+## CPANMINUS
+
+    $ cpanm App::Greple
+    or
+    $ curl -sL http://cpanmin.us | perl - App::Greple
 
 # DESCRIPTION
 
@@ -789,8 +797,8 @@ or `(?<c>\w)\g{c}`.
     Use different colors for each **--inside**/**outside** regions.
 
     Disabled by default, but automatically enabled when only single search
-    pattern is specified.  Because there is no way to explicitly disable
-    this action, use **--nocolorful** option to use single color.
+    pattern is specified.  Use **--no-regioncolor** to cancel automatic
+    action.
 
 - **--\[no\]uniqcolor**, **--\[no\]uc**
 

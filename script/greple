@@ -1302,6 +1302,15 @@ sub display_result {
 __END__
 
 
+=head1 INSTALL
+
+=head2 CPANMINUS
+
+    $ cpanm App::Greple
+    or
+    $ curl -sL http://cpanmin.us | perl - App::Greple
+
+
 =head1 DESCRIPTION
 
 
