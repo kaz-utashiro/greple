@@ -450,7 +450,7 @@ if ($opt_man or $opt_show or $opt_path) {
 	if ($opt_man) {
 	    exec "$perldoc $module" or die $!;
 	} else {
-	    my $file = `$perldoc -ml $module`;
+	    chomp(my $file = `$perldoc -ml $module`);
 	    if ($opt_path) {
 		say $file;
 	    } else {
