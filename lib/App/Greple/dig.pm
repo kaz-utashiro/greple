@@ -49,10 +49,10 @@ option --dig -Mfind \
 	( \
 		(#repository) -prune -o \
 		-type f \
-		(#no_dots) \
-		(#no_version) (#no_backup) \
-		(#no_image) \
-		(#no_archive) \
-		(#no_pdf) \
 	) \
+	(#no_dots) \
+	(#no_version) (#no_backup) \
+	(#no_image) \
+	(#no_archive) \
+	(#no_pdf) \
 	-print --
