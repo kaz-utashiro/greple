@@ -659,14 +659,14 @@ my $color_handler = Getopt::EX::Colormap
 my @default_color =
     $opt_ansicolor eq '16'
     ? qw(RD GD BD CD MD YD)
-    : qw(DK/544 DK/454 DK/445
-	 DK/455 DK/545 DK/554
-	 DK/543 DK/453 DK/435
-	 DK/534 DK/354 DK/345
-	 DK/444
-	 DK/433 DK/343 DK/334
-	 DK/344 DK/434 DK/443
-	 DK/333)
+    : qw(000D/544 000D/454 000D/445
+	 000D/455 000D/545 000D/554
+	 000D/543 000D/453 000D/435
+	 000D/534 000D/354 000D/345
+	 000D/444
+	 000D/433 000D/343 000D/334
+	 000D/344 000D/434 000D/443
+	 000D/333)
     ;
 
 if ($color_handler->list == 0) {
