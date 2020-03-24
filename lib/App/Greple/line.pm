@@ -74,7 +74,10 @@ every 10 lines.
 
     greple -Mline -L ::10:3
 
-When step count is omitted, forth value is used if available.
+When step count is omitted, forth value is used if available.  Next
+command print every 10 lines in different colors.
+
+    greple -Mline -L :::10 --ci=A /etc/services
 
 =item B<L>=I<line numbers>
 
@@ -154,4 +157,4 @@ option L &line=$<shift>
 help   L Region spec by line number
 
 option -L --le L=$<shift>
-help   -L Line number (1 10,20-30,40 -100 500- 1:1000:100 1::2)
+help   -L Line number (1 10,20:30,40 -100 500: 1:1000:100 1::2)
