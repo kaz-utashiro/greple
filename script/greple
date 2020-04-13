@@ -163,7 +163,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
 =cut
 
 my $rcloader = new Getopt::EX::Loader
-    BASECLASS => 'App::Greple';
+    BASECLASS => [ 'App::Greple', 'Getopt::EX' ];
 
 my @opt_e;
 my @opt_v;
