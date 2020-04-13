@@ -2,6 +2,16 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.39 2020-04-13T09:27:49Z
+
+    - Add Getopt::EX in BASECLASS.
+    - Update document in line.pm.
+    - Update dig.pm.
+    - Hack to print utf8 string in debug print.
+    - Use 000 for default foreground color rather than K.
+    - Option --path produced extra newline (fixed).
+    - Add manual section for installation.
+
 8.3801 2019-11-28T10:25:51Z
 
     - Make --no-regioncolor to cancel default automatic action.
