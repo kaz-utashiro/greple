@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3901 2020-04-26T07:45:17Z
+
+    - Fix --select bug.
+
 8.39 2020-04-13T09:27:49Z
 
     - Add Getopt::EX in BASECLASS.

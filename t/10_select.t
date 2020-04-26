@@ -20,4 +20,11 @@ like(greple(q(-f t/JA.txt --select 1,3:5 t/JA.txt))->result,
 like(greple(q(-f t/JA.txt[1,3:5] t/JA.txt))->result,
      qr/\A(?:.*\n){4}\z/, "-f and --select 1,3:5");
 
+
+like(greple(q(-f t/JA.txt --select :5 t/JA.txt))->result,
+     qr/\A(?:.*\n){5}\z/, "-f and --select :5");
+
+like(greple(q(-f t/JA.txt --select 5: t/JA.txt))->result,
+     qr/\A(?:.*\n){8}\z/, "-f and --select 5:");
+
 done_testing;

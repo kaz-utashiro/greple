@@ -69,7 +69,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.39
+Version 8.3901
 
 
 =head1 SYNOPSIS
@@ -508,8 +508,6 @@ my $pat_holder = new App::Greple::Pattern::Holder;
 
 my $FLAG_BASE = FLAG_NONE;
 $FLAG_BASE |= FLAG_IGNORECASE if $opt_i;
-
-use Getopt::EX::Numbers;
 
 if (@opt_f) {
     for my $opt_f (@opt_f) {

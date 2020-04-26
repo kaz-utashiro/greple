@@ -129,7 +129,7 @@ sub load_file {
 	};
 	close $fh;
 	if ($select //= $arg->{select}) {
-	    my $numbers = new Getopt::EX::Numbers max => 0+@p;
+	    my $numbers = new Getopt::EX::Numbers min => 1, max => 0+@p;
 	    my @select = do {
 		map  { $_ - 1 }
 		sort { $a <=> $b }
