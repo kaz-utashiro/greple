@@ -69,7 +69,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.3901
+Version 8.3902
 
 
 =head1 SYNOPSIS
@@ -162,8 +162,9 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
 
 =cut
 
+my @baseclass = qw( App::Greple Getopt::EX );
 my $rcloader = new Getopt::EX::Loader
-    BASECLASS => [ 'App::Greple', 'Getopt::EX' ];
+    BASECLASS => \@baseclass;
 
 my @opt_e;
 my @opt_v;
@@ -452,16 +453,20 @@ if ($opt_man or $opt_show or $opt_path) {
 	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
 	my $perldoc = $jp ? "perldocjp" : "perldoc";
 	$ENV{PERL5LIB} = join ':', @INC;
-	my $module = "App::Greple::$mod";
-	if ($opt_man) {
-	    exec "$perldoc $module" or die $!;
-	} else {
-	    chomp(my $file = `$perldoc -ml $module`);
-	    if ($opt_path) {
-		say $file;
+	for my $base (@baseclass) {
+	    my $module = "$base\::$mod";
+	    my $file = $module =~ s[::][/]gr . '.pm';
+	    next unless $INC{$file};
+	    if ($opt_man) {
+		exec "$perldoc $module" or die $!;
 	    } else {
-		my $pager = $ENV{PAGER} || 'less';
-		exec "$pager $file" or die $!;
+		chomp(my $file = `$perldoc -ml $module`);
+		if ($opt_path) {
+		    say $file;
+		} else {
+		    my $pager = $ENV{PAGER} || 'less';
+		    exec "$pager $file" or die $!;
+		}
 	    }
 	}
 	exit;

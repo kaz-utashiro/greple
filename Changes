@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.3902 2020-04-27T04:04:40Z
+
+    - Use Getopt::EX BASECLASS to search module document.
+
 8.3901 2020-04-26T07:45:17Z
 
     - Fix --select bug.
