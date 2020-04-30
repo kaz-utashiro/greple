@@ -1,6 +1,6 @@
 requires 'perl', 'v5.14';
 
-requires 'Getopt::EX', 'v1.15.0';
+requires 'Getopt::EX', 'v1.17.0';
 requires 'List::Util', '1.45';
 requires 'List::BinarySearch';
 

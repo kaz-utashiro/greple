@@ -21,7 +21,7 @@ of the file:
     greple -Mline -L 200 -C10 file
 
 If you don't like lines displayed with color, use B<--nocolor> option
-or set colormap to something do nothing like B<--cm=x>.
+or set colormap to something do nothing like B<--cm=N>.
 
 Multiple lines can be specified by joining with comma:
 
