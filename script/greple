@@ -1914,7 +1914,7 @@ with other special effects:
     Q  6 Quick (blink: rapid)
     S  7 Stand-out (reverse video)
     V  8 Vanish (concealed)
-    J  9 Junk (crossed out)
+    X  9 Crossed out
     E    Erase Line
 
     ;  No effect
@@ -1926,8 +1926,8 @@ spec, all indicators are produced in the order of their presence.  As
 a result, the last one takes effect.
 
 Effect characters are case insensitive, and can be found anywhere and
-in any order in color spec string.  Because C<X> and C<;> takes no
-effect, you can use them to improve readability, like C<SxD;K/544>.
+in any order in color spec string.  Character C<;> does nothing and
+can be used just for readability, like C<SD;K/544>.
 
 Example:
 

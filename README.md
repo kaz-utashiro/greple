@@ -654,7 +654,7 @@ or `(?<c>\w)\g{c}`.
         Q  6 Quick (blink: rapid)
         S  7 Stand-out (reverse video)
         V  8 Vanish (concealed)
-        J  9 Junk (crossed out)
+        X  9 Crossed out
         E    Erase Line
 
         ;  No effect
@@ -666,8 +666,8 @@ or `(?<c>\w)\g{c}`.
     a result, the last one takes effect.
 
     Effect characters are case insensitive, and can be found anywhere and
-    in any order in color spec string.  Because `X` and `;` takes no
-    effect, you can use them to improve readability, like `SxD;K/544`.
+    in any order in color spec string.  Character `;` does nothing and
+    can be used just for readability, like `SD;K/544`.
 
     Example:
 

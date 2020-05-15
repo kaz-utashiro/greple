@@ -99,7 +99,7 @@ option --doc     --inside :doc
 option --allpart --pod --comment --code --data
 
 option	--cd \
-	--le '&part(code)'    --cm=X \
+	--le '&part(code)'    --cm=N \
 	--le '&part(comment)' --cm=R \
 	--le '&part(pod)'     --cm=G \
 	--le '&part(data)'    --cm=B \
