@@ -94,8 +94,10 @@ sub lexical_opt {
 	elsif (s/^-//) {				# -pattern
 	    $flag |= FLAG_REGEX | FLAG_NEGATIVE;
 	}
-	elsif (s/^\&//) {				# &func(...)
+	elsif (s/^\&(?<mod>[-+]?)//) {			# &func(...)
 	    $flag |= FLAG_FUNCTION;
+	    $flag |= FLAG_REQUIRED if $+{mod} eq '+';
+	    $flag |= FLAG_NEGATIVE if $+{mod} eq '-';
 	}
 	else {						# else
 	    $flag |= FLAG_REGEX;

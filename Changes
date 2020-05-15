@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.40 2020-05-15T15:35:27Z
+
+    - Add "--le &+sub" notation for required function pattern.
+
 8.3902 2020-04-27T04:04:40Z
 
     - Use Getopt::EX BASECLASS to search module document.

@@ -69,7 +69,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.3902
+Version 8.40
 
 
 =head1 SYNOPSIS
@@ -1524,7 +1524,7 @@ This is the summary of start character for B<--le> option:
     ?  Alternative pattern
     &  Function call (see next section)
 
-=item B<--le>=B<&>I<function>
+=item B<--le>=B<&>[B<+>]I<function>
 
 If the pattern start with ampersand (`&'), it is treated as a
 function, and the function is called instead of searching pattern.
@@ -1535,6 +1535,9 @@ which is described in this manual later, you can print odd number
 lines like this:
 
     greple -n '&odd_line' file
+
+If the starting ampersand is followed by plus (C<+>) mark, the
+matching is treated as required pattern.
 
 This version experimentally support callback function for each
 pattern.  Region list returned by function can have two extra element

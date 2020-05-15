@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.3902
+Version 8.40
 
 # SYNOPSIS
 
@@ -290,7 +290,7 @@ or `(?<c>\w)\g{c}`.
         ?  Alternative pattern
         &  Function call (see next section)
 
-- **--le**=**&**_function_
+- **--le**=**&**\[**+**\]_function_
 
     If the pattern start with ampersand (\`&'), it is treated as a
     function, and the function is called instead of searching pattern.
@@ -301,6 +301,9 @@ or `(?<c>\w)\g{c}`.
     lines like this:
 
         greple -n '&odd_line' file
+
+    If the starting ampersand is followed by plus (`+`) mark, the
+    matching is treated as required pattern.
 
     This version experimentally support callback function for each
     pattern.  Region list returned by function can have two extra element
