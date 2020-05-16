@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.4001 2020-05-16T03:15:19Z
+
+    - Change required function notation to "--le +&sub".
+
 8.40 2020-05-15T15:35:27Z
 
     - Add "--le &+sub" notation for required function pattern.

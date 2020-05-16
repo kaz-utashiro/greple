@@ -88,18 +88,18 @@ sub lexical_opt {
 	    push @or, $_;
 	    next;
 	}
-	elsif (s/^\+//) {				# +pattern
-	    $flag |= FLAG_REGEX | FLAG_REQUIRED;
+
+	if (s/^\+//) {					# +pattern
+	    $flag |= FLAG_REQUIRED;
 	}
 	elsif (s/^-//) {				# -pattern
-	    $flag |= FLAG_REGEX | FLAG_NEGATIVE;
+	    $flag |= FLAG_NEGATIVE;
 	}
-	elsif (s/^\&(?<mod>[-+]?)//) {			# &func(...)
+
+	if (s/^\&//) {					# &func(...)
 	    $flag |= FLAG_FUNCTION;
-	    $flag |= FLAG_REQUIRED if $+{mod} eq '+';
-	    $flag |= FLAG_NEGATIVE if $+{mod} eq '-';
 	}
-	else {						# else
+	else {
 	    $flag |= FLAG_REGEX;
 	}
 
