@@ -240,7 +240,7 @@ simple as this:
 
     greple -Mdig pattern --dig .
 
-but this command finally translated into following option list.
+but this command is finally translated into following option list.
 
     greple -Mfind . ( -name .git -o -name .svn -o -name RCS ) -prune -o 
         -type f ! -name .* ! -name *,v ! -name *~ 
@@ -648,6 +648,7 @@ or `(?<c>\w)\g{c}`.
 
     with other special effects:
 
+        N    None
         Z  0 Zero (reset)
         D  1 Double-struck (boldface)
         P  2 Pale (dark)
@@ -660,8 +661,9 @@ or `(?<c>\w)\g{c}`.
         X  9 Crossed out
         E    Erase Line
 
-        ;  No effect
-        X  No effect
+        ;    No effect
+        /    Toggle foreground/background
+        ^    Reset to foreground
 
     If the spec includes `/`, left side is considered as foreground color
     and right side as background.  If multiple colors are given in same
@@ -816,7 +818,7 @@ or `(?<c>\w)\g{c}`.
     When used with option **-i**, color is selected in case-insensitive
     fashion.  If you want case-insensitive match and case-sensitive color
     selection, indicate insensitiveness in the pattern rather than command
-    option (e.g. '_(?i)pattern_').
+    option (e.g. `(?i)pattern`).
 
 - **--face**=\[-+\]_effect_
 
@@ -868,10 +870,10 @@ or `(?<c>\w)\g{c}`.
 - **--border**=_pattern_
 
     Specify record block border pattern.  Default block is a single line
-    and use `(?m)^` as a pattern.  Paragraph mode uses `(?:\A|\R)\K\R+`,
-    which means continuous newlines at the beginning of text or following
-    another newline (`\R` means more general linebreaks including
-    `\r\n`; consult [perlrebackslash](https://metacpan.org/pod/perlrebackslash) for detail).
+    and use `/^/m` as a pattern.  Paragraph mode uses
+    `/(?:\A|\R)\K\R+/`, which means continuous newlines at the beginning
+    of text or following another newline (`\R` means more general
+    linebreaks including `\r\n`; consult [perlrebackslash](https://metacpan.org/pod/perlrebackslash) for detail).
 
     Next command treat the data as a series of 10-line unit.
 
@@ -1466,7 +1468,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 1991-2019 Kazumasa Utashiro
+Copyright 1991-2020 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

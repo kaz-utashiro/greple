@@ -1469,7 +1469,7 @@ simple as this:
 
     greple -Mdig pattern --dig .
 
-but this command finally translated into following option list.
+but this command is finally translated into following option list.
 
     greple -Mfind . ( -name .git -o -name .svn -o -name RCS ) -prune -o 
         -type f ! -name .* ! -name *,v ! -name *~ 
@@ -1908,6 +1908,7 @@ or color names enclosed by angle bracket:
 
 with other special effects:
 
+    N    None
     Z  0 Zero (reset)
     D  1 Double-struck (boldface)
     P  2 Pale (dark)
@@ -1920,8 +1921,9 @@ with other special effects:
     X  9 Crossed out
     E    Erase Line
 
-    ;  No effect
-    X  No effect
+    ;    No effect
+    /    Toggle foreground/background
+    ^    Reset to foreground
 
 If the spec includes C</>, left side is considered as foreground color
 and right side as background.  If multiple colors are given in same
@@ -2081,7 +2083,7 @@ different colors.
 When used with option B<-i>, color is selected in case-insensitive
 fashion.  If you want case-insensitive match and case-sensitive color
 selection, indicate insensitiveness in the pattern rather than command
-option (e.g. 'I<(?i)pattern>').
+option (e.g. C<(?i)pattern>).
 
 =item B<--face>=[-+]I<effect>
 
@@ -2139,10 +2141,10 @@ identical to following command.
 =item B<--border>=I<pattern>
 
 Specify record block border pattern.  Default block is a single line
-and use C<(?m)^> as a pattern.  Paragraph mode uses C<(?:\A|\R)\K\R+>,
-which means continuous newlines at the beginning of text or following
-another newline (C<\R> means more general linebreaks including
-C<\r\n>; consult L<perlrebackslash> for detail).
+and use C</^/m> as a pattern.  Paragraph mode uses
+C</(?:\A|\R)\K\R+/>, which means continuous newlines at the beginning
+of text or following another newline (C<\R> means more general
+linebreaks including C<\r\n>; consult L<perlrebackslash> for detail).
 
 Next command treat the data as a series of 10-line unit.
 
@@ -2819,7 +2821,7 @@ Kazumasa Utashiro
 
 =head1 LICENSE
 
-Copyright 1991-2019 Kazumasa Utashiro
+Copyright 1991-2020 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
