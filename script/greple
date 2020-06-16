@@ -69,7 +69,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.4001
+Version 8.4002
 
 
 =head1 SYNOPSIS
@@ -1618,6 +1618,9 @@ command.
 
 When the count I<n> is negative value, it is subtracted from default
 value.
+
+If the option B<--need=0> is specified and no pattern was found,
+entier data is printed.  This is true even for required pattern.
 
 =item B<--matchcount>=I<min>[,I<max>], B<--mc>=I<min>[,I<max>]
 

@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.4001
+Version 8.4002
 
 # SYNOPSIS
 
@@ -383,6 +383,9 @@ or `(?<c>\w)\g{c}`.
 
     When the count _n_ is negative value, it is subtracted from default
     value.
+
+    If the option **--need=0** is specified and no pattern was found,
+    entier data is printed.  This is true even for required pattern.
 
 - **--matchcount**=_min_\[,_max_\], **--mc**=_min_\[,_max_\]
 

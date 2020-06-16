@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.4002 2020-06-16T15:46:30Z
+
+    - Now --need 0 compromises even required patterns.
+
 8.4001 2020-05-16T03:15:19Z
 
     - Change required function notation to "--le +&sub".

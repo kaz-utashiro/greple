@@ -90,7 +90,11 @@ sub prepare {
 	};
 	my @p = $func->call(@args, &FILELABEL => $self->{filename});
 	if (@p == 0) {
-	    return $self if $pat->is_required;
+	    ##
+	    ## $self->{need} can be negative value, which means
+	    ## required pattern can be compromised upto that number.
+	    ##
+	    return $self if $pat->is_required and $self->{need} >= 0;
 	} else {
 	    if ($pat->is_positive) {
 		push @blocks, map { [ @$_ ] } @p;
@@ -210,7 +214,7 @@ sub compose {
     ## now it is quite easy to get effective blocks
     ##
     my @effective_index = grep(
-	$mp->[$_][MUST_NEGA] == 0 &&
+	$mp->[$_][MUST_NEGA] <= abs $self->{need} &&
 	$mp->[$_][POSI_POSI] >= $self->{need} &&
 	$mp->[$_][NEGA_POSI] <= $self->{allow},
 	0 .. $#{$bp})
