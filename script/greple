@@ -32,7 +32,7 @@ use Data::Dumper;
 
 ##
 ## Setting utf8 warnings fatal makes it easy to find code conversion
-## error, so you can choose appropreate file code or automatic code
+## error, so you can choose appropriate file code or automatic code
 ## recognition, but loose a chance to find string in unrelated area.
 ##
 use warnings FATAL => 'utf8';
@@ -1620,7 +1620,7 @@ When the count I<n> is negative value, it is subtracted from default
 value.
 
 If the option B<--need=0> is specified and no pattern was found,
-entier data is printed.  This is true even for required pattern.
+entire data is printed.  This is true even for required pattern.
 
 =item B<--matchcount>=I<min>[,I<max>], B<--mc>=I<min>[,I<max>]
 
@@ -1810,7 +1810,7 @@ be displayed.  Default is:
 Format string is passed to C<sprintf> function.  Tab character can be
 expressed as C<\t>.
 
-Next example will show line numebers in five digits with tab space:
+Next example will show line numbers in five digits with tab space:
 
     --format LINE='%05d\t'
 
@@ -1869,7 +1869,7 @@ Option B<--nocolor> is alias for B<--color>=I<never>.
 
 =item B<--colormap>=I<spec>
 
-Specify color map.  Becuase this option is mostly implemented by
+Specify color map.  Because this option is mostly implemented by
 L<Getopt::EX::Colormap> module, consult its document for detail and
 up-to-date specification.
 
@@ -1896,7 +1896,7 @@ or RGB value and 24 grey levels if using ANSI 256 color terminal:
 
 =over 4
 
-Begining # can be omitted in 24bit RGB notation.
+Beginning # can be omitted in 24bit RGB notation.
 
 When values are all same in 24bit or 12bit RGB, it is converted to 24
 grey level, otherwise 6x6x6 216 color.
@@ -2130,7 +2130,7 @@ space characters.  Example:
 It changes the unit of context specified by B<-A>, B<-B>, B<-C>
 options.  Space gap between paragraphs are also treated as block
 unit.  Thus, option B<-pC2> will print with previous and next
-paragraph, while B<-pC1> will print with just sorrounding spaces.
+paragraph, while B<-pC1> will print with just surrounding spaces.
 
 You can create original paragraph pattern by B<--border> option.
 
@@ -2410,7 +2410,7 @@ Callback function is called before printing every matched pattern with
 four labeled parameters: B<start>, B<end>, B<index> and B<match>,
 which corresponds to start and end position in the text, pattern
 index, and the matched string.  Matched string in the text is replaced
-by returned string from the funciton.
+by returned string from the function.
 
 =item B<--begin>=I<function>(I<...>)
 
@@ -2584,7 +2584,7 @@ instead.
 
 =item B<-Mdebug>, B<-d>I<x>
 
-Debug option is decribed in L<App::Greple::debug> module.
+Debug option is described in L<App::Greple::debug> module.
 
 
 =back
@@ -2841,4 +2841,4 @@ it under the same terms as Perl itself.
 #  LocalWords:  ocode gunzip gpg FILELABEL substr eval misc unicode
 #  LocalWords:  GREPLEOPTS shellwords Katakana builtin pgp autoload
 #  LocalWords:  ENV App ARGV mg Kazumasa Utashiro github colorindex
-#  LocalWords:  matchcount
+#  LocalWords:  matchcount gzipped stdin func

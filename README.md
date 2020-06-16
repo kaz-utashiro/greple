@@ -385,7 +385,7 @@ or `(?<c>\w)\g{c}`.
     value.
 
     If the option **--need=0** is specified and no pattern was found,
-    entier data is printed.  This is true even for required pattern.
+    entire data is printed.  This is true even for required pattern.
 
 - **--matchcount**=_min_\[,_max_\], **--mc**=_min_\[,_max_\]
 
@@ -566,7 +566,7 @@ or `(?<c>\w)\g{c}`.
     Format string is passed to `sprintf` function.  Tab character can be
     expressed as `\t`.
 
-    Next example will show line numebers in five digits with tab space:
+    Next example will show line numbers in five digits with tab space:
 
         --format LINE='%05d\t'
 
@@ -613,7 +613,7 @@ or `(?<c>\w)\g{c}`.
 
 - **--colormap**=_spec_
 
-    Specify color map.  Becuase this option is mostly implemented by
+    Specify color map.  Because this option is mostly implemented by
     [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap) module, consult its document for detail and
     up-to-date specification.
 
@@ -638,7 +638,7 @@ or `(?<c>\w)\g{c}`.
         000 .. 555         : 6x6x6 RGB 216 colors
         L00 .. L25         : Black (L00), 24 grey levels, White (L25)
 
-    >     Begining # can be omitted in 24bit RGB notation.
+    >     Beginning # can be omitted in 24bit RGB notation.
     >
     >     When values are all same in 24bit or 12bit RGB, it is converted to 24
     >     grey level, otherwise 6x6x6 216 color.
@@ -859,7 +859,7 @@ or `(?<c>\w)\g{c}`.
     It changes the unit of context specified by **-A**, **-B**, **-C**
     options.  Space gap between paragraphs are also treated as block
     unit.  Thus, option **-pC2** will print with previous and next
-    paragraph, while **-pC1** will print with just sorrounding spaces.
+    paragraph, while **-pC1** will print with just surrounding spaces.
 
     You can create original paragraph pattern by **--border** option.
 
@@ -1106,7 +1106,7 @@ or `(?<c>\w)\g{c}`.
     four labeled parameters: **start**, **end**, **index** and **match**,
     which corresponds to start and end position in the text, pattern
     index, and the matched string.  Matched string in the text is replaced
-    by returned string from the funciton.
+    by returned string from the function.
 
 - **--begin**=_function_(_..._)
 - **--begin**=_function_=_..._
@@ -1245,7 +1245,7 @@ interpreted as a bare word.
 
 - **-Mdebug**, **-d**_x_
 
-    Debug option is decribed in [App::Greple::debug](https://metacpan.org/pod/App::Greple::debug) module.
+    Debug option is described in [App::Greple::debug](https://metacpan.org/pod/App::Greple::debug) module.
 
 # ENVIRONMENT and STARTUP FILE
 
