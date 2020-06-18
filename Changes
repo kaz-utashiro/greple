@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.4003 2020-06-18T15:45:23Z
+
+    - Don't print blockend mark with --all option.
+
 8.4002 2020-06-16T15:46:30Z
 
     - Now --need 0 compromises even required patterns.

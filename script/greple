@@ -69,7 +69,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.4002
+Version 8.4003
 
 
 =head1 SYNOPSIS
@@ -1177,7 +1177,9 @@ sub display_result {
 	print $_file->($file), "\n";
     }
 
-    my $need_blockend = $blockend ne '' &&
+    my $need_blockend =
+	!$opt_all &&
+	$blockend ne '' &&
 	($opt_blockend || $opt_p || $opt_A || $opt_B || @opt_block);
 
     # --colorindex
