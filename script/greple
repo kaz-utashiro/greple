@@ -646,6 +646,8 @@ if ((@ARGV > 1 or $opt_readlist) and not $opt_h) {
     $need_filename++;
 }
 
+$opt_filestyle = 'none' if not $need_filename;
+
 $opt_join = 1 if $opt_joinby ne "";
 
 ##------------------------------------------------------------
@@ -1173,7 +1175,7 @@ sub display_result {
     my $grep = shift;
     my $file = $grep->{filename};
 
-    if ($need_filename and $opt_filestyle eq 'once') {
+    if ($opt_filestyle eq 'once') {
 	print $_file->($file), "\n";
     }
 
@@ -1227,7 +1229,7 @@ sub display_result {
 	grep { $_ }
 	do {
 	    print $_file->($current_file)
-		if $need_filename and $opt_filestyle eq 'separate';
+		if $opt_filestyle eq 'separate';
 	},
 	do {
 	    print $_line->($line)
@@ -1296,7 +1298,7 @@ sub display_result {
 
 	return if $block eq "";
 
-	if ($need_filename and $opt_filestyle eq 'line') {
+	if ($opt_filestyle eq 'line') {
 	    my $s = $_file->($file);
 	    $block =~ s/^/$s/mg;
 	}
