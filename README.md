@@ -105,32 +105,32 @@ Version 8.4003
 
 ## MULTIPLE KEYWORDS
 
-**greple** has almost the same function as Unix command [egrep(1)](http://man.he.net/man1/egrep) but
-the search is done in a manner similar to Internet search engine.
-For example, next command print lines those contain all of \`foo' and
-bar' and \`baz'.
+**greple** has almost same function as Unix command [egrep(1)](http://man.he.net/man1/egrep) but
+search is done in a manner similar to Internet search engine.  For
+example, next command print lines those contain all of \`foo' and bar'
+and \`baz'.
 
     greple 'foo bar baz' ...
 
-Each word can be found in any order and/or any place in the string.
-So this command find all of following texts.
+Each word can appear in any order and/or any place in the string.  So
+this command find all of following texts.
 
     foo bar baz
     baz bar foo
     the foo, bar and baz
 
-If you want to use OR syntax, prepend question (\`?') mark on each
+If you want to use OR syntax, prepend question mark (\`?') on each
 token, or use regular expression.
 
     greple 'foo bar baz ?yabba ?dabba ?doo'
     greple 'foo bar baz yabba|dabba|doo'
 
-This command will print the line which contains all of \`foo', \`bar'
-and \`baz' and one or more of \`yabba', \`dabba' or \`doo'.
+This command will print lines those contains all of \`foo', \`bar' and
+\`baz' and one or more of \`yabba', \`dabba' or \`doo'.
 
-NOT operator can be specified by prefixing the token by minus (\`-')
-sign.  Next example will show the line which contain both \`foo' and
-bar' but none of \`yabba' or \`dabba' or \`doo'.
+NOT operator can be specified by prefixing the token by minus sign
+(\`-').  Next example will show lines those contain both \`foo' and bar'
+but none of \`yabba', \`dabba' or \`doo'.
 
     greple 'foo bar -yabba -dabba -doo'
 
@@ -147,8 +147,8 @@ number of required patterns.  So
 
 commands implicitly set the option `--need 1`, and consequently print
 all lines including \`foo'.  In other words, it makes other patterns
-optional.  If you want to search lines which includes either or both
-of \`bar' and \`baz', use like this:
+optional.  If you want to search lines which includes \`foo' and either
+or both of \`bar' and \`baz', use like this:
 
     greple '+foo bar baz' --need 2
     greple '+foo bar baz' --need +1
@@ -167,7 +167,7 @@ find files which contains these strings, and print the all contents.
 
     greple --all 'foo bar baz'
 
-Block also can be defined as pattern.  Next command search and print
+Block also can be defined as a pattern.  Next command search and print
 mail header, ignoring mail body text.
 
     greple --block '\A(.+\n)+'
@@ -179,9 +179,10 @@ You can also define arbitrary complex blocks by writing script.
 ## MATCH AREA CONTROL
 
 Using option **--inside** and **--outside**, you can specify text area
-the match should be occurred.  Next commands search only in mail header
-and body area respectively.  In these case, data block is not changed,
-then print lines which contains the pattern in the specified area.
+where the match should be occurred.  Next commands search only in mail
+header and body area respectively.  In these cases, data block is not
+changed, so print lines which contains the pattern in the specified
+area.
 
     greple --inside '\A(.+\n)+' pattern
 
@@ -196,10 +197,11 @@ region can be used.
 
 ## LINE ACROSS MATCH
 
-**greple** search the pattern across the line boundaries.  This is
+**greple** search a given pattern across line boundaries.  This is
 especially useful to handle Asian multi-byte text, more specifically
 Japanese.  Japanese text can be separated by newline almost any place
-in the text.  So the search pattern may spread out on multiple lines.
+in the text.  So the search pattern may spread out onto multiple
+lines.
 
 As for ascii word list, space character in the pattern matches any
 kind of space including newline.  Next example will search the word
@@ -214,7 +216,7 @@ in the bare or **--le** pattern.
 ## MODULE AND CUSTOMIZATION
 
 User can define default and original options in `~/.greplerc`.  Next
-example enables color output always, and define new option using
+example enables colored output always, and define new option using
 macro processing.
 
     option default --color=always
@@ -235,7 +237,7 @@ like this:
 
     greple -Mfind . -type f -- pattern
 
-Also **dig** module implements more complex search.  It can be used
+Also **dig** module implements more complex search.  It can be used as
 simple as this:
 
     greple -Mdig pattern --dig .
