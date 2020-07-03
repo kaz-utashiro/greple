@@ -25,7 +25,7 @@ Sample module for B<greple> command supporting perl script.
 
 package App::Greple::perl;
 
-use strict;
+use v5.14;
 use warnings;
 use Carp;
 use App::Greple::Common;

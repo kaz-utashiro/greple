@@ -1,6 +1,6 @@
 package App::Greple::Grep;
 
-use strict;
+use v5.14;
 use warnings;
 
 use Exporter 'import';
@@ -85,7 +85,7 @@ sub prepare {
 	    if ($pat->is_function) {
 		$pat->function;
 	    } else {
-		new Getopt::EX::Func \&match_regions, pattern => $pat->regex;
+		Getopt::EX::Func->new(\&match_regions, pattern => $pat->regex);
 	    }
 	};
 	my @p = $func->call(@args, &FILELABEL => $self->{filename});

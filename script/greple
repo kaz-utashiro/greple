@@ -5,10 +5,8 @@
 ## Since Mar 29 1991
 ##
 
-use strict;
-use warnings;
-
 use v5.14;
+use warnings;
 
 use File::stat;
 use IO::Handle;
@@ -163,8 +161,8 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
 =cut
 
 my @baseclass = qw( App::Greple Getopt::EX );
-my $rcloader = new Getopt::EX::Loader
-    BASECLASS => \@baseclass;
+my $rcloader = Getopt::EX::Loader
+    ->new(BASECLASS => \@baseclass);
 
 my @opt_e;
 my @opt_v;
@@ -376,8 +374,9 @@ sub setopt {
 ##
 
 require Getopt::Long;
-my $parser = new Getopt::Long::Parser
-    config => [ qw(bundling no_getopt_compat no_ignore_case) ] ;
+my $parser = Getopt::Long::Parser->new(
+    config => [ qw(bundling no_getopt_compat no_ignore_case) ],
+    );
 sub configure_getopt { $parser->configure(@_) }
 
 configure_getopt qw(debug) if $ENV{DEBUG_GETOPT};
@@ -509,7 +508,7 @@ else {
 ## Patterns
 ##
 
-my $pat_holder = new App::Greple::Pattern::Holder;
+my $pat_holder = App::Greple::Pattern::Holder->new;
 
 my $FLAG_BASE = FLAG_NONE;
 $FLAG_BASE |= FLAG_IGNORECASE if $opt_i;
@@ -608,7 +607,7 @@ my $count_match_sub = sub {
 ##
 ## setup input/output filter
 ##
-my $filter_d = new App::Greple::Filter;
+my $filter_d = App::Greple::Filter->new;
 $filter_d->parse(@opt_if);
 unless ($opt_noif) {
     $filter_d->append(
@@ -751,9 +750,10 @@ sub color {
     $color_handler->color(@_);
 }
 
-my $uniq_color = new UniqIndex
+my $uniq_color = UniqIndex->new(
     ignore_newline => 1,
-    ignore_case => $opt_i;
+    ignore_case => $opt_i,
+    );
 
 sub dump_uniqcolor {
     my $list  = $uniq_color->list;
@@ -820,7 +820,7 @@ for my $set (
     }
 }
 
-my $regions = new App::Greple::Regions::Holder;
+my $regions = App::Greple::Regions::Holder->new;
 for my $set (
     [ \@opt_inside,  REGION_INSIDE  | REGION_UNION     ],
     [ \@opt_outside, REGION_OUTSIDE | REGION_UNION     ],
@@ -1100,7 +1100,7 @@ sub grep_data {
 	$f->call(&FILELABEL => $current_file);
     }
 
-    my $grep = new App::Greple::Grep (
+    my $grep = App::Greple::Grep->new(
 	text         => \$_,
 	filename     => $current_file,
 	pattern      => $pat_holder,
@@ -1189,14 +1189,15 @@ sub display_result {
 	my %ci = map { uc $_ => 1 } $opt_colorindex =~ /\w/g;
 	if ($ci{A} or $ci{D}) {
 	    my $i = 0;
-	    new Indexer
+	    Indexer->new(
 		index   => sub { $i++   },
 		reset   => sub { $i = 0 },
 		block   => $ci{B},
-		reverse => $ci{D};
+		reverse => $ci{D},
+		);
 	}
 	elsif ($ci{R}) {
-	    new Indexer index => sub { int rand @colors };
+	    Indexer->new(index => sub { int rand @colors });
 	}
 	else { undef }
     };

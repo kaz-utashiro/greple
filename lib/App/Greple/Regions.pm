@@ -1,6 +1,6 @@
 package App::Greple::Regions;
 
-use strict;
+use v5.14;
 use warnings;
 use Carp;
 use Data::Dumper;

@@ -27,7 +27,7 @@ recommended to use.
 
 package App::Greple::pgp;
 
-use strict;
+use v5.14;
 use warnings;
 use Carp;
 
@@ -37,7 +37,7 @@ my  $pgp;
 our $opt_pgppass;
 
 sub activate {
-    ($pgp = new App::Greple::PgpDecryptor)
+    ($pgp = App::Greple::PgpDecryptor->new)
 	->initialize({passphrase => $opt_pgppass});
 }
 

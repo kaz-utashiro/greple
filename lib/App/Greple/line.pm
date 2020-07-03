@@ -111,7 +111,6 @@ L<Getopt::EX::Numbers>
 package App::Greple::line;
 
 use v5.14;
-use strict;
 use warnings;
 
 use Carp;
@@ -136,7 +135,7 @@ sub line {
     }
 
     use Getopt::EX::Numbers;
-    my $numbers = new Getopt::EX::Numbers min => 1, max => $#lines;
+    my $numbers = Getopt::EX::Numbers->new(min => 1, max => $#lines);
 
     my @result = do {
 	map  { [ $lines[$_->[0]]->[0], $lines[$_->[1]]->[1] ] }

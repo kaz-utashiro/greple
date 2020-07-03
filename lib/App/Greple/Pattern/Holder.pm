@@ -1,6 +1,6 @@
 package App::Greple::Pattern::Holder;
 
-use strict;
+use v5.14;
 use warnings;
 use Data::Dumper;
 use Carp;
@@ -131,7 +131,7 @@ sub load_file {
 	};
 	close $fh;
 	if ($select //= $arg->{select}) {
-	    my $numbers = new Getopt::EX::Numbers min => 1, max => 0+@p;
+	    my $numbers = Getopt::EX::Numbers->new(min => 1, max => 0+@p);
 	    my @select = do {
 		map  { $_ - 1 }
 		sort { $a <=> $b }

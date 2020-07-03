@@ -4,7 +4,7 @@ PgpDecryptor - Module for decrypt PGP data
 
 =head1 SYNOPSIS
 
- my $pgp = new App::Greple::PgpDecryptor;
+ my $pgp = App::Greple::PgpDecryptor->new;
 
 =head1 DESCRIPTION
 
@@ -44,7 +44,7 @@ Reset internal status.
 
 package App::Greple::PgpDecryptor;
 
-use strict;
+use v5.14;
 use warnings;
 use Carp;
 
@@ -138,7 +138,7 @@ sub _openfh {
     my $fh;
 
     if (defined $fd) {
-	$fh = new IO::Handle;
+	$fh = IO::Handle->new;
 	$fh->fdopen($fd, "w+");
     } else {
 	$fh = new_tmpfile IO::File;

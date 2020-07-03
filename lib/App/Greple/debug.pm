@@ -66,7 +66,6 @@ L<Getopt::EX> module.
 package App::Greple::debug;
 
 use v5.14;
-use strict;
 use warnings;
 use Carp;
 use Data::Dumper;

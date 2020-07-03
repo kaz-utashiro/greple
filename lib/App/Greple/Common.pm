@@ -1,6 +1,6 @@
 package App::Greple::Common;
 
-use strict;
+use v5.14;
 use warnings;
 
 use Exporter 'import';
