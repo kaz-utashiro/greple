@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.3801
+Version 8.4004
 
 # SYNOPSIS
 
@@ -105,32 +105,32 @@ Version 8.3801
 
 ## MULTIPLE KEYWORDS
 
-**greple** has almost the same function as Unix command [egrep(1)](http://man.he.net/man1/egrep) but
-the search is done in a manner similar to Internet search engine.
-For example, next command print lines those contain all of \`foo' and
-bar' and \`baz'.
+**greple** has almost same function as Unix command [egrep(1)](http://man.he.net/man1/egrep) but
+search is done in a manner similar to Internet search engine.  For
+example, next command print lines those contain all of \`foo' and bar'
+and \`baz'.
 
     greple 'foo bar baz' ...
 
-Each word can be found in any order and/or any place in the string.
-So this command find all of following texts.
+Each word can appear in any order and/or any place in the string.  So
+this command find all of following texts.
 
     foo bar baz
     baz bar foo
     the foo, bar and baz
 
-If you want to use OR syntax, prepend question (\`?') mark on each
+If you want to use OR syntax, prepend question mark (\`?') on each
 token, or use regular expression.
 
     greple 'foo bar baz ?yabba ?dabba ?doo'
     greple 'foo bar baz yabba|dabba|doo'
 
-This command will print the line which contains all of \`foo', \`bar'
-and \`baz' and one or more of \`yabba', \`dabba' or \`doo'.
+This command will print lines those contains all of \`foo', \`bar' and
+\`baz' and one or more of \`yabba', \`dabba' or \`doo'.
 
-NOT operator can be specified by prefixing the token by minus (\`-')
-sign.  Next example will show the line which contain both \`foo' and
-bar' but none of \`yabba' or \`dabba' or \`doo'.
+NOT operator can be specified by prefixing the token by minus sign
+(\`-').  Next example will show lines those contain both \`foo' and bar'
+but none of \`yabba', \`dabba' or \`doo'.
 
     greple 'foo bar -yabba -dabba -doo'
 
@@ -147,8 +147,8 @@ number of required patterns.  So
 
 commands implicitly set the option `--need 1`, and consequently print
 all lines including \`foo'.  In other words, it makes other patterns
-optional.  If you want to search lines which includes either or both
-of \`bar' and \`baz', use like this:
+optional.  If you want to search lines which includes \`foo' and either
+or both of \`bar' and \`baz', use like this:
 
     greple '+foo bar baz' --need 2
     greple '+foo bar baz' --need +1
@@ -167,7 +167,7 @@ find files which contains these strings, and print the all contents.
 
     greple --all 'foo bar baz'
 
-Block also can be defined as pattern.  Next command search and print
+Block also can be defined as a pattern.  Next command search and print
 mail header, ignoring mail body text.
 
     greple --block '\A(.+\n)+'
@@ -179,9 +179,10 @@ You can also define arbitrary complex blocks by writing script.
 ## MATCH AREA CONTROL
 
 Using option **--inside** and **--outside**, you can specify text area
-the match should be occurred.  Next commands search only in mail header
-and body area respectively.  In these case, data block is not changed,
-then print lines which contains the pattern in the specified area.
+where the match should be occurred.  Next commands search only in mail
+header and body area respectively.  In these cases, data block is not
+changed, so print lines which contains the pattern in the specified
+area.
 
     greple --inside '\A(.+\n)+' pattern
 
@@ -196,10 +197,11 @@ region can be used.
 
 ## LINE ACROSS MATCH
 
-**greple** search the pattern across the line boundaries.  This is
+**greple** search a given pattern across line boundaries.  This is
 especially useful to handle Asian multi-byte text, more specifically
 Japanese.  Japanese text can be separated by newline almost any place
-in the text.  So the search pattern may spread out on multiple lines.
+in the text.  So the search pattern may spread out onto multiple
+lines.
 
 As for ascii word list, space character in the pattern matches any
 kind of space including newline.  Next example will search the word
@@ -214,7 +216,7 @@ in the bare or **--le** pattern.
 ## MODULE AND CUSTOMIZATION
 
 User can define default and original options in `~/.greplerc`.  Next
-example enables color output always, and define new option using
+example enables colored output always, and define new option using
 macro processing.
 
     option default --color=always
@@ -235,12 +237,12 @@ like this:
 
     greple -Mfind . -type f -- pattern
 
-Also **dig** module implements more complex search.  It can be used
+Also **dig** module implements more complex search.  It can be used as
 simple as this:
 
     greple -Mdig pattern --dig .
 
-but this command finally translated into following option list.
+but this command is finally translated into following option list.
 
     greple -Mfind . ( -name .git -o -name .svn -o -name RCS ) -prune -o 
         -type f ! -name .* ! -name *,v ! -name *~ 
@@ -290,7 +292,7 @@ or `(?<c>\w)\g{c}`.
         ?  Alternative pattern
         &  Function call (see next section)
 
-- **--le**=**&**_function_
+- **--le**=\[**+-**\]**&**_function_
 
     If the pattern start with ampersand (\`&'), it is treated as a
     function, and the function is called instead of searching pattern.
@@ -301,6 +303,9 @@ or `(?<c>\w)\g{c}`.
     lines like this:
 
         greple -n '&odd_line' file
+
+    Required (`+`) and negative (`-`) mark can be used for function
+    pattern.
 
     This version experimentally support callback function for each
     pattern.  Region list returned by function can have two extra element
@@ -380,6 +385,9 @@ or `(?<c>\w)\g{c}`.
 
     When the count _n_ is negative value, it is subtracted from default
     value.
+
+    If the option **--need=0** is specified and no pattern was found,
+    entire data is printed.  This is true even for required pattern.
 
 - **--matchcount**=_min_\[,_max_\], **--mc**=_min_\[,_max_\]
 
@@ -560,7 +568,7 @@ or `(?<c>\w)\g{c}`.
     Format string is passed to `sprintf` function.  Tab character can be
     expressed as `\t`.
 
-    Next example will show line numebers in five digits with tab space:
+    Next example will show line numbers in five digits with tab space:
 
         --format LINE='%05d\t'
 
@@ -607,7 +615,7 @@ or `(?<c>\w)\g{c}`.
 
 - **--colormap**=_spec_
 
-    Specify color map.  Becuase this option is mostly implemented by
+    Specify color map.  Because this option is mostly implemented by
     [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap) module, consult its document for detail and
     up-to-date specification.
 
@@ -632,7 +640,7 @@ or `(?<c>\w)\g{c}`.
         000 .. 555         : 6x6x6 RGB 216 colors
         L00 .. L25         : Black (L00), 24 grey levels, White (L25)
 
-    >     Begining # can be omitted in 24bit RGB notation.
+    >     Beginning # can be omitted in 24bit RGB notation.
     >
     >     When values are all same in 24bit or 12bit RGB, it is converted to 24
     >     grey level, otherwise 6x6x6 216 color.
@@ -645,6 +653,7 @@ or `(?<c>\w)\g{c}`.
 
     with other special effects:
 
+        N    None
         Z  0 Zero (reset)
         D  1 Double-struck (boldface)
         P  2 Pale (dark)
@@ -654,11 +663,12 @@ or `(?<c>\w)\g{c}`.
         Q  6 Quick (blink: rapid)
         S  7 Stand-out (reverse video)
         V  8 Vanish (concealed)
-        J  9 Junk (crossed out)
+        X  9 Crossed out
         E    Erase Line
 
-        ;  No effect
-        X  No effect
+        ;    No effect
+        /    Toggle foreground/background
+        ^    Reset to foreground
 
     If the spec includes `/`, left side is considered as foreground color
     and right side as background.  If multiple colors are given in same
@@ -666,8 +676,8 @@ or `(?<c>\w)\g{c}`.
     a result, the last one takes effect.
 
     Effect characters are case insensitive, and can be found anywhere and
-    in any order in color spec string.  Because `X` and `;` takes no
-    effect, you can use them to improve readability, like `SxD;K/544`.
+    in any order in color spec string.  Character `;` does nothing and
+    can be used just for readability, like `SD;K/544`.
 
     Example:
 
@@ -813,7 +823,7 @@ or `(?<c>\w)\g{c}`.
     When used with option **-i**, color is selected in case-insensitive
     fashion.  If you want case-insensitive match and case-sensitive color
     selection, indicate insensitiveness in the pattern rather than command
-    option (e.g. '_(?i)pattern_').
+    option (e.g. `(?i)pattern`).
 
 - **--face**=\[-+\]_effect_
 
@@ -851,7 +861,7 @@ or `(?<c>\w)\g{c}`.
     It changes the unit of context specified by **-A**, **-B**, **-C**
     options.  Space gap between paragraphs are also treated as block
     unit.  Thus, option **-pC2** will print with previous and next
-    paragraph, while **-pC1** will print with just sorrounding spaces.
+    paragraph, while **-pC1** will print with just surrounding spaces.
 
     You can create original paragraph pattern by **--border** option.
 
@@ -865,10 +875,10 @@ or `(?<c>\w)\g{c}`.
 - **--border**=_pattern_
 
     Specify record block border pattern.  Default block is a single line
-    and use `(?m)^` as a pattern.  Paragraph mode uses `(?:\A|\R)\K\R+`,
-    which means continuous newlines at the beginning of text or following
-    another newline (`\R` means more general linebreaks including
-    `\r\n`; consult [perlrebackslash](https://metacpan.org/pod/perlrebackslash) for detail).
+    and use `/^/m` as a pattern.  Paragraph mode uses
+    `/(?:\A|\R)\K\R+/`, which means continuous newlines at the beginning
+    of text or following another newline (`\R` means more general
+    linebreaks including `\r\n`; consult [perlrebackslash](https://metacpan.org/pod/perlrebackslash) for detail).
 
     Next command treat the data as a series of 10-line unit.
 
@@ -1098,7 +1108,7 @@ or `(?<c>\w)\g{c}`.
     four labeled parameters: **start**, **end**, **index** and **match**,
     which corresponds to start and end position in the text, pattern
     index, and the matched string.  Matched string in the text is replaced
-    by returned string from the funciton.
+    by returned string from the function.
 
 - **--begin**=_function_(_..._)
 - **--begin**=_function_=_..._
@@ -1237,7 +1247,7 @@ interpreted as a bare word.
 
 - **-Mdebug**, **-d**_x_
 
-    Debug option is decribed in [App::Greple::debug](https://metacpan.org/pod/App::Greple::debug) module.
+    Debug option is described in [App::Greple::debug](https://metacpan.org/pod/App::Greple::debug) module.
 
 # ENVIRONMENT and STARTUP FILE
 
@@ -1463,7 +1473,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 1991-2019 Kazumasa Utashiro
+Copyright 1991-2020 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
