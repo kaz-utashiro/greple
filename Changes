@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.4004 2020-07-06T00:22:18Z
+
+    - Eliminate indirect object call.
+    - Update document.
+
 8.4003 2020-06-18T15:45:23Z
 
     - Don't print blockend mark with --all option.
