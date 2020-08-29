@@ -67,7 +67,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.4004
+Version 8.4005
 
 
 =head1 SYNOPSIS
@@ -448,24 +448,21 @@ if ($opt_d{u}) {
 if ($opt_man or $opt_show or $opt_path) {
     my @bucket = $rcloader->buckets;
     if (@bucket and not default_module($bucket[-1])) {
-	my $mod = $bucket[-1]->title;
+	my $module = $bucket[-1]->module;
 	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
 	my $perldoc = $jp ? "perldocjp" : "perldoc";
 	$ENV{PERL5LIB} = join ':', @INC;
-	for my $base (@baseclass) {
-	    my $module = "$base\::$mod";
-	    my $file = $module =~ s[::][/]gr . '.pm';
-	    next unless $INC{$file};
-	    if ($opt_man) {
-		exec "$perldoc $module" or die $!;
+	my $file = $module =~ s[::][/]gr . '.pm';
+	die unless $INC{$file};
+	if ($opt_man) {
+	    exec "$perldoc $module" or die $!;
+	} else {
+	    chomp(my $file = `$perldoc -ml $module`);
+	    if ($opt_path) {
+		say $file;
 	    } else {
-		chomp(my $file = `$perldoc -ml $module`);
-		if ($opt_path) {
-		    say $file;
-		} else {
-		    my $pager = $ENV{PAGER} || 'less';
-		    exec "$pager $file" or die $!;
-		}
+		my $pager = $ENV{PAGER} || 'less';
+		exec "$pager $file" or die $!;
 	    }
 	}
 	exit;
@@ -476,8 +473,9 @@ if ($opt_man or $opt_show or $opt_path) {
 
 sub default_module {
     my $mod = shift;
-    return 1 if $mod->title eq '.greplerc';
-    return 1 if $mod->title eq 'default';
+    my $module = $mod->module;
+    return 1 if $module =~ /\b \.greplerc $/x;
+    return 1 if $module =~ /\b default $/x;
     return 0;
 }
 
@@ -1024,8 +1022,8 @@ sub usage {
 
     my $quote = qr/[\\(){}\|\*?]/;
     for my $bucket ($rcloader->buckets) {
-	my $title = $bucket->title;
-	print "    $title options:\n";
+	my $module = $bucket->module;
+	print "    $module options:\n";
 	for my $name ($bucket->options) {
 	    my $help = $opt_usage ? "" : $bucket->help($name) // "";
 	    next if $help eq 'ignore';
