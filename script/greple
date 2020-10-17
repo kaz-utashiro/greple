@@ -2798,11 +2798,17 @@ You can use the module like this:
 
     greple -Mperl --colorful --code --comment --pod default greple
 
-If special subroutine B<initialize()> is defined in the module, it is
-called at the beginning with C<Getopt::EX::Module> object as a
-first argument.  Second argument is the reference to C<@ARGV>, and you
-can modify actual C<@ARGV> using it.  See B<find> module as a sample.
+If special subroutine B<initialize()> and B<finalize()> are defined in
+the module, they are called at the beginning with
+C<Getopt::EX::Module> object as a first argument.  Second argument is
+the reference to C<@ARGV>, and you can modify actual C<@ARGV> using
+it.  See B<find> module as a sample.
 
+Calling sequence is like this.  See L<Getopt::EX::Module> for detail.
+
+    1) Call initialize()
+    2) Call function given in -Mmod::func() style
+    3) Call finalize()
 
 =head1 HISTORY
 
@@ -2817,9 +2823,9 @@ option interfaces, and change the command name. (2013.11)
 
 L<grep(1)>, L<perl(1)>
 
-L<github|http://kaz-utashiro.github.io/greple/>
+L<App::Greple>, L<https://github.com/kaz-utashiro/greple>
 
-L<Getopt::EX>
+L<Getopt::EX>, L<https://github.com/kaz-utashiro/Getopt-EX>
 
 
 =head1 AUTHOR

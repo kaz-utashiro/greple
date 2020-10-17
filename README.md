@@ -1446,10 +1446,17 @@ You can use the module like this:
 
     greple -Mperl --colorful --code --comment --pod default greple
 
-If special subroutine **initialize()** is defined in the module, it is
-called at the beginning with `Getopt::EX::Module` object as a
-first argument.  Second argument is the reference to `@ARGV`, and you
-can modify actual `@ARGV` using it.  See **find** module as a sample.
+If special subroutine **initialize()** and **finalize()** are defined in
+the module, they are called at the beginning with
+`Getopt::EX::Module` object as a first argument.  Second argument is
+the reference to `@ARGV`, and you can modify actual `@ARGV` using
+it.  See **find** module as a sample.
+
+Calling sequence is like this.  See [Getopt::EX::Module](https://metacpan.org/pod/Getopt::EX::Module) for detail.
+
+    1) Call initialize()
+    2) Call function given in -Mmod::func() style
+    3) Call finalize()
 
 # HISTORY
 
@@ -1463,9 +1470,9 @@ option interfaces, and change the command name. (2013.11)
 
 [grep(1)](http://man.he.net/man1/grep), [perl(1)](http://man.he.net/man1/perl)
 
-[github](http://kaz-utashiro.github.io/greple/)
+[App::Greple](https://metacpan.org/pod/App::Greple), [https://github.com/kaz-utashiro/greple](https://github.com/kaz-utashiro/greple)
 
-[Getopt::EX](https://metacpan.org/pod/Getopt::EX)
+[Getopt::EX](https://metacpan.org/pod/Getopt::EX), [https://github.com/kaz-utashiro/Getopt-EX](https://github.com/kaz-utashiro/Getopt-EX)
 
 # AUTHOR
 
