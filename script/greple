@@ -847,7 +847,8 @@ if ($opt_d{m}) {
 		     $pat->is_function ? '&' : '',
 		     @colors > 1 ? index_color($i++, $target) : $target);
     }
-    warn sprintf "must = %d, need = %d, allow = %d\n", $count_must, $count_need, $count_allow;
+    warn sprintf("must = %d, need = %d, allow = %d\n",
+		 $count_must, $count_need, $count_allow);
 }
 
 ## push post-process filter
@@ -1225,16 +1226,16 @@ sub display_result {
 	$lastpos = $block_end;
 
 	# when --filestyle and/or --linestyle is "separate"
-	grep { $_ }
-	do {
-	    print $_file->($current_file)
-		if $opt_filestyle eq 'separate';
-	},
-	do {
-	    print $_line->($line)
-		if $opt_n and $opt_linestyle eq 'separate';
-	}
-	and print "\n";
+	grep { $_ } (
+	    do {
+		print $_file->($current_file)
+		    if $opt_filestyle eq 'separate';
+	    },
+	    do {
+		print $_line->($line)
+		    if $opt_n and $opt_linestyle eq 'separate';
+	    }
+	) and print "\n";
 
 	if ($indexer) {
 	    $indexer->reset if $indexer->block;
