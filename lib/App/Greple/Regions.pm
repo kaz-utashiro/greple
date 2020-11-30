@@ -101,7 +101,7 @@ sub match_regions {
 	## calling pos() cost is not neglective, either.
 	##
 	my $pos = pos();
-	push @regions, [ $pos - length ${^MATCH}, $pos ];
+	push @regions, [ $pos - length(${^MATCH}), $pos ];
     }
     @regions;
 }
@@ -257,7 +257,7 @@ sub match_borders {
     my @border = (0);
     while (/$regex/gp) {
 	my $pos = pos();
-	for my $i ($pos - length ${^MATCH}, $pos) {
+	for my $i ($pos - length(${^MATCH}), $pos) {
 	    push @border, $i if $border[-1] != $i;
 	}
     }
