@@ -147,11 +147,13 @@ number of required patterns.  So
 
 commands implicitly set the option `--need 1`, and consequently print
 all lines including \`foo'.  In other words, it makes other patterns
-optional.  If you want to search lines which includes \`foo' and either
-or both of \`bar' and \`baz', use like this:
+optional, but they are highlighted if exist.  If you want to search
+lines which includes \`foo' and either or both of \`bar' and \`baz', use
+like this:
 
     greple '+foo bar baz' --need 2
     greple '+foo bar baz' --need +1
+    greple 'foo bar|baz'
 
 ## FLEXIBLE BLOCKS
 
@@ -178,11 +180,10 @@ You can also define arbitrary complex blocks by writing script.
 
 ## MATCH AREA CONTROL
 
-Using option **--inside** and **--outside**, you can specify text area
-where the match should be occurred.  Next commands search only in mail
-header and body area respectively.  In these cases, data block is not
-changed, so print lines which contains the pattern in the specified
-area.
+Using option **--inside** and **--outside**, you can specify the text
+area to be matched.  Next commands search only in mail header and body
+area respectively.  In these cases, data block is not changed, so
+print lines which contains the pattern in the specified area.
 
     greple --inside '\A(.+\n)+' pattern
 
@@ -192,7 +193,7 @@ Option **--inside**/**--outside** can be used repeatedly to enhance the
 area to be matched.  There are similar option
 **--include**/**--exclude**, but they are used to trim down the area.
 
-Those four options also takes user defined function and any complex
+These four options also take user defined function and any complex
 region can be used.
 
 ## LINE ACROSS MATCH
