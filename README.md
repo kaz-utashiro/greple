@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region handling
 
 # VERSION
 
-Version 8.4005
+Version 8.41
 
 # SYNOPSIS
 
@@ -782,7 +782,11 @@ or `(?<c>\w)\g{c}`.
 
     - R (Random)
 
-        Apply random color.
+        Use random color index everytime.
+
+    - S (Shuffle)
+
+        Shuffle indexed color.
 
     - N (Normal)
 

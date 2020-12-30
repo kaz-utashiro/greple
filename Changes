@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.41 2020-12-30T04:30:24Z
+
+    - Add S parameter to --colorindex opption.
+
 8.4005 2020-08-29T08:55:18Z
 
     - Show complete module/file names in usage.

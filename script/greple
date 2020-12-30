@@ -12,7 +12,7 @@ use File::stat;
 use IO::Handle;
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(min max first sum uniq);
+use List::Util qw(min max first sum uniq shuffle);
 use Cwd qw(getcwd abs_path);
 use Carp;
 
@@ -67,7 +67,7 @@ greple - extensible grep with lexical expression and region handling
 =head1 VERSION
 
 
-Version 8.4005
+Version 8.41
 
 
 =head1 SYNOPSIS
@@ -1186,6 +1186,9 @@ sub display_result {
     # --colorindex
     my $indexer = do {
 	my %ci = map { uc $_ => 1 } $opt_colorindex =~ /\w/g;
+	if ($ci{S}) {
+	    @colors = shuffle @colors;
+	}
 	if ($ci{A} or $ci{D}) {
 	    my $i = 0;
 	    Indexer->new(
@@ -2049,7 +2052,11 @@ Reset sequential index on every block.
 
 =item R (Random)
 
-Apply random color.
+Use random color index everytime.
+
+=item S (Shuffle)
+
+Shuffle indexed color.
 
 =item N (Normal)
 
