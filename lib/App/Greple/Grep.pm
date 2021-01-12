@@ -162,6 +162,7 @@ sub prepare {
 	elsif (@{$self->{block}}) {		# --block
 	    my $text = \$_;
 	    merge_regions { nojoin => 1, destructive => 1 }, map {
+		grep { $_->[0] != $_->[1] }
 		get_regions($self->{filename}, $text, $_);
 	    } @{$self->{block}};
 	}
@@ -235,14 +236,12 @@ sub compose {
     ## --block with -ABC option
     ##
     if (@{$self->{block}} and ($self->{after} or $self->{before})) {
-	my %mark;
+	my @mark;
 	for my $i (@effective_index) {
-	    map($mark{$_} = 1,
-		max($i - $self->{before}, 0)
-		..
-		min($i + $self->{after}, $#{$bp}));
+	    map { $mark[$_] = 1 if $_ >= 0 }
+	    $i - $self->{before} .. $i + $self->{after};
 	}
-	@effective_index = sort { $a <=> $b } map { int $_ } keys %mark;
+	@effective_index = grep $mark[$_], 0 .. $#{$bp};
     }
 
     ##

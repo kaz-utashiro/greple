@@ -24,13 +24,17 @@ package Greple {
     sub new {
 	my $class = shift;
 	my $obj = bless {}, $class;
-	my $command = shift;
 	$obj->{OPTION} = do {
-	    if (ref $command eq 'ARRAY') {
-		$command;
+	    if (@_ == 1) {
+		my $command = shift;
+		if (ref $command eq 'ARRAY') {
+		    $_[0];
+		} else {
+		    use Text::ParseWords;
+		    [ shellwords $command ];
+		}
 	    } else {
-		use Text::ParseWords;
-		[ shellwords $command ];
+		[ @_ ];
 	    }
 	};
 	$obj;
