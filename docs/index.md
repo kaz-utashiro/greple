@@ -1,10 +1,10 @@
 # NAME
 
-greple - extensible grep with lexical expression and region handling
+greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.4004
+Version 8.4101
 
 # SYNOPSIS
 
@@ -112,8 +112,8 @@ and \`baz'.
 
     greple 'foo bar baz' ...
 
-Each word can appear in any order and/or any place in the string.  So
-this command find all of following texts.
+Each word can appear in any order and any place in the string.  So
+this command find all of following lines.
 
     foo bar baz
     baz bar foo
@@ -147,11 +147,13 @@ number of required patterns.  So
 
 commands implicitly set the option `--need 1`, and consequently print
 all lines including \`foo'.  In other words, it makes other patterns
-optional.  If you want to search lines which includes \`foo' and either
-or both of \`bar' and \`baz', use like this:
+optional, but they are highlighted if exist.  If you want to search
+lines which includes \`foo' and either or both of \`bar' and \`baz', use
+like this:
 
     greple '+foo bar baz' --need 2
     greple '+foo bar baz' --need +1
+    greple 'foo bar|baz'
 
 ## FLEXIBLE BLOCKS
 
@@ -178,11 +180,10 @@ You can also define arbitrary complex blocks by writing script.
 
 ## MATCH AREA CONTROL
 
-Using option **--inside** and **--outside**, you can specify text area
-where the match should be occurred.  Next commands search only in mail
-header and body area respectively.  In these cases, data block is not
-changed, so print lines which contains the pattern in the specified
-area.
+Using option **--inside** and **--outside**, you can specify the text
+area to be matched.  Next commands search only in mail header and body
+area respectively.  In these cases, data block is not changed, so
+print lines which contains the pattern in the specified area.
 
     greple --inside '\A(.+\n)+' pattern
 
@@ -192,7 +193,7 @@ Option **--inside**/**--outside** can be used repeatedly to enhance the
 area to be matched.  There are similar option
 **--include**/**--exclude**, but they are used to trim down the area.
 
-Those four options also takes user defined function and any complex
+These four options also take user defined function and any complex
 region can be used.
 
 ## LINE ACROSS MATCH
@@ -781,7 +782,11 @@ or `(?<c>\w)\g{c}`.
 
     - R (Random)
 
-        Apply random color.
+        Use random color index everytime.
+
+    - S (Shuffle)
+
+        Shuffle indexed color.
 
     - N (Normal)
 
@@ -892,11 +897,11 @@ or `(?<c>\w)\g{c}`.
 
     Specify the record block to display.  Default block is a single line.
 
-    When blocks are not continuous and there are gaps between them, the
-    match occurred outside blocks are ignored.
+    Empty blocks are ignored.  When blocks are not continuous, the match
+    occurred outside blocks are ignored.
 
-    If multiple block options are supplied, overlapping blocks are merged
-    into single block.
+    If multiple block options are given, overlapping blocks are merged
+    into a single block.
 
     Please be aware that this option is sometimes quite time consuming,
     because it finds all blocks before processing.
@@ -1446,10 +1451,17 @@ You can use the module like this:
 
     greple -Mperl --colorful --code --comment --pod default greple
 
-If special subroutine **initialize()** is defined in the module, it is
-called at the beginning with `Getopt::EX::Module` object as a
-first argument.  Second argument is the reference to `@ARGV`, and you
-can modify actual `@ARGV` using it.  See **find** module as a sample.
+If special subroutine **initialize()** and **finalize()** are defined in
+the module, they are called at the beginning with
+`Getopt::EX::Module` object as a first argument.  Second argument is
+the reference to `@ARGV`, and you can modify actual `@ARGV` using
+it.  See **find** module as a sample.
+
+Calling sequence is like this.  See [Getopt::EX::Module](https://metacpan.org/pod/Getopt::EX::Module) for detail.
+
+    1) Call initialize()
+    2) Call function given in -Mmod::func() style
+    3) Call finalize()
 
 # HISTORY
 
@@ -1463,9 +1475,9 @@ option interfaces, and change the command name. (2013.11)
 
 [grep(1)](http://man.he.net/man1/grep), [perl(1)](http://man.he.net/man1/perl)
 
-[github](http://kaz-utashiro.github.io/greple/)
+[App::Greple](https://metacpan.org/pod/App::Greple), [https://github.com/kaz-utashiro/greple](https://github.com/kaz-utashiro/greple)
 
-[Getopt::EX](https://metacpan.org/pod/Getopt::EX)
+[Getopt::EX](https://metacpan.org/pod/Getopt::EX), [https://github.com/kaz-utashiro/Getopt-EX](https://github.com/kaz-utashiro/Getopt-EX)
 
 # AUTHOR
 
@@ -1473,7 +1485,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 1991-2020 Kazumasa Utashiro
+Copyright 1991-2021 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
