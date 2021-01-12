@@ -1,10 +1,10 @@
 # NAME
 
-greple - extensible grep with lexical expression and region handling
+greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.41
+Version 8.4101
 
 # SYNOPSIS
 
@@ -112,8 +112,8 @@ and \`baz'.
 
     greple 'foo bar baz' ...
 
-Each word can appear in any order and/or any place in the string.  So
-this command find all of following texts.
+Each word can appear in any order and any place in the string.  So
+this command find all of following lines.
 
     foo bar baz
     baz bar foo
@@ -897,11 +897,11 @@ or `(?<c>\w)\g{c}`.
 
     Specify the record block to display.  Default block is a single line.
 
-    When blocks are not continuous and there are gaps between them, the
-    match occurred outside blocks are ignored.
+    Empty blocks are ignored.  When blocks are not continuous, the match
+    occurred outside blocks are ignored.
 
-    If multiple block options are supplied, overlapping blocks are merged
-    into single block.
+    If multiple block options are given, overlapping blocks are merged
+    into a single block.
 
     Please be aware that this option is sometimes quite time consuming,
     because it finds all blocks before processing.

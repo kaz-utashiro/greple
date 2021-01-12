@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.4101 2021-01-12T07:01:14Z
+
+    - Fixed bug of -ABC sometimes not to work with --block option.
+
 8.41 2020-12-30T04:30:24Z
 
     - Add S parameter to --colorindex option.
