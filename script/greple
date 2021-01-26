@@ -150,7 +150,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --epilogue=func      call function after command execution
   OTHER
     --usage[=expand]     show this message
-    --exit=n             specfy exit status
+    --exit=n             specify exit status
     --norc               skip reading startup file
     --man                display command or module manual page
     --show               display module file
@@ -2055,7 +2055,7 @@ Reset sequential index on every block.
 
 =item R (Random)
 
-Use random color index everytime.
+Use random color index every time.
 
 =item S (Shuffle)
 
@@ -2527,7 +2527,7 @@ expanded, supply something not empty to B<--usage> option, like:
 When B<Greple> executed normally, it exit with status 0 or 1 depending
 on something matched or not.  Sometimes we want to get status 0 even
 if nothing matched.  This option set the status code for normal
-execution.  It still exits with non-zero status when error occured.
+execution.  It still exits with non-zero status when error occurred.
 
 =item B<--man>, B<--doc>
 
@@ -2871,4 +2871,4 @@ it under the same terms as Perl itself.
 #  LocalWords:  ocode gunzip gpg FILELABEL substr eval misc unicode
 #  LocalWords:  GREPLEOPTS shellwords Katakana builtin pgp autoload
 #  LocalWords:  ENV App ARGV mg Kazumasa Utashiro github colorindex
-#  LocalWords:  matchcount gzipped stdin func
+#  LocalWords:  matchcount gzipped stdin func CPANMINUS cpanm kana
