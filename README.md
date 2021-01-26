@@ -85,6 +85,7 @@ Version 8.4101
       --epilogue=func      call function after command execution
     OTHER
       --usage[=expand]     show this message
+      --exit=n             specfy exit status
       --norc               skip reading startup file
       --man                display command or module manual page
       --show               display module file
@@ -1195,6 +1196,13 @@ interpreted as a bare word.
     expanded, supply something not empty to **--usage** option, like:
 
         greple -Mmodule --usage=expand
+
+- **--exit**=_number_
+
+    When **Greple** executed normally, it exit with status 0 or 1 depending
+    on something matched or not.  Sometimes we want to get status 0 even
+    if nothing matched.  This option set the status code for normal
+    execution.  It still exits with non-zero status when error occured.
 
 - **--man**, **--doc**
 
