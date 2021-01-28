@@ -39,7 +39,7 @@ sub new {
 	SPEC => undef,
     }, $class;
 
-    configure $obj @_ if @_;
+    $obj->configure(@_) if @_;
 
     $obj;
 }

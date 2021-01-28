@@ -830,7 +830,7 @@ for my $set (
 {
     my($opt, $flag) = @$set;
     for my $spec (@$opt) {
-	append $regions FLAG => $flag, SPEC => $spec;
+	$regions->append(FLAG => $flag, SPEC => $spec);
     }
 }
 
@@ -2524,7 +2524,7 @@ expanded, supply something not empty to B<--usage> option, like:
 
 =item B<--exit>=I<number>
 
-When B<Greple> executed normally, it exit with status 0 or 1 depending
+When B<greple> executed normally, it exit with status 0 or 1 depending
 on something matched or not.  Sometimes we want to get status 0 even
 if nothing matched.  This option set the status code for normal
 execution.  It still exits with non-zero status when error occurred.

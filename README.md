@@ -1199,7 +1199,7 @@ interpreted as a bare word.
 
 - **--exit**=_number_
 
-    When **Greple** executed normally, it exit with status 0 or 1 depending
+    When **greple** executed normally, it exit with status 0 or 1 depending
     on something matched or not.  Sometimes we want to get status 0 even
     if nothing matched.  This option set the status code for normal
     execution.  It still exits with non-zero status when error occurred.

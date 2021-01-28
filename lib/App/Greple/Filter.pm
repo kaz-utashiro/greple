@@ -16,7 +16,7 @@ sub new {
     my $class = shift;
     my $obj = bless [], $class;
 
-    append $obj @_ if @_;
+    $obj->append(@_) if @_;
 
     $obj;
 }
