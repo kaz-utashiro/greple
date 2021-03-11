@@ -389,8 +389,11 @@ $Getopt::EX::Loader::debug = 1 if $ENV{DEBUG_GETOPTEX};
 map { $_ = decode 'utf8', $_ unless utf8::is_utf8($_) } @ARGV;
 
 ## ~/.greplerc
-(@ARGV and $ARGV[0] eq "--norc" and shift) or
+unless ((@ARGV and $ARGV[0] eq "--norc" and shift)
+	or
+	($ENV{GREPLE_NORC}) ) {
     $rcloader->load(FILE => "$ENV{HOME}/.greplerc");
+}
 
 ## modules
 $rcloader->deal_with(\@ARGV);
@@ -2544,7 +2547,9 @@ Show module file path.  Use with B<-M> option.
 
 =item B<--norc>
 
-Do not read startup file: F<~/.greplerc>.
+Do not read startup file: F<~/.greplerc>.  This option have to be
+placed before any other options including B<-M> module options.
+Setting C<GREPLE_NORC> environment have same effect.
 
 =item B<--require>=I<filename>
 
@@ -2617,8 +2622,26 @@ Debug option is described in L<App::Greple::debug> module.
 =head1 ENVIRONMENT and STARTUP FILE
 
 
+=over 7
+
+=item B<GREPLEOPTS>
+
 Environment variable GREPLEOPTS is used as a default options.  They
 are inserted before command line options.
+
+=item B<GREPLE_NORC>
+
+If set non-empty string, startup file F<~/.greplerc> is not processed.
+
+=item B<DEBUG_GETOPT>
+
+Enable L<Getopt::Long> debug option.
+
+=item B<DEBUG_GETOPTEX>
+
+Enable L<Getopt::EX> debug option.
+
+=back
 
 Before starting execution, I<greple> reads the file named F<.greplerc>
 on user's home directory.  Following directives can be used.

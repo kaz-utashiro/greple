@@ -1219,7 +1219,9 @@ interpreted as a bare word.
 
 - **--norc**
 
-    Do not read startup file: `~/.greplerc`.
+    Do not read startup file: `~/.greplerc`.  This option have to be
+    placed before any other options including **-M** module options.
+    Setting `GREPLE_NORC` environment have same effect.
 
 - **--require**=_filename_
 
@@ -1264,8 +1266,22 @@ interpreted as a bare word.
 
 # ENVIRONMENT and STARTUP FILE
 
-Environment variable GREPLEOPTS is used as a default options.  They
-are inserted before command line options.
+- **GREPLEOPTS**
+
+    Environment variable GREPLEOPTS is used as a default options.  They
+    are inserted before command line options.
+
+- **GREPLE\_NORC**
+
+    If set non-empty string, startup file `~/.greplerc` is not processed.
+
+- **DEBUG\_GETOPT**
+
+    Enable [Getopt::Long](https://metacpan.org/pod/Getopt::Long) debug option.
+
+- **DEBUG\_GETOPTEX**
+
+    Enable [Getopt::EX](https://metacpan.org/pod/Getopt::EX) debug option.
 
 Before starting execution, _greple_ reads the file named `.greplerc`
 on user's home directory.  Following directives can be used.
