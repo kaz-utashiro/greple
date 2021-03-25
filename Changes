@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.4201 2021-03-25T09:25:54Z
+
+    - Require Getopt::EX 1.22.1 for -Mline module to work.
+    - Add test codes for -Mline module.
+    - Use GREPLE_NORC environment to dislable loading ~/.greplerc.
+
 8.42 2021-01-26T03:21:18Z
 
     - Introduce --exit option.
