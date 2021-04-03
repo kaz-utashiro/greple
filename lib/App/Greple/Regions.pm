@@ -18,7 +18,7 @@ our @EXPORT      = qw(REGION_INSIDE REGION_OUTSIDE
 		      borders_to_regions
 		      );
 our %EXPORT_TAGS = ( );
-our @EXPORT_OK   = qw();
+our @EXPORT_OK   = qw(filter_regions);
 
 use constant {
 
@@ -181,29 +181,34 @@ sub select_regions {
 }
 
 sub select_regions_strict {
+    my($list, $by, $flag) = @_;
+    my($inside, $overlap, $outside) = filter_regions($list, $by);
+    (($flag & REGION_AREA_MASK) == REGION_INSIDE) ? @$inside : @$outside;
+}
+
+sub filter_regions {
     my @list = @{+shift};
     my @by = @{+shift};
-    my $flag = shift;
 
-    my(@outside, @inside);
+    my(@inside, @overlap, @outside);
 
     for (my $i = 0; $i < @by; $i++) {
 	my($from, $to) = @{$by[$i]};
 	while (@list and $list[0][0] < $from and $list[0][1] <= $from) {
-	    push @outside, shift(@list);
+	    push @outside, shift @list;
 	}
 	while (@list and $list[0][0] < $from) {
-	    shift @list;
+	    push @overlap, shift @list;
 	}
 	while (@list and $list[0][0] < $to and $list[0][1] <= $to) {
-	    push @inside, shift(@list);
+	    push @inside, shift @list;
 	}
 	while (@list and $list[0][0] < $to) {
-	    shift @list;
+	    push @overlap, shift @list;
 	}
     }
-    push @outside, @list;
-    (($flag & REGION_AREA_MASK) == REGION_INSIDE) ? @inside : @outside;
+    push @outside, splice @list;
+    (\@inside, \@overlap, \@outside);
 }
 
 sub merge_regions {
