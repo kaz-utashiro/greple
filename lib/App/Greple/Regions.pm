@@ -12,13 +12,14 @@ our @EXPORT      = qw(REGION_INSIDE REGION_OUTSIDE
 		      match_regions
 		      classify_regions
 		      select_regions
+		      filter_regions
 		      merge_regions
 		      reverse_regions
 		      match_borders
 		      borders_to_regions
 		      );
 our %EXPORT_TAGS = ( );
-our @EXPORT_OK   = qw(filter_regions);
+our @EXPORT_OK   = qw();
 
 use constant {
 
@@ -186,29 +187,40 @@ sub select_regions_strict {
     (($flag & REGION_AREA_MASK) == REGION_INSIDE) ? @$inside : @$outside;
 }
 
+##
+## Split @input into @inside, @overlap, @outside by @filter and return
+## their pointers.
+##
+## 4th and 5th result is corresponding entry of @filter for @inside
+## and @overlap.
+##
 sub filter_regions {
-    my @list = @{+shift};
-    my @by = @{+shift};
+    my @input = @{+shift};
+    my @filter = @{+shift};
 
     my(@inside, @overlap, @outside);
+    my(@inside_match, @overlap_match);
 
-    for (my $i = 0; $i < @by; $i++) {
-	my($from, $to) = @{$by[$i]};
-	while (@list and $list[0][0] < $from and $list[0][1] <= $from) {
-	    push @outside, shift @list;
+    for (my $i = 0; $i < @filter; $i++) {
+	my($from, $to) = @{$filter[$i]};
+	while (@input and $input[0][0] < $from and $input[0][1] <= $from) {
+	    push @outside, shift @input;
 	}
-	while (@list and $list[0][0] < $from) {
-	    push @overlap, shift @list;
+	while (@input and $input[0][0] < $from) {
+	    push @overlap, shift @input;
+	    push @overlap_match, $filter[$i];
 	}
-	while (@list and $list[0][0] < $to and $list[0][1] <= $to) {
-	    push @inside, shift @list;
+	while (@input and $input[0][0] < $to and $input[0][1] <= $to) {
+	    push @inside, shift @input;
+	    push @inside_match, $filter[$i];
 	}
-	while (@list and $list[0][0] < $to) {
-	    push @overlap, shift @list;
+	while (@input and $input[0][0] < $to) {
+	    push @overlap, shift @input;
+	    push @overlap_match, $filter[$i];
 	}
     }
-    push @outside, splice @list;
-    (\@inside, \@overlap, \@outside);
+    push @outside, splice @input;
+    (\@inside, \@overlap, \@outside, \@inside_match, \@overlap_match);
 }
 
 sub merge_regions {
