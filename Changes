@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.43 2021-04-04T02:28:49Z
+
+    - Update Regions.pm to include generic &filter_regions.
+
 8.4201 2021-03-25T09:25:54Z
 
     - Require Getopt::EX 1.22.1 for -Mline module to work.
