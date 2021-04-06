@@ -53,12 +53,16 @@ sub configure {
     }
 }
 
-sub spec         { shift -> {SPEC} }
-sub flag         { shift -> {FLAG} }
-sub is_union     { (shift->flag & REGION_SET_MASK ) == REGION_UNION     }
-sub is_intersect { (shift->flag & REGION_SET_MASK ) == REGION_INTERSECT }
-sub is_inside    { (shift->flag & REGION_AREA_MASK) == REGION_INSIDE    }
-sub is_outside   { (shift->flag & REGION_AREA_MASK) == REGION_OUTSIDE   }
+sub spec         { $_[0]->{SPEC} }
+sub flag         { $_[0]->{FLAG} }
+sub is_union     { is_x($_[0], REGION_SET_MASK,  REGION_UNION    ) }
+sub is_intersect { is_x($_[0], REGION_SET_MASK,  REGION_INTERSECT) }
+sub is_inside    { is_x($_[0], REGION_AREA_MASK, REGION_INSIDE   ) }
+sub is_outside   { is_x($_[0], REGION_AREA_MASK, REGION_OUTSIDE  ) }
+sub is_x {
+    my($p, $mask, $set) = @_;
+    ((ref $p ? $p->flag : $p) & $mask) == $set;
+}
 
 package App::Greple::Regions::Holder {
 
@@ -150,41 +154,12 @@ sub classify_regions_strict {
 
 sub select_regions {
     my $opt = ref $_[0] eq 'HASH' ? shift : {};
-
-    $opt->{strict} and goto &select_regions_strict;
-
-    my @list = @{+shift};
-    my @by = @{+shift};
-    my $flag = shift;
-
-    my(@outside, @inside);
-
-    for (my $i = 0; $i < @by; $i++) {
-	my($from, $to) = @{$by[$i]};
-	for (my $j = 0; $j < @list and $list[$j][0] < $from; $j++) {
-	    push @outside, [ @{$list[$j]} ];
-	}
-	while (@list and $list[0][0] < $from and $list[0][1] <= $from) {
-	    shift @list;
-	}
-	for (my $j = 0; $j < @list and $list[$j][0] < $to; $j++) {
-	    push @inside, [ @{$list[$j]} ];
-	}
-	while (@list and $list[0][1] < $to) {
-	    shift @list;
-	}
-	while (@list and $list[0][0] < $to and $list[0][1] <= $to) {
-	    shift @list;
-	}
-    }
-    push @outside, @list;
-    (($flag & REGION_AREA_MASK) == REGION_INSIDE) ? @inside : @outside;
-}
-
-sub select_regions_strict {
     my($list, $by, $flag) = @_;
-    my($inside, $overlap, $outside) = filter_regions($list, $by);
-    (($flag & REGION_AREA_MASK) == REGION_INSIDE) ? @$inside : @$outside;
+    my($inside, $outside) = ([], []);
+    my $target = is_inside($flag) ? $inside : $outside;
+    my $overlap = $opt->{strict} ? [] : $target;
+    filter_regions($list, $by, $inside, $overlap, $outside);
+    @$target;
 }
 
 ##
@@ -197,30 +172,29 @@ sub select_regions_strict {
 sub filter_regions {
     my @input = @{+shift};
     my @filter = @{+shift};
-
-    my(@inside, @overlap, @outside);
-    my(@inside_match, @overlap_match);
+    my($inside, $overlap, $outside) = (shift//[], shift//[], shift//[]);
+    my($inside_match, $overlap_match) = ([], []);
 
     for (my $i = 0; $i < @filter; $i++) {
 	my($from, $to) = @{$filter[$i]};
 	while (@input and $input[0][0] < $from and $input[0][1] <= $from) {
-	    push @outside, shift @input;
+	    push @$outside, shift @input;
 	}
 	while (@input and $input[0][0] < $from) {
-	    push @overlap, shift @input;
-	    push @overlap_match, $filter[$i];
+	    push @$overlap, shift @input;
+	    push @$overlap_match, $filter[$i];
 	}
 	while (@input and $input[0][0] < $to and $input[0][1] <= $to) {
-	    push @inside, shift @input;
-	    push @inside_match, $filter[$i];
+	    push @$inside, shift @input;
+	    push @$inside_match, $filter[$i];
 	}
 	while (@input and $input[0][0] < $to) {
-	    push @overlap, shift @input;
-	    push @overlap_match, $filter[$i];
+	    push @$overlap, shift @input;
+	    push @$overlap_match, $filter[$i];
 	}
     }
-    push @outside, splice @input;
-    (\@inside, \@overlap, \@outside, \@inside_match, \@overlap_match);
+    push @$outside, splice @input;
+    ($inside, $overlap, $outside, $inside_match, $overlap_match);
 }
 
 sub merge_regions {
