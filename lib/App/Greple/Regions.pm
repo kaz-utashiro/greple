@@ -53,16 +53,16 @@ sub configure {
     }
 }
 
-sub spec         { $_[0]->{SPEC} }
-sub flag         { $_[0]->{FLAG} }
-sub is_union     { is_x($_[0], REGION_SET_MASK,  REGION_UNION    ) }
-sub is_intersect { is_x($_[0], REGION_SET_MASK,  REGION_INTERSECT) }
-sub is_inside    { is_x($_[0], REGION_AREA_MASK, REGION_INSIDE   ) }
-sub is_outside   { is_x($_[0], REGION_AREA_MASK, REGION_OUTSIDE  ) }
+sub spec { $_[0]->{SPEC} }
+sub flag { $_[0]->{FLAG} }
 sub is_x {
     my($p, $mask, $set) = @_;
     ((ref $p ? $p->flag : $p) & $mask) == $set;
 }
+sub is_union     { is_x $_[0], REGION_SET_MASK,  REGION_UNION     }
+sub is_intersect { is_x $_[0], REGION_SET_MASK,  REGION_INTERSECT }
+sub is_inside    { is_x $_[0], REGION_AREA_MASK, REGION_INSIDE    }
+sub is_outside   { is_x $_[0], REGION_AREA_MASK, REGION_OUTSIDE   }
 
 package App::Greple::Regions::Holder {
 
@@ -182,15 +182,15 @@ sub filter_regions {
 	}
 	while (@input and $input[0][0] < $from) {
 	    push @$overlap, shift @input;
-	    push @$overlap_match, $filter[$i];
+	    $overlap_match->[$#{$overlap}] = $filter[$i];
 	}
 	while (@input and $input[0][0] < $to and $input[0][1] <= $to) {
 	    push @$inside, shift @input;
-	    push @$inside_match, $filter[$i];
+	    $inside_match->[$#{$inside}] = $filter[$i];
 	}
 	while (@input and $input[0][0] < $to) {
 	    push @$overlap, shift @input;
-	    push @$overlap_match, $filter[$i];
+	    $overlap_match->[$#{$overlap}] = $filter[$i];
 	}
     }
     push @$outside, splice @input;
