@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.4101
+Version 8.43
 
 # SYNOPSIS
 
@@ -85,6 +85,7 @@ Version 8.4101
       --epilogue=func      call function after command execution
     OTHER
       --usage[=expand]     show this message
+      --exit=n             specify exit status
       --norc               skip reading startup file
       --man                display command or module manual page
       --show               display module file
@@ -782,7 +783,7 @@ or `(?<c>\w)\g{c}`.
 
     - R (Random)
 
-        Use random color index everytime.
+        Use random color index every time.
 
     - S (Shuffle)
 
@@ -1196,6 +1197,13 @@ interpreted as a bare word.
 
         greple -Mmodule --usage=expand
 
+- **--exit**=_number_
+
+    When **greple** executed normally, it exit with status 0 or 1 depending
+    on something matched or not.  Sometimes we want to get status 0 even
+    if nothing matched.  This option set the status code for normal
+    execution.  It still exits with non-zero status when error occurred.
+
 - **--man**, **--doc**
 
     Show manual page.
@@ -1211,7 +1219,9 @@ interpreted as a bare word.
 
 - **--norc**
 
-    Do not read startup file: `~/.greplerc`.
+    Do not read startup file: `~/.greplerc`.  This option have to be
+    placed before any other options including **-M** module options.
+    Setting `GREPLE_NORC` environment have same effect.
 
 - **--require**=_filename_
 
@@ -1256,8 +1266,22 @@ interpreted as a bare word.
 
 # ENVIRONMENT and STARTUP FILE
 
-Environment variable GREPLEOPTS is used as a default options.  They
-are inserted before command line options.
+- **GREPLEOPTS**
+
+    Environment variable GREPLEOPTS is used as a default options.  They
+    are inserted before command line options.
+
+- **GREPLE\_NORC**
+
+    If set non-empty string, startup file `~/.greplerc` is not processed.
+
+- **DEBUG\_GETOPT**
+
+    Enable [Getopt::Long](https://metacpan.org/pod/Getopt::Long) debug option.
+
+- **DEBUG\_GETOPTEX**
+
+    Enable [Getopt::EX](https://metacpan.org/pod/Getopt::EX) debug option.
 
 Before starting execution, _greple_ reads the file named `.greplerc`
 on user's home directory.  Following directives can be used.
