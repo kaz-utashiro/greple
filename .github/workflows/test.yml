@@ -1,0 +1,23 @@
+name: test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        perl: [ '5.30', '5.28', '5.18', '5.14' ]
+    name: Perl ${{ matrix.perl }}
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+      - run: perl -V
+      - run: cpanm --installdeps --notest .
+      - run: prove -lv t
