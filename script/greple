@@ -491,7 +491,7 @@ if (@opt_icode) {
     if (grep { s/^\+// } @opt_icode) {
 	unshift @opt_icode, @default_icode_list;
     }
-    @opt_icode = uniq(@opt_icode);
+    @opt_icode = uniq @opt_icode;
     if (@opt_icode > 1) {
 	@opt_icode = grep { !/(?:auto|guess)$/i } @opt_icode;
 	Encode::Guess->set_suspects(@opt_icode);
@@ -611,8 +611,7 @@ my $count_match_sub = sub {
 ##
 ## setup input/output filter
 ##
-my $filter_d = App::Greple::Filter->new;
-$filter_d->parse(@opt_if);
+my $filter_d = App::Greple::Filter->new->parse(@opt_if);
 unless ($opt_noif) {
     $filter_d->append(
 	[ sub { s/\.Z$//   }, 'zcat' ],
@@ -903,7 +902,7 @@ use constant {
 
 my($progress_show, $progress_reset) = do {
     my $n;
-    my $print = sub { print STDERR SCP, @_, CR, RCP };
+    my $print = sub { printflush STDERR SCP, @_, CR, RCP };
     my $start = do {
 	if ($opt_d{n} and $opt_d{f}) {
 	    sub { $print->(++$n, " ", $current_file, ED) }
@@ -912,7 +911,7 @@ my($progress_show, $progress_reset) = do {
 	    sub { $print->(++$n) }
 	}
 	elsif ($opt_d{f}) {
-	    sub { print STDERR $current_file, ":\n" }
+	    sub { printflush STDERR $current_file, ":\n" }
 	}
 	else {
 	    undef;
@@ -920,7 +919,7 @@ my($progress_show, $progress_reset) = do {
     };
     my $end = do {
 	if ($opt_d{n}) {
-	    sub { print STDERR ED if $n }
+	    sub { printflush STDERR ED if $n }
 	} else {
 	    undef;
 	}
