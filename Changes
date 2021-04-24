@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.4301 2021-04-24T02:37:35Z
+
+    [ -dfn related update ]
+    - Use STDERR->printflush for status update.
+    - Use VT100 ESC 7/8 save/restore cursor sequence.
+
 8.43 2021-04-04T02:28:49Z
 
     - Update Regions.pm to include generic &filter_regions.
