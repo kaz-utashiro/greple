@@ -893,16 +893,18 @@ if ($opt_conceal{read}) {
 
 use Getopt::EX::Colormap qw(ansi_code);
 use constant {
-    EL  => ansi_code('{EL}'),  # Erase Line
-    ED  => ansi_code('{ED}'),  # Erase Display
-    SCP => ansi_code('{SCP}'), # Store Cursor Position
-    RCP => ansi_code('{RCP}'), # Restore Cursor Position
+    EL  => ansi_code('{EL}'),    # Erase Line
+    ED  => ansi_code('{ED}'),    # Erase Display
+    SCP => ansi_code('{SCP}'),   # Save Cursor Position
+    RCP => ansi_code('{RCP}'),   # Restore Cursor Position
+    DSC => ansi_code('{DECSC}'), # DEC Save Cursor
+    DRC => ansi_code('{DECRC}'), # DEC Restore Cursor
     CR  => "\r",
 };
 
 my($progress_show, $progress_reset) = do {
     my $n;
-    my $print = sub { printflush STDERR SCP, @_, CR, RCP };
+    my $print = sub { printflush STDERR DSC, @_, CR, DRC };
     my $start = do {
 	if ($opt_d{n} and $opt_d{f}) {
 	    sub { $print->(++$n, " ", $current_file, ED) }

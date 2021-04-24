@@ -42,7 +42,7 @@
       },
       "runtime" : {
          "requires" : {
-            "Getopt::EX" : "v1.22.1",
+            "Getopt::EX" : "v1.23.0",
             "List::BinarySearch" : "0",
             "List::Util" : "1.45",
             "perl" : "v5.14.0"
