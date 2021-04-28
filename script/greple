@@ -660,6 +660,7 @@ my %colormap = (
     LINE     => "Y",
     TEXT     => "",
     BLOCKEND => "/WE",
+    PROGRESS => "B",
     );
 
 my @colors;
@@ -903,8 +904,11 @@ use constant {
 };
 
 my($progress_show, $progress_reset) = do {
+    use Getopt::EX::Colormap qw(ansi_code);
     my $n;
-    my $print = sub { printflush STDERR DSC, @_, CR, DRC };
+    my($s, $e) = ! $need_color ? ('', '') :
+	( ansi_code $colormap{PROGRESS}, ansi_code 'Z');
+    my $print = sub { printflush STDERR DSC, $s, @_, $e, CR, DRC };
     my $start = do {
 	if ($opt_d{n} and $opt_d{f}) {
 	    sub { $print->(++$n, " ", $current_file, ED) }
@@ -1983,6 +1987,7 @@ Another form of colormap option to specify the color for fields:
     LINE      Line number
     TEXT      Unmatched normal text
     BLOCKEND  Block end mark
+    PROGRESS  Progress status with -dnf option
 
 In current release, C<BLOCKEND> mark is colored with C<E> effect
 recently implemented in L<Getopt::EX> module, which allows to fill up

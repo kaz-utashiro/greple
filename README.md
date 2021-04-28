@@ -711,6 +711,7 @@ or `(?<c>\w)\g{c}`.
         LINE      Line number
         TEXT      Unmatched normal text
         BLOCKEND  Block end mark
+        PROGRESS  Progress status with -dnf option
 
     In current release, `BLOCKEND` mark is colored with `E` effect
     recently implemented in [Getopt::EX](https://metacpan.org/pod/Getopt::EX) module, which allows to fill up
