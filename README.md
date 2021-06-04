@@ -93,6 +93,7 @@ Version 8.4301
       --require=file       include perl program
       --conceal=type       conceal run time errors
       --persist            continue even after encoding error
+      --alert [name=#]     set alert parameter (size/time)
       -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 # INSTALL
@@ -1261,6 +1262,20 @@ interpreted as a bare word.
 
     If you want read all files as binary data, use **--icode=binary**
     instead.
+
+- **--alert** \[ _size_=# | _time_=# \]
+
+    Set alert parameter for large file.  **Greple** scans whole file
+    content to know line borders, and it takes several seconds or more if
+    it contains large number of lines.
+
+    By default, if the target file contains more than **512 \* 1024
+    characters** (_size_), **2 seconds** timer is started (_time_).  Alert
+    message is shown when the timer expired.
+
+    To disable this alert, set _size_ to 0:
+
+        --alert size=0
 
 - **-Mdebug**, **-d**_x_
 

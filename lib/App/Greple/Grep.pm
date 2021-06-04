@@ -169,7 +169,7 @@ sub prepare {
 	elsif (@blocks) {			# from matched range
 	    my %opt = ( A => $self->{after},
 		        B => $self->{before},
-		        border => [ match_borders $self->{border} ] );
+		        border => [ $self->borders ] );
 	    my $blocker = smart_blocker(\%opt);
 	    merge_regions { nojoin => 1, destructive => 1 }, map {
 		[ $blocker->(\%opt, $_->[0], $_->[1]) ]
@@ -270,6 +270,32 @@ sub compose {
     $self->{RESULT} = \@list;
 
     $self;
+}
+
+sub borders {
+    my $self = shift;
+    local $SIG{ALRM};
+    my $alarm_start;
+    if ($self->{alert_size} and length >= $self->{alert_size}) {
+	$alarm_start = time;
+	$SIG{ALRM} = sub {
+	    $SIG{ALRM} = undef;
+	    STDERR->printflush(
+		$self->{filename} .
+		": Counting lines, and it may take longer...\n");
+	};
+	alarm $self->{alert_time};
+    }
+    my @borders = match_borders $self->{border};
+    if (defined $alarm_start) {
+	if ($SIG{ALRM}) {
+	    alarm 0;
+	} else {
+	    my $time = time - $alarm_start;
+	    STDERR->printflush("Done in $time seconds.\n");
+	}
+    }
+    @borders;
 }
 
 sub result_ref {

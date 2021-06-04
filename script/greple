@@ -157,6 +157,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --require=file       include perl program
     --conceal=type       conceal run time errors
     --persist            continue even after encoding error
+    --alert [name=#]     set alert parameter (size/time)
     -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 =cut
@@ -223,6 +224,7 @@ my $opt_linestyle = 'line';
 my %opt_conceal = (read => 1, skip => 0);
 my $opt_persist = 0;
 my %opt_format = (LINE => '%d:', FILE => '%s:');
+my %opt_alert = (size => 512 * 1024, time => 2);
 my $opt_usage;
 my $opt_exit;
 
@@ -323,6 +325,7 @@ my @optargs = (
     'conceal=i'          => \%opt_conceal,
     'persist!'           => \$opt_persist,
     'format=s'           => \%opt_format,
+    'alert=i'            => \%opt_alert,
     'usage:s'            => \$opt_usage,
     'exit=i'             => \$opt_exit,
     'M:s'                => sub {
@@ -1129,6 +1132,8 @@ sub grep_data {
 	region_index => $opt_regioncolor,
 	stat         => \%stat,
 	callback     => @opt_callback ? $opt_callback[-1] : undef,
+	alert_size   => $opt_alert{size},
+	alert_time   => $opt_alert{time},
 	)->run;
     my $matched = $grep->matched;
 
@@ -2568,10 +2573,12 @@ Include arbitrary perl program.
 Display informations.  Various kind of debug, diagnostic, monitor
 information can be display by giving appropriate flag to -d option.
 
+    c: color information
     d: directory information
     e: eval string
     f: processing file name
     m: misc debug information
+    n: number of processing files
     o: option related information
     p: run `ps' command before termination (on Unix)
     s: statistic information
@@ -2616,6 +2623,20 @@ Next command will show strings in binary file.
 
 If you want read all files as binary data, use B<--icode=binary>
 instead.
+
+=item B<--alert> [ I<size>=# | I<time>=# ]
+
+Set alert parameter for large file.  B<Greple> scans whole file
+content to know line borders, and it takes several seconds or more if
+it contains large number of lines.
+
+By default, if the target file contains more than B<512 * 1024
+characters> (I<size>), B<2 seconds> timer is started (I<time>).  Alert
+message is shown when the timer expired.
+
+To disable this alert, set I<size> to 0:
+
+    --alert size=0
 
 =item B<-Mdebug>, B<-d>I<x>
 
