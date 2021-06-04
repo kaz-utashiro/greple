@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.43
+Version 8.44
 
 # SYNOPSIS
 
@@ -92,6 +92,7 @@ Version 8.43
       --require=file       include perl program
       --conceal=type       conceal run time errors
       --persist            continue even after encoding error
+      --alert [name=#]     set alert parameter (size/time)
       -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 # INSTALL
@@ -710,6 +711,7 @@ or `(?<c>\w)\g{c}`.
         LINE      Line number
         TEXT      Unmatched normal text
         BLOCKEND  Block end mark
+        PROGRESS  Progress status with -dnf option
 
     In current release, `BLOCKEND` mark is colored with `E` effect
     recently implemented in [Getopt::EX](https://metacpan.org/pod/Getopt::EX) module, which allows to fill up
@@ -1260,6 +1262,20 @@ interpreted as a bare word.
     If you want read all files as binary data, use **--icode=binary**
     instead.
 
+- **--alert** \[ _size_=# | _time_=# \]
+
+    Set alert parameter for large file.  **Greple** scans whole file
+    content to know line borders, and it takes several seconds or more if
+    it contains large number of lines.
+
+    By default, if the target file contains more than **512 \* 1024
+    characters** (_size_), **2 seconds** timer is started (_time_).  Alert
+    message is shown when the timer expired.
+
+    To disable this alert, set _size_ to 0:
+
+        --alert size=0
+
 - **-Mdebug**, **-d**_x_
 
     Debug option is described in [App::Greple::debug](https://metacpan.org/pod/App::Greple::debug) module.
@@ -1475,11 +1491,11 @@ You can use the module like this:
 
     greple -Mperl --colorful --code --comment --pod default greple
 
-If special subroutine **initialize()** and **finalize()** are defined in
+If special subroutine `initialize()` and `finalize()` are defined in
 the module, they are called at the beginning with
-`Getopt::EX::Module` object as a first argument.  Second argument is
+[Getopt::EX::Module](https://metacpan.org/pod/Getopt::EX::Module) object as a first argument.  Second argument is
 the reference to `@ARGV`, and you can modify actual `@ARGV` using
-it.  See **find** module as a sample.
+it.  See [App::Greple::find](https://metacpan.org/pod/App::Greple::find) module as an example.
 
 Calling sequence is like this.  See [Getopt::EX::Module](https://metacpan.org/pod/Getopt::EX::Module) for detail.
 
