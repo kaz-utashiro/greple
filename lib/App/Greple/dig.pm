@@ -6,6 +6,8 @@ dig - Greple module for recursive search
 
 greple -Mdig [ options ] --dig directories ...
 
+greple -Mdig --git ...
+
 =head1 DESCRIPTION
 
 Option B<--dig> searches all files under directories specified after
@@ -23,7 +25,21 @@ current directory.
 You can use B<--dig> option without module declaration by setting it
 as autoload module in your F<~/.greplerc>.
 
-    autoload -Mdig --dig
+    autoload -Mdig --dig --git
+
+=head1 OPTIONS
+
+=over 7
+
+=item B<--dig> I<directories> I<find-option>
+
+Specify at the end of B<greple> options.
+
+=item B<--git>
+
+Search files under git control.
+
+=back
 
 =cut
 
@@ -56,3 +72,5 @@ option --dig -Mfind \
 	(#no_archive) \
 	(#no_pdf) \
 	-print --
+
+option --git -Mfind !git ls-files -- --conceal skip=1
