@@ -1492,11 +1492,11 @@ You can use the module like this:
 
     greple -Mperl --colorful --code --comment --pod default greple
 
-If special subroutine **initialize()** and **finalize()** are defined in
+If special subroutine `initialize()` and `finalize()` are defined in
 the module, they are called at the beginning with
-`Getopt::EX::Module` object as a first argument.  Second argument is
+[Getopt::EX::Module](https://metacpan.org/pod/Getopt::EX::Module) object as a first argument.  Second argument is
 the reference to `@ARGV`, and you can modify actual `@ARGV` using
-it.  See **find** module as a sample.
+it.  See [App::Greple::find](https://metacpan.org/pod/App::Greple::find) module as an example.
 
 Calling sequence is like this.  See [Getopt::EX::Module](https://metacpan.org/pod/Getopt::EX::Module) for detail.
 

@@ -2867,11 +2867,11 @@ You can use the module like this:
 
     greple -Mperl --colorful --code --comment --pod default greple
 
-If special subroutine B<initialize()> and B<finalize()> are defined in
+If special subroutine C<initialize()> and C<finalize()> are defined in
 the module, they are called at the beginning with
-C<Getopt::EX::Module> object as a first argument.  Second argument is
+L<Getopt::EX::Module> object as a first argument.  Second argument is
 the reference to C<@ARGV>, and you can modify actual C<@ARGV> using
-it.  See B<find> module as a sample.
+it.  See L<App::Greple::find> module as an example.
 
 Calling sequence is like this.  See L<Getopt::EX::Module> for detail.
 
