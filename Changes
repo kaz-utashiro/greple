@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.44 2021-06-04T09:56:35Z
+
+    - Add PROGRESS color for -dfn option.
+    - Add --alert option and function for processing large file.
+    - Update dig.pm and add --git option.
+    - Fix bug around read-error message handling.
+
 8.4301 2021-04-24T02:37:35Z
 
     [ -dfn related update ]
