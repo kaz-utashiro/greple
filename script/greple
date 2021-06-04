@@ -889,12 +889,6 @@ sub close_stdout {
 
 sub read_stdin { <SAVESTDIN> }
 
-my($before_read, $after_read);
-if ($opt_conceal{read}) {
-    $before_read = sub { close STDERR };
-    $after_read  = sub { recover_stderr };
-}
-
 use Getopt::EX::Colormap qw(ansi_code);
 use constant {
     EL  => ansi_code('{EL}'),    # Erase Line
@@ -992,15 +986,11 @@ exit($opt_exit // ($stat{match_effective} == 0));
 sub grep_files {
   FILE:
     while (defined($current_file = open_nextfile())) {
-
-	&$before_read() if $before_read;
 	my $content = eval { local $/; <STDIN> };
-	&$after_read() if $after_read;
-
 	if (not defined $content) {
-	    warn $@ if $@;
+	    warn $@ if $@ and !$opt_conceal{read};
 	    if (not $opt_persist) {
-		warn "SKIP $current_file\n" unless $opt_conceal{skip};
+		warn "SKIP $current_file\n" if !$opt_conceal{skip};
 		next FILE;
 	    }
 
@@ -1008,12 +998,12 @@ sub grep_files {
 	    binmode STDIN, ':raw';
 	    seek STDIN, 0, 0 or do {
 		warn "SKIP $current_file (not seekable)\n"
-		    unless $opt_conceal{skip};
+		    if !$opt_conceal{skip};
 		next FILE;
 	    };
 	    $content = eval { local $/; <STDIN> };
 	    if (not defined $content) {
-		warn "SKIP* $current_file\n" unless $opt_conceal{skip};
+		warn "SKIP* $current_file\n" if !$opt_conceal{skip};
 		next FILE;
 	    }
 	    binmode STDOUT, ':raw';
