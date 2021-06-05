@@ -29,13 +29,6 @@ use Data::Dumper;
 }
 
 ##
-## Setting utf8 warnings fatal makes it easy to find code conversion
-## error, so you can choose appropriate file code or automatic code
-## recognition, but loose a chance to find string in unrelated area.
-##
-use warnings FATAL => 'utf8';
-
-##
 ## Setup greple/lib to be a module directory if exists.
 ##
 BEGIN {
@@ -984,10 +977,21 @@ exit($opt_exit // ($stat{match_effective} == 0));
 
 ######################################################################
 
+sub stdin {
+    ##
+    ## Setting utf8 warnings fatal makes it easy to find code conversion
+    ## error, so you can choose appropriate file code or automatic code
+    ## recognition, but loose a chance to find string in unrelated area.
+    ##
+    use warnings FATAL => 'utf8';
+    local $/;
+    <STDIN>;
+}
+
 sub grep_files {
   FILE:
     while (defined($current_file = open_nextfile())) {
-	my $content = eval { local $/; <STDIN> };
+	my $content = eval { stdin };
 	if (not defined $content) {
 	    warn $@ if $@ and !$opt_conceal{read};
 	    if (not $opt_persist) {
@@ -1002,7 +1006,7 @@ sub grep_files {
 		    if !$opt_conceal{skip};
 		next FILE;
 	    };
-	    $content = eval { local $/; <STDIN> };
+	    $content = eval { stdin };
 	    if (not defined $content) {
 		warn "SKIP* $current_file\n" if !$opt_conceal{skip};
 		next FILE;
@@ -1021,6 +1025,7 @@ sub grep_files {
 	# recover STDIN for opening '-' and some weird command which needs
 	# STDIN opened (like unzip)
 	recover_stdin;
+	binmode STDOUT, ":encoding($output_code)";
     }
 }
 
