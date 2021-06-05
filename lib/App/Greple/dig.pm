@@ -57,8 +57,10 @@ expand (#no_image) 	! -iname *.jpg  ! -iname *.jpeg \
 			! -iname *.gif  ! -iname *.png  \
 			! -iname *.ico  \
 			! -iname *.heic ! -iname *.heif
-expand (#no_archive)	! -iname *.tar  ! -iname *.tbz  ! -iname *.tgz
+expand (#no_archive)	! -iname *.tar  ! -iname *.tbz  ! -iname *.tgz \
+			! -name *.a ! -name *.zip
 expand (#no_pdf)	! -iname *.pdf
+expand (#no_others)	! -name *.bundle ! -name *.dylib ! -name *.o
 
 option --dig -Mfind \
 	$<move> \
@@ -71,6 +73,7 @@ option --dig -Mfind \
 	(#no_image) \
 	(#no_archive) \
 	(#no_pdf) \
+	(#no_others) \
 	-print --
 
 option --git -Mfind !git ls-files -- --conceal skip=1
