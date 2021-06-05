@@ -799,6 +799,7 @@ my %stat = (
     match_positive => 0,
     match_negative => 0,
     match_block => 0,
+    persist => 0,
     time_start => [],
     time_end => [],
     );
@@ -1006,6 +1007,7 @@ sub grep_files {
 		warn "SKIP* $current_file\n" if !$opt_conceal{skip};
 		next FILE;
 	    }
+	    $stat{persist}++;
 	    binmode STDOUT, ':raw';
 	}
 
