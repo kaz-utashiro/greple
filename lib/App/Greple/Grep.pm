@@ -291,8 +291,9 @@ sub borders {
 	if ($SIG{ALRM}) {
 	    alarm 0;
 	} else {
-	    my $time = time - $alarm_start;
-	    STDERR->printflush("Done in $time seconds.\n");
+	    STDERR->printflush(sprintf("Count %d lines in %d seconds.\n",
+				       @borders - 1,
+				       time - $alarm_start));
 	}
     }
     @borders;
