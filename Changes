@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.4401 2021-06-05T16:18:38Z
+
+    - Fix --persist STDOUT mode bug.
+    - Update dig.pm
+    - Add persist data in -ds stat information.
+
 8.44 2021-06-04T09:56:35Z
 
     - Add PROGRESS color for -dfn option.
