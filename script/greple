@@ -1017,7 +1017,6 @@ sub grep_files {
 
 	my $matched = grep_data(\$content);
 
-	no warnings 'uninitialized'; # why ?
 	$stat{match_effective} += $matched;
 	$stat{files}++;
     } continue {
