@@ -883,33 +883,46 @@ sub close_stdout {
 
 sub read_stdin { <SAVESTDIN> }
 
-my($before_read, $after_read) = do {
-    if ($opt_conceal{read}) {
-	(sub { close STDERR }, \&recover_stderr);
+my $slurp = do {
+    my $fatal = 2;
+    if ($fatal) {
+	##
+	## Setting utf8 warnings fatal makes it easy to find code conversion
+	## error, so you can choose appropriate file code or automatic code
+	## recognition, but loose a chance to find string in unrelated area.
+	##
+	if ($fatal > 1) {
+	    sub {
+		use warnings FATAL => 'utf8';
+		do { local $/; <STDIN> };
+	    };
+	}
+	elsif ($opt_conceal{read}) {
+	    sub {
+		use warnings FATAL => 'utf8';
+		eval { local $/; <STDIN> };
+	    };
+	} else {
+	    sub {
+		use warnings FATAL => 'utf8';
+		my $stdin = eval { local $/; <STDIN> };
+		warn $@ if $@;
+		$stdin;
+	    };
+	}
     } else {
-	();
+	if ($opt_conceal{read}) {
+	    sub {
+		close STDERR;
+		my $stdin = do { local $/; <STDIN> };
+		recover_stderr;
+		$stdin;
+	    };
+	} else {
+	    sub { local $/; <STDIN> };
+	}
     }
 };
-
-sub slurp_nonfatal {
-    $before_read->() if $before_read;
-    my $stdin = do { local $/; <STDIN> };
-    $after_read->()  if $after_read;
-    $stdin;
-}
-
-sub slurp_fatal {
-    ##
-    ## Setting utf8 warnings fatal makes it easy to find code conversion
-    ## error, so you can choose appropriate file code or automatic code
-    ## recognition, but loose a chance to find string in unrelated area.
-    ##
-    use warnings FATAL => 'utf8';
-    local $/;
-    <STDIN>;
-}
-
-my $slurp = \&slurp_fatal;
 
 use Getopt::EX::Colormap qw(ansi_code);
 use constant {
@@ -1008,9 +1021,8 @@ exit($opt_exit // ($stat{match_effective} == 0));
 sub grep_files {
   FILE:
     while (defined($current_file = open_nextfile())) {
-	my $content = eval { $slurp->() };
+	my $content = $slurp->();
 	if (not defined $content) {
-	    warn $@ if $@ and !$opt_conceal{read};
 	    if (not $opt_persist) {
 		warn "SKIP $current_file\n" if !$opt_conceal{skip};
 		next FILE;
@@ -1023,7 +1035,7 @@ sub grep_files {
 		    if !$opt_conceal{skip};
 		next FILE;
 	    };
-	    $content = eval { $slurp->() };
+	    $content = $slurp->();
 	    if (not defined $content) {
 		warn "SKIP* $current_file\n" if !$opt_conceal{skip};
 		next FILE;
