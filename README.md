@@ -91,8 +91,9 @@ Version 8.4401
       --man                display command or module manual page
       --show               display module file
       --require=file       include perl program
-      --conceal=type       conceal run time errors
-      --persist            continue even after encoding error
+      --persist            same as --error=retry
+      --error=action       action after read error
+      --warn=type          run time error control
       --alert [name=#]     set alert parameter (size/time)
       -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
@@ -1232,36 +1233,72 @@ interpreted as a bare word.
 
 - **--conceal** _type_=_val_
 
-    Conceal runtime errors.  Repeatable.  Types are:
+    Use following **--warn** option in reverse context.  This option
+    remains for backward compatibility and will be deprecated in the near
+    future.
+
+- **--persist**
+
+    Same as **--error=retry**.  It may be deprecated in the future.
+
+- **--error**=_action_
+
+    As **greple** tries to read data as a character string, sometimes fails
+    to convert them into internal representation, and the file is skipped
+    without processing by default.  This works fine to skip binary
+    data. (**skip**)
+
+    Also sometimes encounters code mapping error due to character
+    encoding.  In this case, reading the file as a binary data helps to
+    produce meaningful output. (**retry**)
+
+    This option specifies the action when data read error occured.
+
+    - **skip**
+
+        Skip the file.  Default.
+
+    - **retry**
+
+        Retry reading the file as a binary data.
+
+    - **fatal**
+
+        Abort the operation.
+
+    - **ignore**
+
+        Ignore error and continue to read anyway.
+
+    You may occasionally want to find text in binary data.  Next command
+    will work like [string(1)](http://man.he.net/man1/string) command.
+
+        greple -o --re '(?a)\w{4,}' --error=retry --uc /bin/*
+
+    If you want read all files as binary data, use **--icode=binary**
+    instead.
+
+- **-w**, **--warn** _type_=\[_0_,_1_\]
+
+    Control runtime message mainly about file operation related to
+    **--error** option.  Repeatable.  Types are:
 
     - **read**
 
-        (Default 1) Errors occurred during file read.  Mainly unicode related
+        (Default 0) Errors occurred during file read.  Mainly unicode related
         errors when reading binary or ambiguous text file.
 
     - **skip**
 
-        (Default 0) File skip warnings produced when fatal error was occurred
-        during file read.  Occurs when reading binary files with automatic
-        character code recognition.
+        (Default 1) File skip message.
+
+    - **retry**
+
+        (Default 0) File retry message.
 
     - **all**
 
         Set same value for all types.
-
-- **--persist**
-
-    As **greple** tries to read data as a character string, sometimes fails
-    to convert them into internal representation, and the file is skipped
-    without processing.  When option **--persist** is specified, command
-    does not give up the file, and tries to read as binary data.
-
-    Next command will show strings in binary file.
-
-        greple -o --re '(?a)\w{4,}' --persist --uc /bin/*
-
-    If you want read all files as binary data, use **--icode=binary**
-    instead.
 
 - **--alert** \[ _size_=# | _time_=# \]
 

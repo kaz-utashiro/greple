@@ -148,8 +148,9 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --man                display command or module manual page
     --show               display module file
     --require=file       include perl program
-    --conceal=type       conceal run time errors
-    --persist            continue even after encoding error
+    --persist            same as --error=retry
+    --error=action       action after read error
+    --warn=type          run time error control
     --alert [name=#]     set alert parameter (size/time)
     -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
@@ -214,10 +215,10 @@ my @opt_print;
 my $opt_continue;
 my $opt_filestyle = 'line';
 my $opt_linestyle = 'line';
-my %opt_conceal = (read => 1, skip => 0);
-my $opt_persist = 0;
+my %opt_warn = (read => 0, skip => 1, retry => 0);
 my %opt_format = (LINE => '%d:', FILE => '%s:');
 my %opt_alert = (size => 512 * 1024, time => 2);
+my $opt_error = 'skip';
 my $opt_usage;
 my $opt_exit;
 
@@ -315,10 +316,23 @@ my @optargs = (
     'regioncolor|rc!'    => \$opt_regioncolor,
     'print=s'            => \@opt_print,
     'continue!'          => \$opt_continue,
-    'conceal=i'          => \%opt_conceal,
-    'persist!'           => \$opt_persist,
+    'w|warn:1%'          => sub {
+	map { $opt_warn{$_} = $_[2] }
+	map { $_ eq 'all' ? keys %opt_warn : $_ }
+	$_[1] =~ /\w+/g;
+    },
+    'conceal:1%'         => sub {
+	warn "Option --conceal will be deprecated.  Use --warn.\n";
+	map { $opt_warn{$_} = $_[2] ? 0 : 1 }
+	map { $_ eq 'all' ? keys %opt_warn : $_ }
+	$_[1] =~ /\w+/g;
+    },
+    'persist!'           => sub {
+	$opt_error = $_[1] ? 'retry' : 'skip';
+    },
     'format=s'           => \%opt_format,
     'alert=i'            => \%opt_alert,
+    'error=s'            => \$opt_error,
     'usage:s'            => \$opt_usage,
     'exit=i'             => \$opt_exit,
     'M:s'                => sub {
@@ -410,10 +424,6 @@ our %opt_d;
 
 if ($opt_d{o}) {
     warn "\@ARGV = ", join(' ', shellquote(@SAVEDARGV)), "\n";
-}
-
-if (exists $opt_conceal{all}) {
-    $opt_conceal{$_} = $opt_conceal{all} for keys %opt_conceal;
 }
 
 ## -m option
@@ -792,7 +802,7 @@ my %stat = (
     match_positive => 0,
     match_negative => 0,
     match_block => 0,
-    persist => 0,
+    read_retry => 0,
     time_start => [],
     time_end => [],
     );
@@ -884,43 +894,44 @@ sub close_stdout {
 sub read_stdin { <SAVESTDIN> }
 
 my $slurp = do {
-    my $fatal = 2;
-    if ($fatal) {
-	##
-	## Setting utf8 warnings fatal makes it easy to find code conversion
-	## error, so you can choose appropriate file code or automatic code
-	## recognition, but loose a chance to find string in unrelated area.
-	##
-	if ($fatal > 1) {
-	    sub {
-		use warnings FATAL => 'utf8';
-		do { local $/; <STDIN> };
-	    };
+    ##
+    ## Setting utf8 warnings fatal makes it easy to find code conversion
+    ## error, so you can choose appropriate file code or automatic code
+    ## recognition, but loose a chance to find string in unrelated area.
+    ##
+    if ($opt_error eq 'fatal') {
+	sub {
+	    use warnings FATAL => 'utf8';
+	    do { local $/; <STDIN> };
 	}
-	elsif ($opt_conceal{read}) {
-	    sub {
-		use warnings FATAL => 'utf8';
-		eval { local $/; <STDIN> };
-	    };
-	} else {
+    } elsif ($opt_error eq 'skip' or
+	     $opt_error eq 'retry') {
+	if ($opt_warn{read}) {
 	    sub {
 		use warnings FATAL => 'utf8';
 		my $stdin = eval { local $/; <STDIN> };
 		warn $@ if $@;
 		$stdin;
-	    };
+	    }
+	} else {
+	    sub {
+		use warnings FATAL => 'utf8';
+		eval { local $/; <STDIN> };
+	    }
 	}
-    } else {
-	if ($opt_conceal{read}) {
+    } elsif ($opt_error eq 'ignore') {
+	if ($opt_warn{read}) {
+	    sub { local $/; <STDIN> };
+	} else {
 	    sub {
 		close STDERR;
 		my $stdin = do { local $/; <STDIN> };
 		recover_stderr;
 		$stdin;
-	    };
-	} else {
-	    sub { local $/; <STDIN> };
+	    }
 	}
+    } else {
+	die;
     }
 };
 
@@ -1023,8 +1034,8 @@ sub grep_files {
     while (defined($current_file = open_nextfile())) {
 	my $content = $slurp->();
 	if (not defined $content) {
-	    if (not $opt_persist) {
-		warn "SKIP $current_file\n" if !$opt_conceal{skip};
+	    if (not $opt_error eq 'retry') {
+		warn "SKIP $current_file\n" if $opt_warn{skip};
 		next FILE;
 	    }
 
@@ -1032,15 +1043,16 @@ sub grep_files {
 	    binmode STDIN, ':raw';
 	    seek STDIN, 0, 0 or do {
 		warn "SKIP $current_file (not seekable)\n"
-		    if !$opt_conceal{skip};
+		    if $opt_warn{skip};
 		next FILE;
 	    };
 	    $content = $slurp->();
 	    if (not defined $content) {
-		warn "SKIP* $current_file\n" if !$opt_conceal{skip};
+		warn "SKIP* $current_file\n" if $opt_warn{skip};
 		next FILE;
 	    }
-	    $stat{persist}++;
+	    warn "RETRY $current_file\n" if $opt_warn{retry};
+	    $stat{read_retry}++;
 	    binmode STDOUT, ':raw';
 	}
 
@@ -2614,40 +2626,80 @@ information can be display by giving appropriate flag to -d option.
 
 =item B<--conceal> I<type>=I<val>
 
-Conceal runtime errors.  Repeatable.  Types are:
+Use following B<--warn> option in reverse context.  This option
+remains for backward compatibility and will be deprecated in the near
+future.
+
+=item B<--persist>
+
+Same as B<--error=retry>.  It may be deprecated in the future.
+
+=item B<--error>=I<action>
+
+As B<greple> tries to read data as a character string, sometimes fails
+to convert them into internal representation, and the file is skipped
+without processing by default.  This works fine to skip binary
+data. (B<skip>)
+
+Also sometimes encounters code mapping error due to character
+encoding.  In this case, reading the file as a binary data helps to
+produce meaningful output. (B<retry>)
+
+This option specifies the action when data read error occured.
+
+=over 4
+
+=item B<skip>
+
+Skip the file.  Default.
+
+=item B<retry>
+
+Retry reading the file as a binary data.
+
+=item B<fatal>
+
+Abort the operation.
+
+=item B<ignore>
+
+Ignore error and continue to read anyway.
+
+=back
+
+You may occasionally want to find text in binary data.  Next command
+will work like L<string(1)> command.
+
+    greple -o --re '(?a)\w{4,}' --error=retry --uc /bin/*
+
+If you want read all files as binary data, use B<--icode=binary>
+instead.
+
+=item B<-w>, B<--warn> I<type>=[I<0>,I<1>]
+
+Control runtime message mainly about file operation related to
+B<--error> option.  Repeatable.  Types are:
 
 =over 4
 
 =item B<read>
 
-(Default 1) Errors occurred during file read.  Mainly unicode related
+(Default 0) Errors occurred during file read.  Mainly unicode related
 errors when reading binary or ambiguous text file.
 
 =item B<skip>
 
-(Default 0) File skip warnings produced when fatal error was occurred
-during file read.  Occurs when reading binary files with automatic
-character code recognition.
+(Default 1) File skip message.
+
+=item B<retry>
+
+(Default 0) File retry message.
 
 =item B<all>
 
 Set same value for all types.
 
 =back
-
-=item B<--persist>
-
-As B<greple> tries to read data as a character string, sometimes fails
-to convert them into internal representation, and the file is skipped
-without processing.  When option B<--persist> is specified, command
-does not give up the file, and tries to read as binary data.
-
-Next command will show strings in binary file.
-
-    greple -o --re '(?a)\w{4,}' --persist --uc /bin/*
-
-If you want read all files as binary data, use B<--icode=binary>
-instead.
 
 =item B<--alert> [ I<size>=# | I<time>=# ]
 
