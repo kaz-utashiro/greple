@@ -70,12 +70,13 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
 
   PATTERN
     pattern              'and +must -not ?alternative &function'
-    -e pattern           pattern match across line boundary
-    -r pattern           pattern cannot be compromised
-    -v pattern           pattern not to be matched
-    --le pattern         lexical expression (same as bare pattern)
-    --re pattern         regular expression
-    --fe pattern         fixed expression
+    -x, --le   pattern   lexical expression (same as bare pattern)
+    -e, --and  pattern   pattern match across line boundary
+    -r, --must pattern   pattern cannot be compromised
+    -v, --not  pattern   pattern not to be matched
+        --or   pattern   alternative pattern group
+        --re   pattern   regular expression
+        --fe   pattern   fixed expression
     -f, --file file      file contains search pattern
     --select index       select indexed pattern from -f file
   MATCH
@@ -89,7 +90,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -n                   print line number
     -H, -h               do or do not display filenames
     -o                   print only the matching part
-    -m n[,m]             max count of blocks to be shown
+    -m, --max=n[,m]      max count of blocks to be shown
     -A,-B,-C [n]         after/before/both match context
     --join               delete newline in the matched part
     --joinby=string      replace newline in the matched text by string
@@ -115,7 +116,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --random             use random color each time
     --face               set/unset visual effects
   BLOCK
-    -p                   paragraph mode
+    -p, --paragraph      paragraph mode
     --all                print whole data
     --border=pattern     specify the border pattern
     --block=pattern      specify the block of records
@@ -244,7 +245,7 @@ my @optargs = (
     'r|must=s'           => \@opt_r,
     'v|not=s'            => \@opt_v,
     'or=s'               => \@opt_or,
-    'le=s'               => \@opt_le,
+    'x|le=s'             => \@opt_le,
     're=s'               => \@opt_re,
     'fe=s'               => \@opt_fe,
     'need=s'             => \@opt_need,
@@ -1562,7 +1563,7 @@ or S<C<(?E<lt>cE<gt>\w)\g{c}>>.
 
 =over 7
 
-=item B<--le>=I<pattern>
+=item B<-x> I<pattern>, B<--le>=I<pattern>
 
 Treat the string as a collection of tokens separated by spaces.  Each
 token is interpreted by the first character.  Token start with `-'
@@ -1584,7 +1585,7 @@ This is the summary of start character for B<--le> option:
     ?  Alternative pattern
     &  Function call (see next section)
 
-=item B<--le>=[B<+->]B<&>I<function>
+=item B<-x>=[B<+->]B<&>I<function>, B<--le>=[B<+->]B<&>I<function>
 
 If the pattern start with ampersand (`&'), it is treated as a
 function, and the function is called instead of searching pattern.
@@ -1642,6 +1643,24 @@ pattern argument, you can narrow down the search result like this.
     greple foo file
     greple foo file -v bar
     greple foo file -v bar -v baz
+
+=item B<--or>=I<pattern>
+
+Specify logical-or match token group.  Same as C<?> marked token in
+B<--le> option.  Next commands are all equivalent.
+
+    greple --le 'foo bar ?yabba ?dabba'
+    greple --and foo --and bar --or yabba --or dabba
+    greple -e foo -e bar -e 'yabba|dabba'
+
+Option B<--or> group and each B<--le> pattern makes individual
+pattern.  So
+
+    greple --le '?foo ?yabba' --le '?bar ?dabba' --or baz --or doo
+
+is same as:
+
+    greple -e 'foo|yabba' -e 'bar|dabba' -e 'baz|doo'
 
 =item B<--re>=I<pattern>
 

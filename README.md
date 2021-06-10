@@ -13,12 +13,13 @@ Version 8.4401
 
     PATTERN
       pattern              'and +must -not ?alternative &function'
-      -e pattern           pattern match across line boundary
-      -r pattern           pattern cannot be compromised
-      -v pattern           pattern not to be matched
-      --le pattern         lexical expression (same as bare pattern)
-      --re pattern         regular expression
-      --fe pattern         fixed expression
+      -x, --le   pattern   lexical expression (same as bare pattern)
+      -e, --and  pattern   pattern match across line boundary
+      -r, --must pattern   pattern cannot be compromised
+      -v, --not  pattern   pattern not to be matched
+          --or   pattern   alternative pattern group
+          --re   pattern   regular expression
+          --fe   pattern   fixed expression
       -f, --file file      file contains search pattern
       --select index       select indexed pattern from -f file
     MATCH
@@ -32,7 +33,7 @@ Version 8.4401
       -n                   print line number
       -H, -h               do or do not display filenames
       -o                   print only the matching part
-      -m n[,m]             max count of blocks to be shown
+      -m, --max=n[,m]      max count of blocks to be shown
       -A,-B,-C [n]         after/before/both match context
       --join               delete newline in the matched part
       --joinby=string      replace newline in the matched text by string
@@ -58,7 +59,7 @@ Version 8.4401
       --random             use random color each time
       --face               set/unset visual effects
     BLOCK
-      -p                   paragraph mode
+      -p, --paragraph      paragraph mode
       --all                print whole data
       --border=pattern     specify the border pattern
       --block=pattern      specify the block of records
@@ -275,7 +276,7 @@ to use direct index, and use relative or named capture group instead.
 For example, repeated character can be written as `(\w)\g{-1}`
 or `(?<c>\w)\g{c}`.
 
-- **--le**=_pattern_
+- **-x** _pattern_, **--le**=_pattern_
 
     Treat the string as a collection of tokens separated by spaces.  Each
     token is interpreted by the first character.  Token start with \`-'
@@ -297,7 +298,7 @@ or `(?<c>\w)\g{c}`.
         ?  Alternative pattern
         &  Function call (see next section)
 
-- **--le**=\[**+-**\]**&**_function_
+- **-x**=\[**+-**\]**&**_function_, **--le**=\[**+-**\]**&**_function_
 
     If the pattern start with ampersand (\`&'), it is treated as a
     function, and the function is called instead of searching pattern.
@@ -355,6 +356,24 @@ or `(?<c>\w)\g{c}`.
         greple foo file
         greple foo file -v bar
         greple foo file -v bar -v baz
+
+- **--or**=_pattern_
+
+    Specify logical-or match token group.  Same as `?` marked token in
+    **--le** option.  Next commands are all equivalent.
+
+        greple --le 'foo bar ?yabba ?dabba'
+        greple --and foo --and bar --or yabba --or dabba
+        greple -e foo -e bar -e 'yabba|dabba'
+
+    Option **--or** group and each **--le** pattern makes individual
+    pattern.  So
+
+        greple --le '?foo ?yabba' --le '?bar ?dabba' --or baz --or doo
+
+    is same as:
+
+        greple -e 'foo|yabba' -e 'bar|dabba' -e 'baz|doo'
 
 - **--re**=_pattern_
 
