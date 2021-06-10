@@ -899,13 +899,7 @@ my $slurp = do {
     ## error, so you can choose appropriate file code or automatic code
     ## recognition, but loose a chance to find string in unrelated area.
     ##
-    if ($opt_error eq 'fatal') {
-	sub {
-	    use warnings FATAL => 'utf8';
-	    do { local $/; <STDIN> };
-	}
-    } elsif ($opt_error eq 'skip' or
-	     $opt_error eq 'retry') {
+    if ($opt_error =~ /^(?: fatal | skip | retry )$/x) {
 	if ($opt_warn{read}) {
 	    sub {
 		use warnings FATAL => 'utf8';
@@ -931,7 +925,7 @@ my $slurp = do {
 	    }
 	}
     } else {
-	die;
+	die "$opt_error: invalid action.\n";
     }
 };
 
@@ -1034,7 +1028,10 @@ sub grep_files {
     while (defined($current_file = open_nextfile())) {
 	my $content = $slurp->();
 	if (not defined $content) {
-	    if (not $opt_error eq 'retry') {
+	    if ($opt_error eq 'fatal') {
+		die "ABORT on $current_file\n";
+	    }
+	    if ($opt_error ne 'retry') {
 		warn "SKIP $current_file\n" if $opt_warn{skip};
 		next FILE;
 	    }
@@ -2645,7 +2642,7 @@ Also sometimes encounters code mapping error due to character
 encoding.  In this case, reading the file as a binary data helps to
 produce meaningful output. (B<retry>)
 
-This option specifies the action when data read error occured.
+This option specifies the action when data read error occurred.
 
 =over 4
 
@@ -2678,7 +2675,11 @@ instead.
 =item B<-w>, B<--warn> I<type>=[I<0>,I<1>]
 
 Control runtime message mainly about file operation related to
-B<--error> option.  Repeatable.  Types are:
+B<--error> option.  Repeatable.  Value is optional and 1 is assumed
+when omitted.  So B<-wall> option enables all messages and B<-wall=0>
+disables them.
+
+Types are:
 
 =over 4
 
@@ -2718,7 +2719,6 @@ To disable this alert, set I<size> to 0:
 =item B<-Mdebug>, B<-d>I<x>
 
 Debug option is described in L<App::Greple::debug> module.
-
 
 =back
 

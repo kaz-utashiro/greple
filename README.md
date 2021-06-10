@@ -1252,7 +1252,7 @@ interpreted as a bare word.
     encoding.  In this case, reading the file as a binary data helps to
     produce meaningful output. (**retry**)
 
-    This option specifies the action when data read error occured.
+    This option specifies the action when data read error occurred.
 
     - **skip**
 
@@ -1281,7 +1281,11 @@ interpreted as a bare word.
 - **-w**, **--warn** _type_=\[_0_,_1_\]
 
     Control runtime message mainly about file operation related to
-    **--error** option.  Repeatable.  Types are:
+    **--error** option.  Repeatable.  Value is optional and 1 is assumed
+    when omitted.  So **-wall** option enables all messages and **-wall=0**
+    disables them.
+
+    Types are:
 
     - **read**
 

@@ -27,10 +27,13 @@ like(greple('-e "thorn" --error=retry t/Checker.pm')->result,
      qr/thorn/, "--error=retry");
 
 like(greple('-e "thorn" --error=retry --warn=retry t/Checker.pm')->result,
-     qr/RETRY/, "--error=retry w/warn");
+     qr/^RETRY/, "--error=retry w/warn");
 
-isnt(greple('-e "thorn" --error=fatal t/Checker.pm')->status,
-     0, "--error=fatal");
+{
+my $x = greple('-e "thorn" --error=fatal t/Checker.pm');
+isnt($x->status, 0, "--error=fatal");
+like($x->result, qr/^ABORT/, "--error=fatal ABORT message");
+}
 
 like(greple('-e "thorn" --error=ignore t/Checker.pm')->result,
      qr/thorn/, "--error=ignore");
