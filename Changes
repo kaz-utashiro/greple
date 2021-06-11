@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.45 2021-06-11T14:10:38Z
+
+    - Replace --persist/--conceal option by --error/--warn.
+    - Introduce -x option as an alias for --le.
+    - Update --git option interface in -Mdig module.
+
 8.4401 2021-06-05T16:18:38Z
 
     - Fix --persist STDOUT mode bug.
