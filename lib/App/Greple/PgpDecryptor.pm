@@ -153,16 +153,15 @@ sub _openfh {
 my $noecho;
 my $restore;
 BEGIN {
-    ($noecho, $restore) = do {
-	eval {
-	    require Term::ReadKey;
-	    import  Term::ReadKey;
-	    (sub { ReadMode('noecho', @_) }, sub { ReadMode('restore', @_) });
-	}
-	or do {
-	    (sub { system 'stty -echo' }, sub { system 'stty echo' });
-	}
+    ($noecho, $restore) = eval {
+	require Term::ReadKey;
+	import  Term::ReadKey;
+	(sub { ReadMode('noecho', @_) }, sub { ReadMode('restore', @_) });
     };
+    if (not defined $noecho) {
+	$noecho  = sub { system 'stty -echo < /dev/tty' };
+	$restore = sub { system 'stty  echo < /dev/tty' };
+    }
 }
 
 sub _readphrase {
