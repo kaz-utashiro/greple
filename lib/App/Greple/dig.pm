@@ -33,11 +33,15 @@ as autoload module in your F<~/.greplerc>.
 
 =item B<--dig> I<directories> I<find-option>
 
-Specify at the end of B<greple> options.
+Specify at the end of B<greple> options, because all the rest is taken
+as option for L<find(1)> command.
 
-=item B<--git>
+=item B<--git> I<ls-files-option>
 
-Search files under git control.
+Search files under git control.  Specify at the end of B<greple>
+options, because all the rest is taken as option for
+L<git-ls-files(1)> command.
+
 
 =back
 
@@ -83,4 +87,5 @@ option --dig -Mfind \
 	! is_others \
 	-print --
 
-option --git -Mfind !git ls-files -- --conceal skip=1
+option --git \
+	-Mfind !git ls-files $<move> -- --warn skip=0
