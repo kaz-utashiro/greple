@@ -9,11 +9,12 @@ greple -Mperl [ options ]
 =head1 SAMPLES
 
 greple -Mperl option pattern
-    --code        search from perl code outisde of pod document
-    --pod         search from pod document
-    --comment     search from comment part
-    --data        search from data part
-    --allsection  search from all sections
+    --code      search from perl code outisde of pod document
+    --pod       search from pod document
+    --comment   search from comment part
+    --data      search from data part
+    --doc       search from pod and comment
+    --allpart   search from all sections
 
 greple --colordump file
 
