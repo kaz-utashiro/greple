@@ -1539,6 +1539,43 @@ but this command is finally translated into following option list.
         -print -- pattern
 
 
+=head2 INCLUDED MODUES
+
+This release include some sample modules.  Read document in each
+modules for detail.  You can read the document by B<--man> option.
+
+    greple -Mdig --man
+
+When it does not work, use C<perldoc App::Greple::dig>.
+
+=over 7
+
+=item B<colors>
+
+Color variation module.
+
+=item B<find>
+
+Module to use L<find(1)> command to help recursive search.
+
+=item B<dig>
+
+Easy interface to use B<find> module to dig directory.
+
+=item B<pgp>
+
+Module to search B<pgp> files.
+
+=item B<perl>
+
+Sample module to search from perl source files.
+
+=back
+
+Other modules are available at CPAN, or git repository
+L<https://github.com/kaz-utashiro/>.
+
+
 =head1 OPTIONS
 
 

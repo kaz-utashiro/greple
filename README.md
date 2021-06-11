@@ -256,6 +256,38 @@ but this command is finally translated into following option list.
         ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf 
         -print -- pattern
 
+## INCLUDED MODUES
+
+This release include some sample modules.  Read document in each
+modules for detail.  You can read the document by **--man** option.
+
+    greple -Mdig --man
+
+When it does not work, use `perldoc App::Greple::dig`.
+
+- **colors**
+
+    Color variation module.
+
+- **find**
+
+    Module to use [find(1)](http://man.he.net/man1/find) command to help recursive search.
+
+- **dig**
+
+    Easy interface to use **find** module to dig directory.
+
+- **pgp**
+
+    Module to search **pgp** files.
+
+- **perl**
+
+    Sample module to search from perl source files.
+
+Other modules are available at CPAN, or git repository
+[https://github.com/kaz-utashiro/](https://github.com/kaz-utashiro/).
+
 # OPTIONS
 
 ## PATTERNS
