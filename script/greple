@@ -735,7 +735,7 @@ if ($opt_d{c}) {
 }
 
 for (values %opt_format) {
-    s{\\(.)}{ { t => "\t" }->{$1} // $1 }egx;
+    s{\\(.)}{ { t => "\t", n => "\n" }->{$1} // $1 }egx;
 }
 
 my($_file, $_line, $_text, $_blockend) = do {
