@@ -216,7 +216,7 @@ my @opt_print;
 my $opt_continue;
 my $opt_filestyle = 'line';
 my $opt_linestyle = 'line';
-my %opt_warn = (read => 0, skip => 1, retry => 0);
+my %opt_warn = (read => 0, skip => 1, retry => 0, begin => 0);
 my %opt_format = (LINE => '%d:', FILE => '%s:');
 my %opt_alert = (size => 512 * 1024, time => 2);
 my $opt_error = 'skip';
@@ -1145,7 +1145,11 @@ sub grep_data {
     ## --begin
     ##
     for my $f (@opt_begin) {
-	$f->call(&FILELABEL => $current_file);
+	eval { $f->call(&FILELABEL => $current_file) };
+	if ($@) {
+	    warn $@ if $opt_warn{begin};
+	    return 0;
+	}
     }
 
     my $grep = App::Greple::Grep->new(
@@ -2542,6 +2546,28 @@ each file processing.  This I<function> have to be called from B<main>
 package.  So if you define the function in the module package, use the
 full package name or export properly.
 
+If the function dies, that file is simply skipped.  So you can control
+if the file is to be processed using the file name or content.  To see
+the message, use B<--warn func=1> option.
+
+For example, using next function, only perl related files will be
+processed.
+
+    sub is_perl {
+        my %arg = @_;
+        my $name = delete $arg{&FILELABEL} or die;
+        $name =~ /\.(?:pm|pl|PL|pod)$/ or /\A#!.*\bperl/
+	    or die "skip $name\n";
+    }
+
+1;
+
+__DATA__
+
+option default --filestyle=once --format FILE='\n%s:\n'
+
+autoload -Mdig --dig
+option --perl $<move> --begin &__PACKAGE__::is_perl --dig .
 =item B<--end>=I<function>(I<...>)
 
 =item B<--end>=I<function>=I<...>
@@ -2751,6 +2777,11 @@ errors when reading binary or ambiguous text file.
 =item B<retry>
 
 (Default 0) File retry message.
+
+=item B<begin>
+
+(Default 0) When B<--begin> function died, the file is skipped without
+message.  Enables this to see the dying message.
 
 =item B<all>
 

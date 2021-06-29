@@ -1179,7 +1179,30 @@ or `(?<c>\w)\g{c}`.
     package.  So if you define the function in the module package, use the
     full package name or export properly.
 
-- **--end**=_function_(_..._)
+    If the function dies, that file is simply skipped.  So you can control
+    if the file is to be processed using the file name or content.  To see
+    the message, use **--warn func=1** option.
+
+    For example, using next function, only perl related files will be
+    processed.
+
+        sub is_perl {
+            my %arg = @_;
+            my $name = delete $arg{&FILELABEL} or die;
+            $name =~ /\.(?:pm|pl|PL|pod)$/ or /\A#!.*\bperl/
+                or die "skip $name\n";
+        }
+
+    1;
+
+    \_\_DATA\_\_
+
+    option default --filestyle=once --format FILE='\\n%s:\\n'
+
+    autoload -Mdig --dig
+    option --perl $<move> --begin &\_\_PACKAGE\_\_::is\_perl --dig .
+    &#x3d;item **--end**=_function_(_..._)
+
 - **--end**=_function_=_..._
 
     Option **--end** is almost same as **--begin**, except that the function
@@ -1350,6 +1373,11 @@ interpreted as a bare word.
     - **retry**
 
         (Default 0) File retry message.
+
+    - **begin**
+
+        (Default 0) When **--begin** function died, the file is skipped without
+        message.  Enables this to see the dying message.
 
     - **all**
 
