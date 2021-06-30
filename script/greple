@@ -33,7 +33,7 @@ use Data::Dumper;
 ##
 BEGIN {
     if (my $lib = abs_path($0) =~ s{/(?:script/|bin/)?\w+$}{/lib}r) {
-	push @INC, $lib if -d "$lib/App/Greple";
+	unshift @INC, $lib if -d "$lib/App/Greple";
     }
 }
 
