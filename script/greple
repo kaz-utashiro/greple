@@ -12,7 +12,7 @@ use File::stat;
 use IO::Handle;
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(min max first sum uniq shuffle);
+use List::Util qw(min max first sum uniq shuffle notall pairmap);
 use Cwd qw(getcwd abs_path);
 use Carp;
 
@@ -428,17 +428,22 @@ if ($opt_d{o}) {
 }
 
 ## -m option
-my $splicer = do {
-    my($offset, $length);
-    if (not defined $opt_m) {
-	undef;
-    } elsif (($offset) = $opt_m =~ /^(-?\d+)$/) {
-	sub { splice @{+shift}, $offset }
-    } elsif (($offset, $length) = $opt_m =~ /^(-?\d+),(-?\d+)?$/) {
-	sub { splice @{+shift}, $offset, $length }
-    } else {
+my @splicer = (not defined $opt_m) ? () : do {
+    my @param = split /,/, $opt_m, -1;
+    if (notall { /^(-?\d+)?$/ } @param) {
 	die "$opt_m: option format error.\n";
     }
+    pairmap {
+	do { # this block is necessary to escape pairmap bug
+	    my($offset, $length) = ($a, $b);
+	    if ($length ne '') {
+		sub { splice @{+shift}, $offset || 0, $length }
+	    } else {
+		sub { splice @{+shift}, $offset || 0 }
+	    }
+	};
+    }
+    (@param, @param % 2 ? '' : ());
 };
 
 my $file_code;
@@ -1176,7 +1181,9 @@ sub grep_data {
 	)->run;
     my $matched = $grep->matched;
 
-    $splicer->($grep->result_ref) if $splicer;
+    for my $splice (@splicer) {
+	$splice->($grep->result_ref);
+    }
 
     if ($opt_l) {
 	if ($matched) {
@@ -1843,6 +1850,20 @@ Note that B<grep> command also has same option, but it's behavior is
 different when invoked to multiple files.  B<greple> produces given
 number of output for each files, while B<grep> takes it as a total
 number of output.
+
+=item B<-m> I<*>, B<--max-count>=I<*>
+
+In fact, I<n> and I<m> can repeat as many as possible.  Next example
+removes first 10 blocks, then get first 10 blocks from the result.
+Consequently, get 10 blocks from 10th (10-19).
+
+    greple -m 0,10,10
+
+Next command get first 20 and get last 10, producing same result.
+Empty string behaves like absence for I<length> and zero for
+I<offset>.
+
+    greple -m 20,,,-10
 
 =item B<-A>[I<n>], B<--after-context>[=I<n>]
 
