@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.46 2021-07-02T03:22:51Z
+
+    - Interpret "\n" in format string.
+    - Allow --begin function to die to skip the file.
+    - Introduce -Mselect module.
+    - Make -m option to take more than two params.
+
 8.45 2021-06-11T14:10:38Z
 
     - Replace --persist/--conceal option by --error/--warn.
