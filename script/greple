@@ -1151,9 +1151,13 @@ sub grep_data {
     ##
     for my $f (@opt_begin) {
 	eval { $f->call(&FILELABEL => $current_file) };
-	if ($@) {
-	    warn $@ if $opt_warn{begin};
-	    return 0;
+	if (my $msg = $@) {
+	    if ($msg =~ /^SKIP/i) {
+		warn $@ if $opt_warn{begin};
+		return 0;
+	    } else {
+		die $msg;
+	    }
 	}
     }
 
@@ -2567,9 +2571,10 @@ each file processing.  This I<function> have to be called from B<main>
 package.  So if you define the function in the module package, use the
 full package name or export properly.
 
-If the function dies, that file is simply skipped.  So you can control
-if the file is to be processed using the file name or content.  To see
-the message, use B<--warn func=1> option.
+If the function dies with a message starting with a word "SKIP"
+(C</^SKIP/i>), that file is simply skipped.  So you can control if the
+file is to be processed using the file name or content.  To see the
+message, use B<--warn begin=1> option.
 
 For example, using next function, only perl related files will be
 processed.
@@ -2801,8 +2806,9 @@ errors when reading binary or ambiguous text file.
 
 =item B<begin>
 
-(Default 0) When B<--begin> function died, the file is skipped without
-message.  Enables this to see the dying message.
+(Default 0) When B<--begin> function died with "SKIP" message, the
+file is skipped without any notice.  Enables this to see the dying
+message.
 
 =item B<all>
 

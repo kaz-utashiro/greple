@@ -34,15 +34,15 @@ current directory.
 This is almost equivalent to the next command using B<--dig> option
 with condition expression for B<find> command.
 
-    greple -Mdig foobar --dig . ( -name *.c -o -name *.cc -o -name *.h )
+    greple -Mdig foobar --dig . ( -name *.pl -o -name *.pm )
 
-The problems is above command does not search perl script without
+The problems is that above command does not search perl script without
 suffixes.  Next command can search both looking at I<shebang> line.
 
     greple -Mdig -Mselect --suffix=pl,pm --shebang perl foobar --dig .
 
 Generic option B<--select-name>, B<--select-path> and B<--select-data>
-take any kind of regular expression and works for arbitrary use.
+take regular expression and works for arbitrary use.
 
 =head1 OPTIONS
 
@@ -207,10 +207,10 @@ sub select {
     my $name = delete $arg{&FILELABEL} or die;
     if ($select->check($name, *_)) {
 	say $name if $opt{yes};
-	$opt{die} and die;
+	$opt{die} and die "SKIP $name";
     } else {
 	say $name if $opt{no};
-	die;
+	die "SKIP $name";
     }
 }
 

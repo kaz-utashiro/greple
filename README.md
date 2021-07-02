@@ -541,6 +541,20 @@ or `(?<c>\w)\g{c}`.
     number of output for each files, while **grep** takes it as a total
     number of output.
 
+- **-m** _\*_, **--max-count**=_\*_
+
+    In fact, _n_ and _m_ can repeat as many as possible.  Next example
+    removes first 10 blocks, then get first 10 blocks from the result.
+    Consequently, get 10 blocks from 10th (10-19).
+
+        greple -m 0,10,10
+
+    Next command get first 20 and get last 10, producing same result.
+    Empty string behaves like absence for _length_ and zero for
+    _offset_.
+
+        greple -m 20,,,-10
+
 - **-A**\[_n_\], **--after-context**\[=_n_\]
 - **-B**\[_n_\], **--before-context**\[=_n_\]
 - **-C**\[_n_\], **--context**\[=_n_\]
@@ -1179,9 +1193,10 @@ or `(?<c>\w)\g{c}`.
     package.  So if you define the function in the module package, use the
     full package name or export properly.
 
-    If the function dies, that file is simply skipped.  So you can control
-    if the file is to be processed using the file name or content.  To see
-    the message, use **--warn func=1** option.
+    If the function dies with a message starting with a word "SKIP"
+    (`/^SKIP/i`), that file is simply skipped.  So you can control if the
+    file is to be processed using the file name or content.  To see the
+    message, use **--warn begin=1** option.
 
     For example, using next function, only perl related files will be
     processed.
@@ -1376,8 +1391,9 @@ interpreted as a bare word.
 
     - **begin**
 
-        (Default 0) When **--begin** function died, the file is skipped without
-        message.  Enables this to see the dying message.
+        (Default 0) When **--begin** function died with "SKIP" message, the
+        file is skipped without any notice.  Enables this to see the dying
+        message.
 
     - **all**
 
