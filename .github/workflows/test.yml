@@ -20,4 +20,4 @@ jobs:
           perl-version: ${{ matrix.perl }}
       - run: perl -V
       - run: cpanm --installdeps --notest .
-      - run: prove -lv t
+      - run: prove -lvr t
