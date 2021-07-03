@@ -10,15 +10,15 @@ greple -Mdig -Mselect ... --dig .
     --suffix         file suffixes
     --select-name    regex match for file name
     --select-path    regex match for file path
-    --x-suffix	     Unselect version of --suffix	   
-    --x-select-name  Unselect version of --select-name
-    --x-select-path  Unselect version of --select-path
+    --x-suffix	     exclusive version of --suffix	   
+    --x-select-name  exclusive version of --select-name
+    --x-select-path  exclusive version of --select-path
 
   DATA
     --shebang        included in #! line
     --select-data    regex match for file data
-    --x-shebang      Unselect version of --shebang	   
-    --x-select-data  Unselect version of --select-data
+    --x-shebang      exclusive version of --shebang	   
+    --x-select-data  exclusive version of --select-data
 
 =head1 DESCRIPTION
 
@@ -32,17 +32,29 @@ current directory.
     greple -Mdig -Mselect --suffix=pl,pm foobar --dig .
 
 This is almost equivalent to the next command using B<--dig> option
-with condition expression for B<find> command.
+with extra conditional expression for B<find> command.
 
-    greple -Mdig foobar --dig . ( -name *.pl -o -name *.pm )
+    greple -Mdig foobar --dig . -name '*.p[lm]'
 
-The problems is that above command does not search perl script without
-suffixes.  Next command can search both looking at I<shebang> line.
+The problems is that the above command does not search perl command
+script without suffixes.  Next command looks for both files looking at
+C<#!> (shebang) line.
 
     greple -Mdig -Mselect --suffix=pl,pm --shebang perl foobar --dig .
 
 Generic option B<--select-name>, B<--select-path> and B<--select-data>
 take regular expression and works for arbitrary use.
+
+=head2 ORDER and DEFAULT
+
+Besides normal inclusive rules, there is exclusive rules which start
+with B<--x-> option name.
+
+As for the order of rules, all exclusive rules are checked first, then
+inclusive rules are applied.
+
+When no rules are matched, default action is taken.  If no inclusive
+rule exists, it is selected.  Otherwise discarded.
 
 =head1 OPTIONS
 
@@ -131,40 +143,45 @@ my $select = __PACKAGE__->new();
 
 sub new {
     my $class = shift;
-    my $obj = bless {
-	name => [],
-	path => [],
-	data => [],
-    }, $class;
+    my $obj = bless { include => [],
+		      exclude => [] }, $class;
     lock_keys %$obj;
     $obj;
 }
 
-sub add {
-    my $obj = shift;
-    my($type, $re, $return) = @_;
-    push @{$obj->{$type}}, [ $re, $return ];
+sub include { @{shift->{include}} }
+
+sub exclude { @{shift->{exclude}} }
+
+package filter_ent {
+    sub new {
+	my $class = shift;
+	bless [ @_ ], $class;
+    }
+    sub type   { shift->[0] }
+    sub regex  { shift->[1] }
+    sub action { shift->[2] }
 }
 
-sub positive {
+sub add {
     my $obj = shift;
-    grep { $_->[1] } @{$obj->{name}}, @{$obj->{path}}, @{$obj->{data}};
+    my($type, $regex, $action) = @_;
+    my $list = $action ? $obj->{include} : $obj->{exclude};
+    push @{$list}, filter_ent->new($type, $regex, $action);
 }
 
 sub check {
     my $obj = shift;
-    my($path, $data_ref) = @_;
+    my($path, $data) = @_;
     my $name = $path =~ s{\A.*/}{}r;
-    for my $f (@{$obj->{name}}) {
-	$name =~ $f->[0] and return $f->[1];
+    for my $f ($obj->exclude, $obj->include) {
+	my $type = $f->type;
+	my $compare = { name => \$name ,
+			path => \$path ,
+			data =>  $data }->{$type} or die;
+	${$compare} =~ $f->regex and return $f->action;
     }
-    for my $f (@{$obj->{path}}) {
-	$path =~ $f->[0] and return $f->[1];
-    }
-    for my $f (@{$obj->{data}}) {
-	${$data_ref} =~ $f->[0] and return $f->[1];
-    }
-    return $obj->positive ? 0 : 1;
+    return $obj->include ? 0 : 1;
 }
 
 ############################################################
@@ -178,8 +195,6 @@ sub opt {
 use List::Util qw(reduce);
 
 sub prologue {
-    my(@content_re, @name_re);
-
     for (
 	[ \@select_shebang,  q/,/, data => 1, sub { qr/\A\#!.*\b\Q$_[0]\E/ } ],
 	[ \@discard_shebang, q/,/, data => 0, sub { qr/\A\#!.*\b\Q$_[0]\E/ } ],

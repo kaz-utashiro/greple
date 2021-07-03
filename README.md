@@ -268,22 +268,32 @@ When it does not work, use `perldoc App::Greple::dig`.
 - **colors**
 
     Color variation module.
+    See [App::Greple::colors](https://metacpan.org/pod/App::Greple::colors).
 
 - **find**
 
     Module to use [find(1)](http://man.he.net/man1/find) command to help recursive search.
+    See [App::Greple::find](https://metacpan.org/pod/App::Greple::find).
 
 - **dig**
 
-    Easy interface to use **find** module to dig directory.
+    Module for recursive search using **find** module.
+    See [App::Greple::dig](https://metacpan.org/pod/App::Greple::dig).
 
 - **pgp**
 
     Module to search **pgp** files.
+    See [App::Greple::pgp](https://metacpan.org/pod/App::Greple::pgp).
+
+- **select**
+
+    Module to select files.
+    See [App::Greple::select](https://metacpan.org/pod/App::Greple::select).
 
 - **perl**
 
     Sample module to search from perl source files.
+    See [App::Greple::perl](https://metacpan.org/pod/App::Greple::perl).
 
 Other modules are available at CPAN, or git repository
 [https://github.com/kaz-utashiro/](https://github.com/kaz-utashiro/).

@@ -1568,22 +1568,32 @@ When it does not work, use C<perldoc App::Greple::dig>.
 =item B<colors>
 
 Color variation module.
+See L<App::Greple::colors>.
 
 =item B<find>
 
 Module to use L<find(1)> command to help recursive search.
+See L<App::Greple::find>.
 
 =item B<dig>
 
-Easy interface to use B<find> module to dig directory.
+Module for recursive search using B<find> module.
+See L<App::Greple::dig>.
 
 =item B<pgp>
 
 Module to search B<pgp> files.
+See L<App::Greple::pgp>.
+
+=item B<select>
+
+Module to select files.
+See L<App::Greple::select>.
 
 =item B<perl>
 
 Sample module to search from perl source files.
+See L<App::Greple::perl>.
 
 =back
 
