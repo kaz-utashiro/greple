@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.4601 2021-07-05T13:41:05Z
+
+    - Make --Mselect module work more precisely.
+
 8.46 2021-07-02T03:22:51Z
 
     - Interpret "\n" in format string.

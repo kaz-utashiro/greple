@@ -22,6 +22,9 @@ current directory.
 
     $ greple -Mdig pattern --dig . ( -name *.c -o -name *.h )
 
+If more compilicated file filtering is required, combine with
+B<-Mselect> module.
+
 You can use B<--dig> option without module declaration by setting it
 as autoload module in your F<~/.greplerc>.
 
@@ -44,6 +47,12 @@ L<git-ls-files(1)> command.
 
 
 =back
+
+=head1 SEE ALSO
+
+L<App::Greple>
+
+L<App::Greple::select>
 
 =cut
 
