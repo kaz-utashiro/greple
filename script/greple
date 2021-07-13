@@ -1144,8 +1144,6 @@ sub open_nextfile {
 sub grep_data {
     local *_ = shift;
 
-    $progress_show->() if $progress_show;
-
     ##
     ## --begin
     ##
@@ -1160,6 +1158,8 @@ sub grep_data {
 	    }
 	}
     }
+
+    $progress_show->() if $progress_show;
 
     my $grep = App::Greple::Grep->new(
 	text         => \$_,
