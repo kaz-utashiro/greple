@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.44
+Version 8.4601
 
 # SYNOPSIS
 
@@ -12,12 +12,13 @@ Version 8.44
 
     PATTERN
       pattern              'and +must -not ?alternative &function'
-      -e pattern           pattern match across line boundary
-      -r pattern           pattern cannot be compromised
-      -v pattern           pattern not to be matched
-      --le pattern         lexical expression (same as bare pattern)
-      --re pattern         regular expression
-      --fe pattern         fixed expression
+      -x, --le   pattern   lexical expression (same as bare pattern)
+      -e, --and  pattern   pattern match across line boundary
+      -r, --must pattern   pattern cannot be compromised
+      -v, --not  pattern   pattern not to be matched
+          --or   pattern   alternative pattern group
+          --re   pattern   regular expression
+          --fe   pattern   fixed expression
       -f, --file file      file contains search pattern
       --select index       select indexed pattern from -f file
     MATCH
@@ -31,7 +32,7 @@ Version 8.44
       -n                   print line number
       -H, -h               do or do not display filenames
       -o                   print only the matching part
-      -m n[,m]             max count of blocks to be shown
+      -m, --max=n[,m]      max count of blocks to be shown
       -A,-B,-C [n]         after/before/both match context
       --join               delete newline in the matched part
       --joinby=string      replace newline in the matched text by string
@@ -57,7 +58,7 @@ Version 8.44
       --random             use random color each time
       --face               set/unset visual effects
     BLOCK
-      -p                   paragraph mode
+      -p, --paragraph      paragraph mode
       --all                print whole data
       --border=pattern     specify the border pattern
       --block=pattern      specify the block of records
@@ -90,8 +91,9 @@ Version 8.44
       --man                display command or module manual page
       --show               display module file
       --require=file       include perl program
-      --conceal=type       conceal run time errors
-      --persist            continue even after encoding error
+      --persist            same as --error=retry
+      --error=action       action after read error
+      --warn=type          run time error control
       --alert [name=#]     set alert parameter (size/time)
       -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
@@ -253,6 +255,48 @@ but this command is finally translated into following option list.
         ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf 
         -print -- pattern
 
+## INCLUDED MODUES
+
+This release include some sample modules.  Read document in each
+modules for detail.  You can read the document by **--man** option.
+
+    greple -Mdig --man
+
+When it does not work, use `perldoc App::Greple::dig`.
+
+- **colors**
+
+    Color variation module.
+    See [App::Greple::colors](https://metacpan.org/pod/App::Greple::colors).
+
+- **find**
+
+    Module to use [find(1)](http://man.he.net/man1/find) command to help recursive search.
+    See [App::Greple::find](https://metacpan.org/pod/App::Greple::find).
+
+- **dig**
+
+    Module for recursive search using **find** module.
+    See [App::Greple::dig](https://metacpan.org/pod/App::Greple::dig).
+
+- **pgp**
+
+    Module to search **pgp** files.
+    See [App::Greple::pgp](https://metacpan.org/pod/App::Greple::pgp).
+
+- **select**
+
+    Module to select files.
+    See [App::Greple::select](https://metacpan.org/pod/App::Greple::select).
+
+- **perl**
+
+    Sample module to search from perl source files.
+    See [App::Greple::perl](https://metacpan.org/pod/App::Greple::perl).
+
+Other modules are available at CPAN, or git repository
+[https://github.com/kaz-utashiro/](https://github.com/kaz-utashiro/).
+
 # OPTIONS
 
 ## PATTERNS
@@ -273,7 +317,7 @@ to use direct index, and use relative or named capture group instead.
 For example, repeated character can be written as `(\w)\g{-1}`
 or `(?<c>\w)\g{c}`.
 
-- **--le**=_pattern_
+- **-x** _pattern_, **--le**=_pattern_
 
     Treat the string as a collection of tokens separated by spaces.  Each
     token is interpreted by the first character.  Token start with \`-'
@@ -295,7 +339,7 @@ or `(?<c>\w)\g{c}`.
         ?  Alternative pattern
         &  Function call (see next section)
 
-- **--le**=\[**+-**\]**&**_function_
+- **-x**=\[**+-**\]**&**_function_, **--le**=\[**+-**\]**&**_function_
 
     If the pattern start with ampersand (\`&'), it is treated as a
     function, and the function is called instead of searching pattern.
@@ -353,6 +397,24 @@ or `(?<c>\w)\g{c}`.
         greple foo file
         greple foo file -v bar
         greple foo file -v bar -v baz
+
+- **--or**=_pattern_
+
+    Specify logical-or match token group.  Same as `?` marked token in
+    **--le** option.  Next commands are all equivalent.
+
+        greple --le 'foo bar ?yabba ?dabba'
+        greple --and foo --and bar --or yabba --or dabba
+        greple -e foo -e bar -e 'yabba|dabba'
+
+    Option **--or** group and each **--le** pattern makes individual
+    pattern.  So
+
+        greple --le '?foo ?yabba' --le '?bar ?dabba' --or baz --or doo
+
+    is same as:
+
+        greple -e 'foo|yabba' -e 'bar|dabba' -e 'baz|doo'
 
 - **--re**=_pattern_
 
@@ -487,6 +549,20 @@ or `(?<c>\w)\g{c}`.
     different when invoked to multiple files.  **greple** produces given
     number of output for each files, while **grep** takes it as a total
     number of output.
+
+- **-m** _\*_, **--max-count**=_\*_
+
+    In fact, _n_ and _m_ can repeat as many as possible.  Next example
+    removes first 10 blocks, then get first 10 blocks from the result.
+    Consequently, get 10 blocks from 10th (10-19).
+
+        greple -m 0,10,10
+
+    Next command get first 20 and get last 10, producing same result.
+    Empty string behaves like absence for _length_ and zero for
+    _offset_.
+
+        greple -m 20,,,-10
 
 - **-A**\[_n_\], **--after-context**\[=_n_\]
 - **-B**\[_n_\], **--before-context**\[=_n_\]
@@ -1126,7 +1202,31 @@ or `(?<c>\w)\g{c}`.
     package.  So if you define the function in the module package, use the
     full package name or export properly.
 
-- **--end**=_function_(_..._)
+    If the function dies with a message starting with a word "SKIP"
+    (`/^SKIP/i`), that file is simply skipped.  So you can control if the
+    file is to be processed using the file name or content.  To see the
+    message, use **--warn begin=1** option.
+
+    For example, using next function, only perl related files will be
+    processed.
+
+        sub is_perl {
+            my %arg = @_;
+            my $name = delete $arg{&FILELABEL} or die;
+            $name =~ /\.(?:pm|pl|PL|pod)$/ or /\A#!.*\bperl/
+                or die "skip $name\n";
+        }
+
+    1;
+
+    \_\_DATA\_\_
+
+    option default --filestyle=once --format FILE='\\n%s:\\n'
+
+    autoload -Mdig --dig
+    option --perl $<move> --begin &\_\_PACKAGE\_\_::is\_perl --dig .
+    &#x3d;item **--end**=_function_(_..._)
+
 - **--end**=_function_=_..._
 
     Option **--end** is almost same as **--begin**, except that the function
@@ -1231,36 +1331,82 @@ interpreted as a bare word.
 
 - **--conceal** _type_=_val_
 
-    Conceal runtime errors.  Repeatable.  Types are:
+    Use following **--warn** option in reverse context.  This option
+    remains for backward compatibility and will be deprecated in the near
+    future.
+
+- **--persist**
+
+    Same as **--error=retry**.  It may be deprecated in the future.
+
+- **--error**=_action_
+
+    As **greple** tries to read data as a character string, sometimes fails
+    to convert them into internal representation, and the file is skipped
+    without processing by default.  This works fine to skip binary
+    data. (**skip**)
+
+    Also sometimes encounters code mapping error due to character
+    encoding.  In this case, reading the file as a binary data helps to
+    produce meaningful output. (**retry**)
+
+    This option specifies the action when data read error occurred.
+
+    - **skip**
+
+        Skip the file.  Default.
+
+    - **retry**
+
+        Retry reading the file as a binary data.
+
+    - **fatal**
+
+        Abort the operation.
+
+    - **ignore**
+
+        Ignore error and continue to read anyway.
+
+    You may occasionally want to find text in binary data.  Next command
+    will work like [string(1)](http://man.he.net/man1/string) command.
+
+        greple -o --re '(?a)\w{4,}' --error=retry --uc /bin/*
+
+    If you want read all files as binary data, use **--icode=binary**
+    instead.
+
+- **-w**, **--warn** _type_=\[_0_,_1_\]
+
+    Control runtime message mainly about file operation related to
+    **--error** option.  Repeatable.  Value is optional and 1 is assumed
+    when omitted.  So **-wall** option enables all messages and **-wall=0**
+    disables them.
+
+    Types are:
 
     - **read**
 
-        (Default 1) Errors occurred during file read.  Mainly unicode related
+        (Default 0) Errors occurred during file read.  Mainly unicode related
         errors when reading binary or ambiguous text file.
 
     - **skip**
 
-        (Default 0) File skip warnings produced when fatal error was occurred
-        during file read.  Occurs when reading binary files with automatic
-        character code recognition.
+        (Default 1) File skip message.
+
+    - **retry**
+
+        (Default 0) File retry message.
+
+    - **begin**
+
+        (Default 0) When **--begin** function died with "SKIP" message, the
+        file is skipped without any notice.  Enables this to see the dying
+        message.
 
     - **all**
 
         Set same value for all types.
-
-- **--persist**
-
-    As **greple** tries to read data as a character string, sometimes fails
-    to convert them into internal representation, and the file is skipped
-    without processing.  When option **--persist** is specified, command
-    does not give up the file, and tries to read as binary data.
-
-    Next command will show strings in binary file.
-
-        greple -o --re '(?a)\w{4,}' --persist --uc /bin/*
-
-    If you want read all files as binary data, use **--icode=binary**
-    instead.
 
 - **--alert** \[ _size_=# | _time_=# \]
 
