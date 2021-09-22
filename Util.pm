@@ -7,6 +7,7 @@ use Command::Runner;
 
 sub subst {
     Command::Runner->new(
+	timeout => 2,
 	command => [ $^X, '-Ilib', '-S', 'greple', '-Msubst', @_ ],
 	stderr  => sub { warn "err: $_[0]\n" },
 	)->run;
