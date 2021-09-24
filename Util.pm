@@ -4,7 +4,8 @@ use utf8;
 use open IO => ':utf8', ':std';
 
 use Data::Dumper;
-use Command::Runner;
+use lib '.';
+use t::Runner;
 
 my $greple_path = sub {
     my($script, $module) = @_;
@@ -27,11 +28,7 @@ my $greple_path = sub {
 }->('greple', 'App::Greple') or die Dumper \%INC;
 
 sub subst {
-    Command::Runner->new(
-	timeout => 2,
-	command => [ $^X, '-Ilib', $greple_path, '-Msubst', @_ ],
-	stderr  => sub { warn "err: $_[0]\n" },
-	)->run;
+    Runner->new($greple_path, '-Msubst', @_)->run;
 }
 
 1;
