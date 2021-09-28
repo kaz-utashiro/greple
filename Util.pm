@@ -28,7 +28,7 @@ my $greple_path = sub {
 }->('greple', 'App::Greple') or die Dumper \%INC;
 
 sub subst {
-    Runner->new($greple_path, '-Msubst', @_)->run;
+    Runner->new($greple_path, '-Msubst', @_);
 }
 
 1;
