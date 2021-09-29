@@ -5,7 +5,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.4601
+Version 8.47
 
 # SYNOPSIS
 
@@ -1445,6 +1445,11 @@ interpreted as a bare word.
 - **DEBUG\_GETOPTEX**
 
     Enable [Getopt::EX](https://metacpan.org/pod/Getopt::EX) debug option.
+
+- **NO\_COLOR**
+
+    If true, all coloring capability with ANSI terminal sequence is
+    disabled.  See [https://no-color.org/](https://no-color.org/).
 
 Before starting execution, _greple_ reads the file named `.greplerc`
 on user's home directory.  Following directives can be used.

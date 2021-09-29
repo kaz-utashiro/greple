@@ -60,7 +60,7 @@ greple - extensible grep with lexical expression and region control
 =head1 VERSION
 
 
-Version 8.4601
+Version 8.47
 
 
 =head1 SYNOPSIS
@@ -2868,6 +2868,11 @@ Enable L<Getopt::Long> debug option.
 =item B<DEBUG_GETOPTEX>
 
 Enable L<Getopt::EX> debug option.
+
+=item B<NO_COLOR>
+
+If true, all coloring capability with ANSI terminal sequence is
+disabled.  See L<https://no-color.org/>.
 
 =back
 

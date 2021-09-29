@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.47 2021-09-29T08:35:10Z
+
+    - Require Getopt::EX to v1.25 to support NO_COLOR and COLORTERM env.
+
 8.4601 2021-07-05T13:41:05Z
 
     - Make --Mselect module work more precisely.
