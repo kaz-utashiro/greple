@@ -62,6 +62,11 @@ sub index {
     local $_ = shift;
 
     my $index = $obj->{HASH}->{$_} //= do {
+	if (my $prepare = $obj->{prepare}) {
+	    for my $sub (@$prepare) {
+		$_ = $sub->call();
+	    }
+	}
 	s/\n+//g    if $obj->{ignore_newline};
 	s/\s+//g    if $obj->{ignore_space};
 	s/\pS+//g   if $obj->{ignore_symbol};

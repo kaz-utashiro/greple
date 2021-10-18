@@ -56,6 +56,7 @@ Version 8.47
       --[no]256            same as --ansicolor 256 or 16
       --regioncolor        use different color for inside/outside regions
       --uniqcolor          use different color for unique string
+      --uniqsub=func       preprocess function before check uniqueness
       --random             use random color each time
       --face               set/unset visual effects
     BLOCK
@@ -909,6 +910,21 @@ or `(?<c>\w)\g{c}`.
     fashion.  If you want case-insensitive match and case-sensitive color
     selection, indicate insensitiveness in the pattern rather than command
     option (e.g. `(?i)pattern`).
+
+- **--uniqsub**=_function_, **--us**=_function_
+
+    Above option **--uniqcolor** set same color for same literal string.
+    Option **--uniqsub** specify the preprocessor code applied before
+    comparison.  _function_ get matched string by `$_` and returns the
+    result.  For example, next command will choose unique colors for each
+    word by their length.
+
+        greple --uniqcolor --uniqsub 'sub{length}' '\w+' file
+
+    Next command read the output from `git blame` command and set unique
+    color for each entire line by their commit ids.
+
+        git blame ... | greple .+ --uc --us='sub{s/\s.*//r}' --face=E
 
 - **--face**=\[-+\]_effect_
 

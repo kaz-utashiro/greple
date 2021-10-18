@@ -113,6 +113,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --[no]256            same as --ansicolor 256 or 16
     --regioncolor        use different color for inside/outside regions
     --uniqcolor          use different color for unique string
+    --uniqsub=func       preprocess function before check uniqueness
     --random             use random color each time
     --face               set/unset visual effects
   BLOCK
@@ -196,6 +197,7 @@ my $opt_colorful = 1;
 my $opt_colorindex = '';
 my @opt_face;
 my $opt_uniqcolor;
+my @opt_uniqsub;
 my $opt_random;
 my $opt_regioncolor;
 my $opt_icode;
@@ -308,6 +310,7 @@ my @optargs = (
     'colorindex|ci=s'    => \$opt_colorindex,
     'face=s'             => \@opt_face,
     'uniqcolor|uc!'      => \$opt_uniqcolor,
+    'uniqsub|us=s'       => \@opt_uniqsub,
     'random!'            => sub {
 	if ($_[1]) { $opt_colorindex .= 'R' }
 	else       { $opt_colorindex =~ s/R//gi }
@@ -765,6 +768,7 @@ sub color {
 my $uniq_color = UniqIndex->new(
     ignore_newline => 1,
     ignore_case => $opt_i,
+    prepare => \@opt_uniqsub,
     );
 
 sub dump_uniqcolor {
@@ -819,6 +823,7 @@ for my $set (
     [ "prologue", \@opt_prologue, 0 ],
     [ "epilogue", \@opt_epilogue, 0 ],
     [ "callback", \@opt_callback, 0 ],
+    [ "uniqsub" , \@opt_uniqsub , 0 ],
     [ "block"   , \@opt_block   , 1 ], # need &
     [ "inside"  , \@opt_inside  , 1 ], # need &
     [ "outside" , \@opt_outside , 1 ], # need &
@@ -2243,6 +2248,21 @@ When used with option B<-i>, color is selected in case-insensitive
 fashion.  If you want case-insensitive match and case-sensitive color
 selection, indicate insensitiveness in the pattern rather than command
 option (e.g. C<(?i)pattern>).
+
+=item B<--uniqsub>=I<function>, B<--us>=I<function>
+
+Above option B<--uniqcolor> set same color for same literal string.
+Option B<--uniqsub> specify the preprocessor code applied before
+comparison.  I<function> get matched string by C<$_> and returns the
+result.  For example, next command will choose unique colors for each
+word by their length.
+
+    greple --uniqcolor --uniqsub 'sub{length}' '\w+' file
+
+Next command read the output from C<git blame> command and set unique
+color for each entire line by their commit ids.
+
+    git blame ... | greple .+ --uc --us='sub{s/\s.*//r}' --face=E
 
 =item B<--face>=[-+]I<effect>
 
