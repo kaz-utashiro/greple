@@ -708,18 +708,14 @@ if ($opt_ansicolor eq '24bit') {
 if (@opt_face) {
     for my $opt (@opt_face) {
 	my($rm, $bg);
-	for my $s ($opt =~ m{[-+/]|[\w;{}]+}g) {
+	for my $s ($opt =~ m{[-+]|[/\w;#(){}<>]+}g) {
 	    if ($s eq '+') { $rm = 0; next }
 	    if ($s eq '-') { $rm = 1; next }
-	    if ($s eq '/') { $bg = 1; next }
 	    for my $c (@colors) {
 		if ($rm) {
-		    $c =~ s/[$s]//g;
-		} elsif ($bg) {
-		    $c .= '/' if ($c =~ tr'/'/') % 2 == 0;
-		    $c .= $s;
+		    $c =~ s/[\Q$s\E]//g;
 		} else {
-		    $c = $s . $c;
+		    $c = "$c^$s";
 		}
 	    }
 	}
