@@ -728,16 +728,6 @@ if (@opt_face) {
 my $need_color = (($opt_color eq 'always')
 		  or (($opt_color eq 'auto') and (!$opt_o and -t STDOUT)));
 
-if ($opt_d{c}) {
-    my $dump = sub {
-	local $_ = Dumper shift;
-	s/^\s*'\K([^'\s]+)(?=')/color($1, $1)/mge;
-	$_;
-    };
-    warn 'colormap = ', $dump->(\%colormap);
-    warn 'colors = ', $dump->(\@colors);
-}
-
 for (values %opt_format) {
     s{\\(.)}{ { t => "\t", n => "\n" }->{$1} // $1 }egx;
 }
@@ -779,6 +769,38 @@ sub dump_uniqcolor {
 		     $i, $count->[$i],
 		     index_color($i, $list->[$i]));
     }
+}
+
+# --colorindex
+my $indexer = do {
+    my %ci = map { uc $_ => 1 } $opt_colorindex =~ /\w/g;
+    if ($ci{S}) {
+	@colors = shuffle @colors;
+    }
+    if ($ci{A} or $ci{D}) {
+	my $i = 0;
+	Indexer->new(
+	    index   => sub { $i++   },
+	    reset   => sub { $i = 0 },
+	    block   => $ci{B},
+	    reverse => $ci{D},
+	    );
+    }
+    elsif ($ci{R}) {
+	Indexer->new(index => sub { int rand @colors });
+    }
+    else { undef }
+};
+
+# -dc
+if ($opt_d{c}) {
+    my $dump = sub {
+	local $_ = Dumper shift;
+	s/^\s*'\K([^'\s]+)(?=')/color($1, $1)/mge;
+	$_;
+    };
+    warn 'colormap = ', $dump->(\%colormap);
+    warn 'colors = ', $dump->(\@colors);
 }
 
 ##
@@ -1249,27 +1271,6 @@ sub display_result {
 	!$opt_all &&
 	$blockend ne '' &&
 	($opt_blockend || $opt_p || $opt_A || $opt_B || @opt_block);
-
-    # --colorindex
-    my $indexer = do {
-	my %ci = map { uc $_ => 1 } $opt_colorindex =~ /\w/g;
-	if ($ci{S}) {
-	    @colors = shuffle @colors;
-	}
-	if ($ci{A} or $ci{D}) {
-	    my $i = 0;
-	    Indexer->new(
-		index   => sub { $i++   },
-		reset   => sub { $i = 0 },
-		block   => $ci{B},
-		reverse => $ci{D},
-		);
-	}
-	elsif ($ci{R}) {
-	    Indexer->new(index => sub { int rand @colors });
-	}
-	else { undef }
-    };
 
     my $line = 1;
     my $lastpos = 0;
