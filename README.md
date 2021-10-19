@@ -316,8 +316,9 @@ it.
 
 Order of capture group in the pattern is not guaranteed.  Please avoid
 to use direct index, and use relative or named capture group instead.
-For example, repeated character can be written as `(\w)\g{-1}`
-or `(?<c>\w)\g{c}`.
+For example, if you want to search repeated characters, use
+`(\w)\g{-1}` or `(?<c>\w)\g{c}` rather than
+`(\w)\1`.
 
 - **-x** _pattern_, **--le**=_pattern_
 
@@ -330,9 +331,10 @@ or `(?<c>\w)\g{c}`.
 
         greple --le='foo bar -baz ?yabba ?dabba -doo'
 
-    Multiple \`?' preceded tokens are treated all mixed together.  That
-    means \`?A|B ?C|D' is equivalent to \`?A|B|C|D'.  If you want to mean
-    \`(A or B) and (C or D)', use AND syntax instead: \`A|B C|D'.
+    Multiple `?` preceded tokens are treated all mixed together.  That
+    means `?A|B&nbsp;?C|D` is equivalent to `?A|B|C|D`.  If you
+    want to mean `(A&nbsp;or&nbsp;B)` and `(C&nbsp;or&nbsp;D)`, use AND syntax
+    instead: `A|B&nbsp;C|D`.
 
     This is the summary of start character for **--le** option:
 
@@ -1432,10 +1434,10 @@ interpreted as a bare word.
     it contains large number of lines.
 
     By default, if the target file contains more than **512 \* 1024
-    characters** (_size_), **2 seconds** timer is started (_time_).  Alert
+    characters** (_size_), **2 seconds** timer will start (_time_).  Alert
     message is shown when the timer expired.
 
-    To disable this alert, set _size_ to 0:
+    To disable this alert, set the size as zero:
 
         --alert size=0
 

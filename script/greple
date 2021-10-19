@@ -1619,8 +1619,9 @@ it.
 
 Order of capture group in the pattern is not guaranteed.  Please avoid
 to use direct index, and use relative or named capture group instead.
-For example, repeated character can be written as S<C<(\w)\g{-1}>>
-or S<C<(?E<lt>cE<gt>\w)\g{c}>>.
+For example, if you want to search repeated characters, use
+S<< C<(\w)\g{-1}> >> or S<< C<(?E<lt>cE<gt>\w)\g{c}> >> rather than
+S<< C<(\w)\1> >>.
 
 =over 7
 
@@ -1635,9 +1636,10 @@ more of `yabba' and 'dabba', and none of `baz' and `doo'.
 
     greple --le='foo bar -baz ?yabba ?dabba -doo'
 
-Multiple `?' preceded tokens are treated all mixed together.  That
-means `?A|B ?C|D' is equivalent to `?A|B|C|D'.  If you want to mean
-`(A or B) and (C or D)', use AND syntax instead: `A|B C|D'.
+Multiple C<?> preceded tokens are treated all mixed together.  That
+means S<< C<?A|B ?C|D> >> is equivalent to S<< C<?A|B|C|D> >>.  If you
+want to mean S<< C<(A or B)> >> and S<< C<(C or D)> >>, use AND syntax
+instead: S<< C<A|B C|D> >>.
 
 This is the summary of start character for B<--le> option:
 
@@ -2847,10 +2849,10 @@ content to know line borders, and it takes several seconds or more if
 it contains large number of lines.
 
 By default, if the target file contains more than B<512 * 1024
-characters> (I<size>), B<2 seconds> timer is started (I<time>).  Alert
+characters> (I<size>), B<2 seconds> timer will start (I<time>).  Alert
 message is shown when the timer expired.
 
-To disable this alert, set I<size> to 0:
+To disable this alert, set the size as zero:
 
     --alert size=0
 
