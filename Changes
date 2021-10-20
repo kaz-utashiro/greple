@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.48 2021-10-20T08:58:25Z
+
+    - Use NO_COLOR for test.
+    - Update --face handling to use ^ (reset) mark.
+    - Introduce --uniqsub option.
+    - Add solarized color in -Mcolors.
+
 8.47 2021-09-29T08:35:10Z
 
     - Require Getopt::EX to v1.25 to support NO_COLOR and COLORTERM env.
