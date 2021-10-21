@@ -11,7 +11,7 @@ use t::Util;
 sub lines {
     my($title, $expected, @argv) = @_;
     my $pattern = qr/\A(.*\n){$expected}\z/;
-    like(greple(@argv)->result, $pattern, $title);
+    like(greple(@argv)->stdout, $pattern, $title);
 }
 
 lines "--inside", 1, << 'END';
