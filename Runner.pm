@@ -68,10 +68,12 @@ sub stdout {
     $obj->{stdout};
 }
 
+*result = \&stdout; # for backward compatibility
+
 sub execute {
     my $obj = shift;
     my $name = $obj->{COMMAND};
-    my $command = $name =~ s/^(?!\/)/$dir/r;
+    my $command = $name =~ s{^(?!\/)}{$dir/}r;
     my @option = @{$obj->{OPTION}};
     exec $^X, "-I$lib", $command, @option;
 }
