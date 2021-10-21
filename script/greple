@@ -387,7 +387,7 @@ sub setopt {
 }
 
 ##
-## @ARGV staff
+## @ARGV stuff
 ##
 
 require Getopt::Long;
@@ -1242,18 +1242,6 @@ sub grep_data {
     s/./\000/gs if $opt_clean;
 
     $matched;
-}
-
-package Indexer {
-    sub new {
-	my $class = shift;
-	my $obj = { @_ };
-	bless $obj, $class;
-    }
-    sub index   { shift->{index}->() }
-    sub reset   { shift->{reset}->() }
-    sub block   { shift->{block}     }
-    sub reverse { shift->{reverse}   }
 }
 
 sub display_result {

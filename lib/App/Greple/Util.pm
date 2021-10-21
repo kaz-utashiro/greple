@@ -1,20 +1,11 @@
-package App::Greple::Util;
-
 use v5.14;
 use warnings;
 
-use Exporter 'import';
-our @EXPORT      = qw();
-our %EXPORT_TAGS = ();
-our @EXPORT_OK   = qw();
-
 use App::Greple::Common;
-
 
 ##
 ## easy implementation. don't be serious.
 ##
-push @EXPORT, 'shellquote';
 sub shellquote {
     my $quote = qr/[\s\\(){}\|\*?]/;
     map { /^(-+\w+=)(.*$quote.*)$/
@@ -24,9 +15,6 @@ sub shellquote {
 	      : $_ }
     @_;
 }
-
-1;
-
 
 package UniqIndex {
     use strict;
@@ -82,6 +70,18 @@ package UniqIndex {
 
 	$index;
     }
+}
+
+package Indexer {
+    sub new {
+	my $class = shift;
+	my $obj = { @_ };
+	bless $obj, $class;
+    }
+    sub index   { shift->{index}->() }
+    sub reset   { shift->{reset}->() }
+    sub block   { shift->{block}     }
+    sub reverse { shift->{reverse}   }
 }
 
 1;
