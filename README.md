@@ -458,19 +458,25 @@ For example, if you want to search repeated characters, use
     If the option **--need=0** is specified and no pattern was found,
     entire data is printed.  This is true even for required pattern.
 
-- **--matchcount**=_min_\[,_max_\], **--mc**=_min_\[,_max_\]
+- **--matchcount**=_count_|_min_,_max_, **--mc**=...
 
     When option **--matchcount** is specified, only blocks which have given
-    match count will be shown.  Count _min_ and _max_ can be omitted,
-    and single number is taken as _min_.  Next commands print lines
-    including semicolons; 3 or more, exactly 3, and 3 or less,
+    match count will be shown.  Minimum and maximum number can be given,
+    connecting by comma, and they can be omitted.  Next commands print
+    lines including semicolons; 3 or more, exactly 3, and 3 or less,
     respectively.
 
-        greple --matchcount=3 ';' file
+        greple --matchcount=3, ';' file
 
-        greple --matchcount=3,3 ';' file
+        greple --matchcount=3  ';' file
 
         greple --matchcount=,3 ';' file
+
+    In fact, _min_ and _max_ can repeat to represent multiple range.
+    Missing, negative or zero _max_ means infinite.  Next command find
+    match count 0 to 10, 20 to 30, and 40-or-greater.
+
+        greple --matchcount=,10,20,30,40
 
 - **-f** _file_, **--file**=_file_
 

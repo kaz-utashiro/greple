@@ -13,4 +13,8 @@ sub greple {
     Runner->new('greple', @_)->run;
 }
 
+sub line {
+    qr/\A(?:.+\n){$_[0]}\z/;
+}
+
 1;

@@ -610,16 +610,19 @@ my $count_allow = 0;
 ##
 my $count_match_sub = sub {
     local $_ = shift or return undef;
-    if (/\A(\d+)?,(\d+)\z/) {
-	my($min, $max) = (int($1//0), int($2));
-	sub { $min <= $_[0] and $_[0] <= $max }
+    /[^\d,]/ and die "$_ is not valid count.\n";
+    my @c = map { $_ eq '' ? 0 : int } split(/,/, $_, -1);
+    if (@c == 1) {
+	return sub { $_[0] == $c[0] };
     }
-    elsif (/\A(\d+),?\z/) {
-	my $min = int($1);
-	sub { $min <= $_[0] }
-    }
-    else {
-	die "$_ is not valid count.\n"
+    push @c, -1 if @c % 2;
+    return sub {
+	my @n = @c;
+	while (my($min, $max) = splice(@n, 0, 2)) {
+	    return 0 if $_[0] < $min;
+	    return 1 if $max <= 0 || $_[0] <= $max;
+	}
+	return 0;
     }
 }->($opt_matchcount);
 
@@ -1752,19 +1755,25 @@ value.
 If the option B<--need=0> is specified and no pattern was found,
 entire data is printed.  This is true even for required pattern.
 
-=item B<--matchcount>=I<min>[,I<max>], B<--mc>=I<min>[,I<max>]
+=item B<--matchcount>=I<count>|I<min>,I<max>, B<--mc>=...
 
 When option B<--matchcount> is specified, only blocks which have given
-match count will be shown.  Count I<min> and I<max> can be omitted,
-and single number is taken as I<min>.  Next commands print lines
-including semicolons; 3 or more, exactly 3, and 3 or less,
+match count will be shown.  Minimum and maximum number can be given,
+connecting by comma, and they can be omitted.  Next commands print
+lines including semicolons; 3 or more, exactly 3, and 3 or less,
 respectively.
 
-    greple --matchcount=3 ';' file
+    greple --matchcount=3, ';' file
 
-    greple --matchcount=3,3 ';' file
+    greple --matchcount=3  ';' file
 
     greple --matchcount=,3 ';' file
+
+In fact, I<min> and I<max> can repeat to represent multiple range.
+Missing, negative or zero I<max> means infinite.  Next command find
+match count 0 to 10, 20 to 30, and 40-or-greater.
+
+    greple --matchcount=,10,20,30,40
 
 =item B<-f> I<file>, B<--file>=I<file>
 
