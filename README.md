@@ -926,7 +926,7 @@ For example, if you want to search repeated characters, use
     Next command read the output from `git blame` command and set unique
     color for each entire line by their commit ids.
 
-        git blame ... | greple .+ --uc --us='sub{s/\s.*//r}' --face=E
+        git blame ... | greple .+ --uc --us='sub{s/\s.*//r}' --face=E-D
 
 - **--face**=\[-+\]_effect_
 

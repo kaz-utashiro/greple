@@ -2250,7 +2250,7 @@ word by their length.
 Next command read the output from C<git blame> command and set unique
 color for each entire line by their commit ids.
 
-    git blame ... | greple .+ --uc --us='sub{s/\s.*//r}' --face=E
+    git blame ... | greple .+ --uc --us='sub{s/\s.*//r}' --face=E-D
 
 =item B<--face>=[-+]I<effect>
 
