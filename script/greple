@@ -2057,15 +2057,15 @@ with other special effects:
 
     N    None
     Z  0 Zero (reset)
-    D  1 Double-struck (boldface)
+    D  1 Double strike (boldface)
     P  2 Pale (dark)
     I  3 Italic
     U  4 Underline
     F  5 Flash (blink: slow)
     Q  6 Quick (blink: rapid)
-    S  7 Stand-out (reverse video)
-    V  8 Vanish (concealed)
-    X  9 Crossed out
+    S  7 Stand out (reverse video)
+    H  8 Hide (concealed)
+    X  9 Cross out
     E    Erase Line
 
     ;    No effect
