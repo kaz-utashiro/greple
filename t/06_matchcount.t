@@ -20,4 +20,7 @@ like(greple('-e o --matchcount=3,4 t/SAMPLE.txt')->stdout,
 like(greple('-e o --matchcount=,1 t/SAMPLE.txt')->stdout,
      qr/\A(.*\n){1}\z/, "--matchcount ,1");
 
+like(greple('-e g --matchcount=2,2 t/SAMPLE.txt --inside .+')->stdout,
+     qr/\A(.*\n){2}\z/, "--matchcount with --inside");
+
 done_testing;

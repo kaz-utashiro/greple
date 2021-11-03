@@ -137,7 +137,7 @@ sub prepare {
 		push @{$tmp[$resi]}, @l;
 	    }
 	}
-	@result = map { [ merge_regions { destructive => 1 }, @$_ ] } @tmp;
+	@result = map { [ merge_regions { nojoin => 1, destructive => 1 }, @$_ ] } @tmp;
     }
 
     ##
