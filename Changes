@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.50 2021-11-03T10:25:11Z
+
+    - Update --matchcount option behavior.
+
+    Now --matchcount=3 means exact three, not a minumum.
+    Takes multiple ranges: --matchcount=,10,20,30,40
+
 8.49 2021-11-03T01:24:59Z
 
     - Update test code.pm.
