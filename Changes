@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.49 2021-11-03T01:24:59Z
+
+    - Update test code.pm.
+    - Fix a bug of --inside/outside option joining matched area.
+    - Use Getopt::EX@v1.26.0 and update document for colorspec.
+    - Add --git-color-blame in -Mcolors.
+
 8.48 2021-10-20T08:58:25Z
 
     - Use NO_COLOR for test.
