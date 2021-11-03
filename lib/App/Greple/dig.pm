@@ -4,15 +4,14 @@ dig - Greple module for recursive search
 
 =head1 SYNOPSIS
 
-greple -Mdig [ options ] --dig directories ...
+greple -Mdig pattern --dig directories ...
 
-greple -Mdig --git ...
+greple -Mdig pattern --git ...
 
 =head1 DESCRIPTION
 
-Option B<--dig> searches all files under directories specified after
-it.  Since it takes all following arguments as target files or
-directories, use after all necessary options.
+Option B<--dig> searches all files under specified directories.  Since
+it takes all following arguments, place at the end of all options.
 
 It is possible to specify AND condition after directories, in B<find>
 option format.  Next command will search all C source files under the
@@ -53,6 +52,8 @@ L<git-ls-files(1)> command.
 L<App::Greple>
 
 L<App::Greple::select>
+
+L<find(1)>, L<git-ls-files(1)>
 
 =cut
 
