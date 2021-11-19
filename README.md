@@ -1242,16 +1242,16 @@ For example, if you want to search repeated characters, use
                 or die "skip $name\n";
         }
 
-    1;
+        1;
 
-    \_\_DATA\_\_
+        __DATA__
 
-    option default --filestyle=once --format FILE='\\n%s:\\n'
+        option default --filestyle=once --format FILE='\n%s:\n'
 
-    autoload -Mdig --dig
-    option --perl $<move> --begin &\_\_PACKAGE\_\_::is\_perl --dig .
-    &#x3d;item **--end**=_function_(_..._)
+        autoload -Mdig --dig
+        option --perl $<move> --begin &__PACKAGE__::is_perl --dig .
 
+- **--end**=_function_(_..._)
 - **--end**=_function_=_..._
 
     Option **--end** is almost same as **--begin**, except that the function

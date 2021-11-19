@@ -2609,14 +2609,15 @@ processed.
 	    or die "skip $name\n";
     }
 
-1;
+    1;
 
-__DATA__
+    __DATA__
 
-option default --filestyle=once --format FILE='\n%s:\n'
+    option default --filestyle=once --format FILE='\n%s:\n'
 
-autoload -Mdig --dig
-option --perl $<move> --begin &__PACKAGE__::is_perl --dig .
+    autoload -Mdig --dig
+    option --perl $<move> --begin &__PACKAGE__::is_perl --dig .
+
 =item B<--end>=I<function>(I<...>)
 
 =item B<--end>=I<function>=I<...>
