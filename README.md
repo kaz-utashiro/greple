@@ -563,14 +563,14 @@ For example, if you want to search repeated characters, use
 - **-m** _\*_, **--max-count**=_\*_
 
     In fact, _n_ and _m_ can repeat as many as possible.  Next example
-    removes first 10 blocks, then get first 10 blocks from the result.
-    Consequently, get 10 blocks from 10th (10-19).
+    removes first 10 blocks (by 0,10), then get first 10 blocks from the
+    result (by 10).  Consequently, get 10 blocks from 10th (10-19).
 
         greple -m 0,10,10
 
-    Next command get first 20 and get last 10, producing same result.
-    Empty string behaves like absence for _length_ and zero for
-    _offset_.
+    Next command get first 20 (by 20,) and get last 10 (by ,-10),
+    producing same result.  Empty string behaves like absence for
+    _length_ and zero for _offset_.
 
         greple -m 20,,,-10
 
