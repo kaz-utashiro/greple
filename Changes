@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.51 2021-11-22T23:20:07Z
+
+    - Now --uc option does not imply case-insensitive color selection.
+      Use --uniqsub in that case.
+
 8.50 2021-11-03T10:25:11Z
 
     - Update --matchcount option behavior.
