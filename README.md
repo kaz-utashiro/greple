@@ -914,10 +914,9 @@ For example, if you want to search repeated characters, use
 
         greple --uniqcolor 'colou?r\w*'
 
-    When used with option **-i**, color is selected in case-insensitive
-    fashion.  If you want case-insensitive match and case-sensitive color
-    selection, indicate insensitiveness in the pattern rather than command
-    option (e.g. `(?i)pattern`).
+    When used with option **-i**, color is selected still in case-sensitive
+    fashion.  If you want case-insensitive color selection, use next
+    **--uniqsub** option.
 
 - **--uniqsub**=_function_, **--us**=_function_
 
@@ -928,6 +927,10 @@ For example, if you want to search repeated characters, use
     word by their length.
 
         greple --uniqcolor --uniqsub 'sub{length}' '\w+' file
+
+    If you want case-insensitive color selection, do like this.
+
+        greple -i pattern --uc --uniqsub 'sub{lc}'
 
     Next command read the output from `git blame` command and set unique
     color for each entire line by their commit ids.

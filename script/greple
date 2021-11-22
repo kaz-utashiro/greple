@@ -757,7 +757,6 @@ sub color {
 
 my $uniq_color = UniqIndex->new(
     ignore_newline => 1,
-    ignore_case => $opt_i,
     prepare => \@opt_uniqsub,
     );
 
@@ -2241,10 +2240,9 @@ different colors.
 
     greple --uniqcolor 'colou?r\w*'
 
-When used with option B<-i>, color is selected in case-insensitive
-fashion.  If you want case-insensitive match and case-sensitive color
-selection, indicate insensitiveness in the pattern rather than command
-option (e.g. C<(?i)pattern>).
+When used with option B<-i>, color is selected still in case-sensitive
+fashion.  If you want case-insensitive color selection, use next
+B<--uniqsub> option.
 
 =item B<--uniqsub>=I<function>, B<--us>=I<function>
 
@@ -2255,6 +2253,10 @@ result.  For example, next command will choose unique colors for each
 word by their length.
 
     greple --uniqcolor --uniqsub 'sub{length}' '\w+' file
+
+If you want case-insensitive color selection, do like this.
+
+    greple -i pattern --uc --uniqsub 'sub{lc}'
 
 Next command read the output from C<git blame> command and set unique
 color for each entire line by their commit ids.
