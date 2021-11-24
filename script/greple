@@ -1302,12 +1302,13 @@ sub display_result {
 	    }
 	}
 
+	my @blocks = split_text(\$block, $result, $block_start);
+
 	my $mark = "\001";
-	for my $matched (reverse @$result) {
-	    my($start, $end, $pi, $callback) = @$matched;
-	    my $ms = max($start - $block_start, 0);
-	    my $me = $end - $block_start;
-	    my $s = substr($block, $ms, $me - $ms);
+	for my $i (0 .. $#{$result}) {
+	    my $bi = $i * 2 + 1;
+	    my($start, $end, $pi, $callback) = @{$result->[$i]};
+	    my $s = $blocks[$bi];
 
 	    ## run callback function
 	    if ($callback) {
@@ -1332,14 +1333,15 @@ sub display_result {
 		}
 	    }
 
-	    # --uniqcolor
-	    if ($opt_uniqcolor) {
-		$pi = $uniq_color->index($s);
-	    }
-
-	    substr($block, $ms, $me - $ms,
-		   $need_color ? index_color($pi, $s) : $s);
+	    $blocks[$bi] = !$need_color ? $s : do {
+		# --uniqcolor
+		$pi = $uniq_color->index($s) if $opt_uniqcolor;
+		index_color($pi, $s);
+	    };
 	}
+
+	$block = join '', @blocks;
+
 	if ($opt_n) {
 	    if ($opt_linestyle eq 'line') {
 		my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
@@ -1369,6 +1371,17 @@ sub display_result {
     }
 }
 
+##
+## split text using match information
+##
+sub split_text {
+    my($data, $matched, $offset) = @_;
+    my @length = map {
+	($_->[0] - $offset, ($offset = $_->[1]) - $_->[0]);
+    } @$matched;
+    my $template = join '', map "a$_", @length, '*';
+    unpack $template, $$data;
+}
 
 __END__
 
