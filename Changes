@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.52 2021-11-24T07:12:13Z
+
+    - Update result output algorithm, and runs about 30 times faster
+      in the best case.
+
 8.51 2021-11-22T23:20:07Z
 
     - Now --uc option does not imply case-insensitive color selection.
