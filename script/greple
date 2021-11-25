@@ -1302,42 +1302,44 @@ sub display_result {
 	    }
 	}
 
-	my @blocks = split_text(\$block, $result, $block_start);
+	my $template = unpack_template($result, $block_start);
+	my @blocks = unpack($template, $block);
 
 	my $mark = "\001";
 	for my $i (0 .. $#{$result}) {
-	    my $bi = $i * 2 + 1;
 	    my($start, $end, $pi, $callback) = @{$result->[$i]};
-	    my $s = $blocks[$bi];
+	    local *b = \$blocks[$i * 2 + 1];
 
 	    ## run callback function
 	    if ($callback) {
-		if (ref $callback eq 'CODE') {
-		    $s = $callback->($start, $end, $pi, $s);
-		}
-		elsif (callable $callback) {
-		    $s = $callback->call(
-			&FILELABEL => $file,
-			start => $start,
-			end   => $end,
-			index => $pi,
-			match => $s);
-		}
+		$b = do {
+		    if (ref $callback eq 'CODE') {
+			$callback->($start, $end, $pi, $b);
+		    }
+		    elsif (callable $callback) {
+			$callback->call(
+			    &FILELABEL => $file,
+			    start => $start,
+			    end   => $end,
+			    index => $pi,
+			    match => $b);
+		    }
+		    else { die }
+		};
 	    }
 
 	    if ($opt_join) {
 		if ($opt_n and $opt_linestyle eq 'line') {
-		    $s =~ s/(?<!\A)\n(?!\z)/$mark/g;
+		    $b =~ s/(?<!\A)\n(?!\z)/$mark/g;
 		} else {
-		    $s =~ s/(?<!\A)\n(?!\z)/$opt_joinby/g;
+		    $b =~ s/(?<!\A)\n(?!\z)/$opt_joinby/g;
 		}
 	    }
 
-	    $blocks[$bi] = !$need_color ? $s : do {
-		# --uniqcolor
-		$pi = $uniq_color->index($s) if $opt_uniqcolor;
-		index_color($pi, $s);
-	    };
+	    if ($need_color) {
+		$pi = $uniq_color->index($b) if $opt_uniqcolor;
+		$b = index_color($pi, $b);
+	    }
 	}
 
 	$block = join '', @blocks;
@@ -1374,13 +1376,12 @@ sub display_result {
 ##
 ## split text using match information
 ##
-sub split_text {
-    my($data, $matched, $offset) = @_;
+sub unpack_template {
+    my($matched, $offset) = @_;
     my @length = map {
 	($_->[0] - $offset, ($offset = $_->[1]) - $_->[0]);
     } @$matched;
-    my $template = join '', map "a$_", @length, '*';
-    unpack $template, $$data;
+    join '', map "a$_", @length, '*';
 }
 
 __END__
