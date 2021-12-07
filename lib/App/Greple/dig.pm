@@ -75,7 +75,7 @@ expand is_image 	( -iname *.jpg  -o -iname *.jpeg -o \
 			  -iname *.heic -o -iname *.heif -o \
 			  -iname *.svg \
 			)
-expand is_archive	( -iname *.tar -o -iname *.tbz -o -iname *.tgz -o \
+expand is_archive	( -iname *.tar -o -iname *.tar.gz -o -iname *.tbz -o -iname *.tgz -o \
 			  -name  *.a   -o -name  *.zip \
 			)
 expand is_pdf		  -iname *.pdf
