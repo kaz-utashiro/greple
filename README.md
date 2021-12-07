@@ -26,7 +26,7 @@ Version 8.52
       -i                   ignore case
       --need=[+-]n         required positive match count
       --allow=[+-]n        acceptable negative match count
-      --matchcount=n[,m]   specify required match count for each block
+      --matchcount=n[,m]   required match count for each block
     STYLE
       -l                   list filename only
       -c                   print count of matched block only
@@ -62,9 +62,9 @@ Version 8.52
     BLOCK
       -p, --paragraph      paragraph mode
       --all                print whole data
-      --border=pattern     specify the border pattern
-      --block=pattern      specify the block of records
-      --blockend=s         specify the block end mark (Default: "--\n")
+      --border=pattern     border pattern
+      --block=pattern      block of records
+      --blockend=s         block end mark (Default: "--\n")
     REGION
       --inside=pattern     select matches inside of pattern
       --outside=pattern    select matches outside of pattern
@@ -72,8 +72,8 @@ Version 8.52
       --exclude=pattern    reduce matches to outside of the area
       --strict             strict mode for --inside/outside --block
     CHARACTER CODE
-      --icode=name         specify file encoding
-      --ocode=name         specify output encoding
+      --icode=name         file encoding
+      --ocode=name         output encoding
     FILTER
       --if,--of=filter     input/output filter command
       --pf=filter          post process filter command
@@ -88,7 +88,7 @@ Version 8.52
       --epilogue=func      call function after command execution
     OTHER
       --usage[=expand]     show this message
-      --exit=n             specify exit status
+      --exit=n             command exit status
       --norc               skip reading startup file
       --man                display command or module manual page
       --show               display module file
