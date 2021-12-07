@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.5201 2021-12-07T05:15:51Z
+
+    - Add .tar.gz as an archive in -Mdig.
+
 8.52 2021-11-24T07:12:13Z
 
     - Update result output algorithm, and runs about 30 times faster
