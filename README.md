@@ -986,11 +986,14 @@ For example, if you want to search repeated characters, use
 
 - **--border**=_pattern_
 
-    Specify record block border pattern.  Default block is a single line
-    and use `/^/m` as a pattern.  Paragraph mode uses
-    `/(?:\A|\R)\K\R+/`, which means continuous newlines at the beginning
-    of text or following another newline (`\R` means more general
-    linebreaks including `\r\n`; consult [perlrebackslash](https://metacpan.org/pod/perlrebackslash) for detail).
+    Specify record block border pattern.  Pattern match is done in the
+    context of multiple line mode.
+
+    Default block is a single line and use `/^/m` as a pattern.
+    Paragraph mode uses `/(?:\A|\R)\K\R+/`, which means continuous
+    newlines at the beginning of text or following another newline (`\R`
+    means more general linebreaks including `\r\n`; consult
+    [perlrebackslash](https://metacpan.org/pod/perlrebackslash) for detail).
 
     Next command treat the data as a series of 10-line unit.
 

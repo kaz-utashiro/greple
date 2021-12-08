@@ -807,7 +807,7 @@ if ($opt_d{c}) {
 ##
 my $border_re = do {
     if ($opt_border) {
-	qr/$opt_border/;	# custom
+	qr/$opt_border/m;	# custom
     } elsif ($opt_p) {
 	qr/(?:\A|\R)\K\R+/;	# paragraph
     } else {
@@ -2332,11 +2332,14 @@ identical to following command.
 
 =item B<--border>=I<pattern>
 
-Specify record block border pattern.  Default block is a single line
-and use C</^/m> as a pattern.  Paragraph mode uses
-C</(?:\A|\R)\K\R+/>, which means continuous newlines at the beginning
-of text or following another newline (C<\R> means more general
-linebreaks including C<\r\n>; consult L<perlrebackslash> for detail).
+Specify record block border pattern.  Pattern match is done in the
+context of multiple line mode.
+
+Default block is a single line and use C</^/m> as a pattern.
+Paragraph mode uses C</(?:\A|\R)\K\R+/>, which means continuous
+newlines at the beginning of text or following another newline (C<\R>
+means more general linebreaks including C<\r\n>; consult
+L<perlrebackslash> for detail).
 
 Next command treat the data as a series of 10-line unit.
 
