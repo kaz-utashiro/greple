@@ -162,13 +162,7 @@ my @baseclass = qw( App::Greple Getopt::EX );
 my $rcloader = Getopt::EX::Loader
     ->new(BASECLASS => \@baseclass);
 
-my @opt_e;
-my @opt_v;
-my @opt_r;
-my @opt_re;
-my @opt_le;
-my @opt_fe;
-my @opt_or;
+my @opt_pattern;
 
 my @opt_if;
 my @opt_of;
@@ -243,13 +237,17 @@ my $opt_H;
 #my $opt_M;
 
 my @optargs = (
-    'e|and=s'            => \@opt_e,
-    'r|must=s'           => \@opt_r,
-    'v|not=s'            => \@opt_v,
-    'or=s'               => \@opt_or,
-    'x|le=s'             => \@opt_le,
-    're=s'               => \@opt_re,
-    'fe=s'               => \@opt_fe,
+    'and|e=s'            => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
+    'must|r=s'           => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
+    'not|v=s'            => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
+    'le|x=s'             => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
+    're=s'               => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
+    'fe=s'               => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
+    'or=s'               => sub {
+	state $or;
+	push @opt_pattern, $or = [ 'or' ] if not defined $or;
+	push @$or, $_[1];
+    },
     'need=s'             => \@opt_need,
     'allow=s'            => \@opt_allow,
     'matchcount|mc=s'    => \$opt_matchcount,
@@ -540,25 +538,27 @@ if (@opt_f) {
 			    $opt_f);
     }
 } else {
-    if (@opt_le + @opt_re + @opt_fe + @opt_or + @opt_e + @opt_r == 0) {
+    if (@opt_pattern == 0) {
 	&usage if @ARGV == 0;
-	unshift @opt_le, shift @ARGV;
+	@opt_pattern = [ le => shift @ARGV ];
     }
 }
 
-for ([ \@opt_r,  FLAG_REGEX | FLAG_COOK | FLAG_REQUIRED ],
-     [ \@opt_v,  FLAG_REGEX | FLAG_COOK | FLAG_NEGATIVE ],
-     [ \@opt_le, FLAG_REGEX | FLAG_COOK | FLAG_LEXICAL  ],
-     [ \@opt_or, FLAG_REGEX | FLAG_COOK | FLAG_OR       ],
-     [ \@opt_e,  FLAG_REGEX | FLAG_COOK                 ],
-     [ \@opt_re, FLAG_REGEX                             ],
-     [ \@opt_fe, FLAG_NONE                              ])
-{
-    my($opt, $flag) = @$_;
-    next unless @$opt;
-    $pat_holder->append({ flag => $FLAG_BASE | $flag, type => 'pattern' },
-			@$opt)->optimize();
+my %pat_flag = (
+    must => FLAG_REGEX | FLAG_COOK | FLAG_REQUIRED,
+    not  => FLAG_REGEX | FLAG_COOK | FLAG_NEGATIVE,
+    le   => FLAG_REGEX | FLAG_COOK | FLAG_LEXICAL,
+    or   => FLAG_REGEX | FLAG_COOK | FLAG_OR,
+    and  => FLAG_REGEX | FLAG_COOK,
+    re   => FLAG_REGEX,
+    fe   => FLAG_NONE,
+);
+for (@opt_pattern) {
+    my($attr, @opt) = @$_;
+    my $flag = $FLAG_BASE | $pat_flag{$attr};
+    $pat_holder->append({ flag => $flag, type => 'pattern' }, @opt);
 }
+# $pat_holder->optimize;
 
 ##
 ## set $count_must, $count_need and $opt_allow
