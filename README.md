@@ -5,7 +5,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.5201
+Version 8.5202
 
 # SYNOPSIS
 
@@ -251,10 +251,10 @@ simple as this:
 
 but this command is finally translated into following option list.
 
-    greple -Mfind . ( -name .git -o -name .svn -o -name RCS ) -prune -o 
-        -type f ! -name .* ! -name *,v ! -name *~ 
-        ! -iname *.jpg ! -iname *.jpeg ! -iname *.gif ! -iname *.png 
-        ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf 
+    greple -Mfind . ( -name .git -o -name .svn -o -name RCS ) -prune -o
+        -type f ! -name .* ! -name *,v ! -name *~
+        ! -iname *.jpg ! -iname *.jpeg ! -iname *.gif ! -iname *.png
+        ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf
         -print -- pattern
 
 ## INCLUDED MODUES

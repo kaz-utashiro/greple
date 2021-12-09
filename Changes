@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.5202 2021-12-09T02:09:44Z
+
+    - Enable m-modifier for --border pattern.
+    - Update pattern option handling to keep order.
+
 8.5201 2021-12-07T05:15:51Z
 
     - Add .tar.gz as an archive in -Mdig.
