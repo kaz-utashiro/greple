@@ -77,7 +77,8 @@ sub lexical_opt {
     }
     my $orig_flag = $arg->{flag} & ~FLAG_LEXICAL;
 
-    my @or;
+    my $or;
+    my @pattern;
     for (split /(?<!\\)\s+/, $opt) {
 
 	next if $_ eq "";
@@ -85,7 +86,10 @@ sub lexical_opt {
 	my $flag = $orig_flag;
 
 	if (s/^\?//) {					# ?pattern
-	    push @or, $_;
+	    unless ($or) {
+		push @pattern, $or = [ { flag => $orig_flag | FLAG_OR } ];
+	    }
+	    push @$or, $_;
 	    next;
 	}
 
@@ -103,12 +107,11 @@ sub lexical_opt {
 	    $flag |= FLAG_REGEX;
 	}
 
-	$obj->append({ flag => $flag }, $_) if $_ ne '';
+	push @pattern, [ { flag => $flag }, $_ ] if $_ ne '';
     }
 
-    if (@or) {
-	my $flag = $orig_flag | FLAG_OR;
-	$obj->append({ flag => $flag }, @or);
+    for (@pattern) {
+	$obj->append(@$_);
     }
 }
 
