@@ -1379,7 +1379,7 @@ sub display_result {
 sub unpack_template {
     my($matched, $offset) = @_;
     my @length = map {
-	($_->[0] - $offset, ($offset = $_->[1]) - $_->[0]);
+	(max(0, $_->[0] - $offset), ($offset = $_->[1]) - $_->[0]);
     } @$matched;
     join '', map "a$_", @length, '*';
 }

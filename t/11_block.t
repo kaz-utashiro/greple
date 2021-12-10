@@ -22,6 +22,9 @@ like(greple(qw{ fox --block .* -C1 t/SAMPLE.txt })->stdout,
 like(greple(qw{ tocaba --block .* -C1 t/SAMPLE.txt })->stdout,
      qr/\A(?:(?:.*\n){1}--\n){2}\z/, "--block -C1 (last block)");
 
+is(greple(qw{ -e fox --block . --blockend= t/SAMPLE.txt })->stdout,
+     "f\no\nx\n", "--block . (shorter block)");
+
 like(greple(qw{ -e イーハトーヴォ -e モリーオ --block (?:.+\\n)+ t/JA.txt })->stdout,
      qr/\A(.*\n){4}--\n\z/, "--block with Japanese");
 
