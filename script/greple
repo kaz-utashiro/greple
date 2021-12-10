@@ -1377,11 +1377,14 @@ sub display_result {
 ## split text using match information
 ##
 sub unpack_template {
-    my($matched, $offset) = @_;
-    my @length = map {
-	(max(0, $_->[0] - $offset), ($offset = $_->[1]) - $_->[0]);
-    } @$matched;
-    join '', map "a$_", @length, '*';
+    my($matched, $off) = @_;
+    my @len;
+    for (@$matched) {
+	my($s, $e) = @$_;
+	push @len, max(0, $s - $off), $e - max($off, $s);
+	$off = $_->[1];
+    }
+    join '', map "a$_", @len, '*';
 }
 
 __END__
