@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.5203 2021-12-10T00:18:07Z
+
+    - Update --le pattern option handling to keep order.
+    - Fix bug with shorter block and add test code.
+
 8.5202 2021-12-09T02:09:44Z
 
     - Enable m-modifier for --border pattern.
