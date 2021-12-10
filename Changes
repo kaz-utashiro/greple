@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.5204 2021-12-10T03:40:49Z
+
+    - Additional fix for shorter block.
+
 8.5203 2021-12-10T00:18:07Z
 
     - Update --le pattern option handling to keep order.
