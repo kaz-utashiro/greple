@@ -29,7 +29,7 @@ TODO: {
 
 local $TODO = "--cm sub{\"[\$_]\"} does no work on test environment. why?";
 
-is(greple(qw{ -e いろは --block .. --blockend= t/SAMPLE.txt --cm sub{"[$_]"} })->stdout,
+is(greple(qw{ -e いろは --block .. --blockend= t/SAMPLE.txt --cm sub{"[$_]"} --color=always })->stdout,
      "[いろ]\n[は]に\n", "--block .. (overflowed shorter block)");
 
 }
