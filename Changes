@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.5205 2021-12-12T23:48:57Z
+
+    - Make t/11_block.t not to fail by TODO guard.
+    - Simplify handling shorter block algorithm.
+
 8.5204 2021-12-10T03:40:49Z
 
     - Additional fix for shorter block.
