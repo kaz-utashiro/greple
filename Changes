@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.53 2021-12-13T13:12:47Z
+
+    - Functional --cm sub{...} works even if --nocolor option given.
+
 8.5205 2021-12-12T23:48:57Z
 
     - Make t/11_block.t not to fail by TODO guard.
