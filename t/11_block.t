@@ -25,14 +25,8 @@ like(greple(qw{ tocaba --block .* -C1 t/SAMPLE.txt })->stdout,
 is(greple(qw{ -e fox --block . --blockend= t/SAMPLE.txt })->stdout,
      "f\no\nx\n", "--block . (shorter block)");
 
-TODO: {
-
-local $TODO = "--cm sub{\"[\$_]\"} does no work on test environment. why?";
-
 is(greple(qw{ -e いろは --block .. --blockend= t/SAMPLE.txt --cm sub{"[$_]"} --color=always })->stdout,
      "[いろ]\n[は]に\n", "--block .. (overflowed shorter block)");
-
-}
 
 like(greple(qw{ -e イーハトーヴォ -e モリーオ --block (?:.+\\n)+ t/JA.txt })->stdout,
      qr/\A(.*\n){4}--\n\z/, "--block with Japanese");
