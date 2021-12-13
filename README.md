@@ -702,6 +702,9 @@ For example, if you want to search repeated characters, use
 
     Option **--nocolor** is alias for **--color**=_never_.
 
+    When color output is disabled, ANSI terminal sequence is not produced,
+    but functional colormap, such as `--cm sub{...}`, still works.
+
 - **--colormap**=_spec_
 
     Specify color map.  Because this option is mostly implemented by

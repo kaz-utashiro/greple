@@ -728,24 +728,18 @@ if (@opt_face) {
 my $need_color = (($opt_color eq 'always')
 		  or (($opt_color eq 'auto') and (!$opt_o and -t STDOUT)));
 
+if (!$need_color) {
+    $Getopt::EX::Colormap::NO_COLOR = 1;
+}
+
 for (values %opt_format) {
     s{\\(.)}{ { t => "\t", n => "\n" }->{$1} // $1 }egx;
 }
 
-my($_file, $_line, $_text, $_blockend) = do {
-    if ($need_color) {
-	sub { $color_handler->color('FILE'    , sprintf($opt_format{FILE}, $_[0])) },
-	sub { $color_handler->color('LINE'    , sprintf($opt_format{LINE}, $_[0])) },
-	sub { $color_handler->color('TEXT'    , $_[0]) },
-	sub { $color_handler->color('BLOCKEND', $_[0]) }
-    }
-    else {
-	( sub { sprintf($opt_format{FILE}, $_[0]) },
-	  sub { sprintf($opt_format{LINE}, $_[0]) },
-	  sub { $_[0] },
-	  sub { $_[0] } )
-    }
-};
+my $_file     = sub { $color_handler->color('FILE'    , sprintf($opt_format{FILE}, $_[0])) };
+my $_line     = sub { $color_handler->color('LINE'    , sprintf($opt_format{LINE}, $_[0])) };
+my $_text     = sub { $color_handler->color('TEXT'    , $_[0]) };
+my $_blockend = sub { $color_handler->color('BLOCKEND', $_[0]) };
 
 sub index_color {
     $color_handler->index_color(@_);
@@ -1336,10 +1330,8 @@ sub display_result {
 		}
 	    }
 
-	    if ($need_color) {
-		$pi = $uniq_color->index($b) if $opt_uniqcolor;
-		$b = index_color($pi, $b);
-	    }
+	    $pi = $uniq_color->index($b) if $opt_uniqcolor;
+	    $b = index_color($pi, $b);
 	}
 
 	$block = join '', @blocks;
@@ -2036,6 +2028,9 @@ given, not otherwise.  Option value `always' and `never' will work as
 expected.
 
 Option B<--nocolor> is alias for B<--color>=I<never>.
+
+When color output is disabled, ANSI terminal sequence is not produced,
+but functional colormap, such as C<--cm sub{...}>, still works.
 
 =item B<--colormap>=I<spec>
 
