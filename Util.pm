@@ -4,8 +4,7 @@ use utf8;
 use open IO => ':utf8', ':std';
 
 use Data::Dumper;
-use lib '.';
-use t::Runner;
+use Runner;
 
 my $greple_path = sub {
     my($script, $module) = @_;
@@ -27,8 +26,8 @@ my $greple_path = sub {
     }
 }->('greple', 'App::Greple') or die Dumper \%INC;
 
-sub subst {
-    Runner->new($greple_path, '-Msubst', @_);
+sub greple {
+    Runner->new($greple_path, @_);
 }
 
 1;
