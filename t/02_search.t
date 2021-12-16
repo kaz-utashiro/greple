@@ -8,28 +8,28 @@ use open IO => ':utf8';
 use lib '.';
 use t::Util;
 
-like(greple('-e "fox" t/SAMPLE.txt')->stdout,
+like(run('-e "fox" t/SAMPLE.txt')->stdout,
      qr/\A(.*\n){1}\z/, "simple");
 
-like(greple('-e "fox\\\\n" t/SAMPLE.txt')->stdout,
+like(run('-e "fox\\\\n" t/SAMPLE.txt')->stdout,
      qr/\A(.*\n){1}\z/, "end with newline");
 
-like(greple('--re "^The.*\\\\n\\\\Kjumps" t/SAMPLE.txt')->stdout,
+like(run('--re "^The.*\\\\n\\\\Kjumps" t/SAMPLE.txt')->stdout,
      qr/\A(.*\n){1}\z/, "\\K");
 
-like(greple('-e "fox jumps" t/SAMPLE.txt')->stdout,
+like(run('-e "fox jumps" t/SAMPLE.txt')->stdout,
      qr/\A(.*\n){2}\z/, "multi-line");
 
-like(greple('-e ^ t/SAMPLE.txt')->stdout,
+like(run('-e ^ t/SAMPLE.txt')->stdout,
      qr/\A(.*\n){28}\z/, "-e ^");
 
-is(greple('-e "^" /dev/null')->stdout,
+is(run('-e "^" /dev/null')->stdout,
      '', "-e ^ /dev/null");
 
-is(greple('-e "\\\\z" t/SAMPLE.txt')->stdout,
+is(run('-e "\\\\z" t/SAMPLE.txt')->stdout,
      '', "-e \\z");
 
-is(greple('-e ^ --color=never t/SAMPLE.txt')->stdout,
+is(run('-e ^ --color=never t/SAMPLE.txt')->stdout,
      `cat t/SAMPLE.txt`, "-e ^ --color=never");
 
 done_testing;

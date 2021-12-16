@@ -6,11 +6,11 @@ use open IO => ':utf8', ':std';
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
-use lib '.';
-use t::Runner;
+use lib 't/runner';
+use Greple;
 
-sub greple {
-    Runner->new('greple', @_)->run;
+sub run {
+    greple(@_)->run;
 }
 
 sub line {

@@ -12,19 +12,19 @@ TODO: {
 
 local $TODO = "Produces empty result on cpantesters. Why?";
 
-like(greple('--if "cat -n" -e "fox" t/SAMPLE.txt')->stdout,
+like(run('--if "cat -n" -e "fox" t/SAMPLE.txt')->stdout,
      qr/\A\s*2\b/, "--if")
     or do {
-	my $stdout = greple('--if "cat -n" ^ t/SAMPLE.txt')->stdout;
+	my $stdout = run('--if "cat -n" ^ t/SAMPLE.txt')->stdout;
 	note explain \$stdout;
     };
 
 }
 
-like(greple('--of "cat -n" -e "fox" t/SAMPLE.txt t/SAMPLE.txt')->stdout,
+like(run('--of "cat -n" -e "fox" t/SAMPLE.txt t/SAMPLE.txt')->stdout,
      qr/\A(\s*1\b.*\n){2}\z/, "--of");
 
-like(greple('--pf "cat -n" -e "fox" t/SAMPLE.txt t/SAMPLE.txt')->stdout,
+like(run('--pf "cat -n" -e "fox" t/SAMPLE.txt t/SAMPLE.txt')->stdout,
      qr/\A(\s*1\b.*\n)(\s*2\b.*\n)\z/, "--pf");
 
 done_testing;
