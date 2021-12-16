@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.50
+Version 8.53
 
 # SYNOPSIS
 
@@ -25,7 +25,7 @@ Version 8.50
       -i                   ignore case
       --need=[+-]n         required positive match count
       --allow=[+-]n        acceptable negative match count
-      --matchcount=n[,m]   specify required match count for each block
+      --matchcount=n[,m]   required match count for each block
     STYLE
       -l                   list filename only
       -c                   print count of matched block only
@@ -61,9 +61,9 @@ Version 8.50
     BLOCK
       -p, --paragraph      paragraph mode
       --all                print whole data
-      --border=pattern     specify the border pattern
-      --block=pattern      specify the block of records
-      --blockend=s         specify the block end mark (Default: "--\n")
+      --border=pattern     border pattern
+      --block=pattern      block of records
+      --blockend=s         block end mark (Default: "--\n")
     REGION
       --inside=pattern     select matches inside of pattern
       --outside=pattern    select matches outside of pattern
@@ -71,8 +71,8 @@ Version 8.50
       --exclude=pattern    reduce matches to outside of the area
       --strict             strict mode for --inside/outside --block
     CHARACTER CODE
-      --icode=name         specify file encoding
-      --ocode=name         specify output encoding
+      --icode=name         file encoding
+      --ocode=name         output encoding
     FILTER
       --if,--of=filter     input/output filter command
       --pf=filter          post process filter command
@@ -87,7 +87,7 @@ Version 8.50
       --epilogue=func      call function after command execution
     OTHER
       --usage[=expand]     show this message
-      --exit=n             specify exit status
+      --exit=n             command exit status
       --norc               skip reading startup file
       --man                display command or module manual page
       --show               display module file
@@ -250,10 +250,10 @@ simple as this:
 
 but this command is finally translated into following option list.
 
-    greple -Mfind . ( -name .git -o -name .svn -o -name RCS ) -prune -o 
-        -type f ! -name .* ! -name *,v ! -name *~ 
-        ! -iname *.jpg ! -iname *.jpeg ! -iname *.gif ! -iname *.png 
-        ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf 
+    greple -Mfind . ( -name .git -o -name .svn -o -name RCS ) -prune -o
+        -type f ! -name .* ! -name *,v ! -name *~
+        ! -iname *.jpg ! -iname *.jpeg ! -iname *.gif ! -iname *.png
+        ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf
         -print -- pattern
 
 ## INCLUDED MODUES
@@ -562,14 +562,14 @@ For example, if you want to search repeated characters, use
 - **-m** _\*_, **--max-count**=_\*_
 
     In fact, _n_ and _m_ can repeat as many as possible.  Next example
-    removes first 10 blocks, then get first 10 blocks from the result.
-    Consequently, get 10 blocks from 10th (10-19).
+    removes first 10 blocks (by `0,10`), then get first 10 blocks from
+    the result (by `10`).  Consequently, get 10 blocks from 10th (10-19).
 
         greple -m 0,10,10
 
-    Next command get first 20 and get last 10, producing same result.
-    Empty string behaves like absence for _length_ and zero for
-    _offset_.
+    Next command get first 20 (by `20,`) and get last 10 (by `,-10`),
+    producing same result.  Empty string behaves like absence for
+    _length_ and zero for _offset_.
 
         greple -m 20,,,-10
 
@@ -700,6 +700,9 @@ For example, if you want to search repeated characters, use
     expected.
 
     Option **--nocolor** is alias for **--color**=_never_.
+
+    When color output is disabled, ANSI terminal sequence is not produced,
+    but functional colormap, such as `--cm sub{...}`, still works.
 
 - **--colormap**=_spec_
 
@@ -913,10 +916,9 @@ For example, if you want to search repeated characters, use
 
         greple --uniqcolor 'colou?r\w*'
 
-    When used with option **-i**, color is selected in case-insensitive
-    fashion.  If you want case-insensitive match and case-sensitive color
-    selection, indicate insensitiveness in the pattern rather than command
-    option (e.g. `(?i)pattern`).
+    When used with option **-i**, color is selected still in case-sensitive
+    fashion.  If you want case-insensitive color selection, use next
+    **--uniqsub** option.
 
 - **--uniqsub**=_function_, **--us**=_function_
 
@@ -927,6 +929,10 @@ For example, if you want to search repeated characters, use
     word by their length.
 
         greple --uniqcolor --uniqsub 'sub{length}' '\w+' file
+
+    If you want case-insensitive color selection, do like this.
+
+        greple -i pattern --uc --uniqsub 'sub{lc}'
 
     Next command read the output from `git blame` command and set unique
     color for each entire line by their commit ids.
@@ -982,11 +988,14 @@ For example, if you want to search repeated characters, use
 
 - **--border**=_pattern_
 
-    Specify record block border pattern.  Default block is a single line
-    and use `/^/m` as a pattern.  Paragraph mode uses
-    `/(?:\A|\R)\K\R+/`, which means continuous newlines at the beginning
-    of text or following another newline (`\R` means more general
-    linebreaks including `\r\n`; consult [perlrebackslash](https://metacpan.org/pod/perlrebackslash) for detail).
+    Specify record block border pattern.  Pattern match is done in the
+    context of multiple line mode.
+
+    Default block is a single line and use `/^/m` as a pattern.
+    Paragraph mode uses `/(?:\A|\R)\K\R+/`, which means continuous
+    newlines at the beginning of text or following another newline (`\R`
+    means more general linebreaks including `\r\n`; consult
+    [perlrebackslash](https://metacpan.org/pod/perlrebackslash) for detail).
 
     Next command treat the data as a series of 10-line unit.
 
@@ -1241,16 +1250,16 @@ For example, if you want to search repeated characters, use
                 or die "skip $name\n";
         }
 
-    1;
+        1;
 
-    \_\_DATA\_\_
+        __DATA__
 
-    option default --filestyle=once --format FILE='\\n%s:\\n'
+        option default --filestyle=once --format FILE='\n%s:\n'
 
-    autoload -Mdig --dig
-    option --perl $<move> --begin &\_\_PACKAGE\_\_::is\_perl --dig .
-    &#x3d;item **--end**=_function_(_..._)
+        autoload -Mdig --dig
+        option --perl $<move> --begin &__PACKAGE__::is_perl --dig .
 
+- **--end**=_function_(_..._)
 - **--end**=_function_=_..._
 
     Option **--end** is almost same as **--begin**, except that the function
