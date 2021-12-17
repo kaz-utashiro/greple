@@ -236,16 +236,20 @@ my $opt_C = 0;
 my $opt_H;
 #my $opt_M;
 
+sub opt_pattern {
+    push @opt_pattern, [ map "$_", @_ ];
+    $opt_pattern[-1];
+}
+
 my @optargs = (
-    'and|e=s'            => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
-    'must|r=s'           => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
-    'not|v=s'            => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
-    'le|x=s'             => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
-    're=s'               => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
-    'fe=s'               => sub { push @opt_pattern, [ "$_[0]" => $_[1] ] },
+    'and|e=s'            => \&opt_pattern,
+    'must|r=s'           => \&opt_pattern,
+    'not|v=s'            => \&opt_pattern,
+    'le|x=s'             => \&opt_pattern,
+    're=s'               => \&opt_pattern,
+    'fe=s'               => \&opt_pattern,
     'or=s'               => sub {
-	state $or;
-	push @opt_pattern, $or = [ 'or' ] if not defined $or;
+	state $or = opt_pattern('or');
 	push @$or, $_[1];
     },
     'need=s'             => \@opt_need,
@@ -259,7 +263,7 @@ my @optargs = (
     'H'                  => \$opt_H,
     'filestyle|fs=s'     => \$opt_filestyle,
     'linestyle|ls=s'     => \$opt_linestyle,
-    'separate',          => sub {
+    'separate'           => sub {
 	$opt_filestyle = $opt_linestyle = $_[0]
     },
     'o|only-matching!'   => \$opt_o,
