@@ -8,8 +8,8 @@ use open IO => ':utf8';
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
-my $lib = File::Spec->rel2abs('lib');
-my $dir = File::Spec->rel2abs('script');
+use Exporter 'import';
+our @EXPORT_OK = '&get_path';
 
 sub new {
     my $class = shift;
@@ -70,14 +70,6 @@ sub stdout {
 
 *result = \&stdout; # for backward compatibility
 
-sub execute {
-    my $obj = shift;
-    my $name = $obj->{COMMAND};
-    my $command = $name =~ s{^(?!\/)}{$dir/}r;
-    my @option = @{$obj->{OPTION}};
-    exec $^X, "-I$lib", $command, @option;
-}
-
 sub setstdin {
     my $obj = shift;
     my $data = shift;
@@ -92,6 +84,36 @@ sub setstdin {
     $stdin->print($data);
     $stdin->seek(0, 0)  or die "seek: $!\n";
     $obj;
+}
+
+##
+## perl stuff
+##
+
+my $lib = File::Spec->rel2abs('lib');
+
+sub execute {
+    my $obj = shift;
+    my $command = $obj->{COMMAND};
+    my @option = @{$obj->{OPTION}};
+    exec $^X, "-I$lib", $command, @option;
+}
+
+sub get_path {
+    my($script, $module) = @_;
+
+    # Find from beside module file
+    my $pm_file = $module =~ s/::/\//gr . '.pm';
+    require $pm_file;
+    my $pm_path = $INC{$pm_file};
+    my $install =
+	($pm_path =~ m{(^.*) \blib (?:/[^/]+){0,2} /\Q$pm_file\E$}x)[0]
+	    // die $pm_path;
+    $install = '.' if $install eq '';
+    for my $dir (qw(bin script)) {
+	my $file = "$install/$dir/$script";
+	return $file if -f $file;
+    }
 }
 
 1;
