@@ -2282,10 +2282,10 @@ color for each entire line by their commit ids.
 
 =item B<--face>=[-+]I<effect>
 
-Set or unset specified I<effect> for all color specs.  Use `+'
+Set or unset specified I<effect> for all indexed color specs.  Use `+'
 (optional) to set, and `-' to unset.  Effect is a single character
-expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash)
-or E (Erase Line).
+expressing S (Stand-out), U (Underline), D (Double-struck), F (Flash)
+and such.
 
 Next example remove D (double-struck) effect.
 
@@ -2294,11 +2294,6 @@ Next example remove D (double-struck) effect.
 Multiple effects can be set/unset at once.
 
     greple --face SF-D
-
-Use `/' to set effect to background.  Only `E' makes sense to use in
-background, though.
-
-    greple --face /E
 
 =back
 

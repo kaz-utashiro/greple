@@ -942,10 +942,10 @@ For example, if you want to search repeated characters, use
 
 - **--face**=\[-+\]_effect_
 
-    Set or unset specified _effect_ for all color specs.  Use \`+'
+    Set or unset specified _effect_ for all indexed color specs.  Use \`+'
     (optional) to set, and \`-' to unset.  Effect is a single character
-    expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash)
-    or E (Erase Line).
+    expressing S (Stand-out), U (Underline), D (Double-struck), F (Flash)
+    and such.
 
     Next example remove D (double-struck) effect.
 
@@ -954,11 +954,6 @@ For example, if you want to search repeated characters, use
     Multiple effects can be set/unset at once.
 
         greple --face SF-D
-
-    Use \`/' to set effect to background.  Only \`E' makes sense to use in
-    background, though.
-
-        greple --face /E
 
 ## BLOCKS
 
