@@ -55,6 +55,6 @@ sub filter {
 
 __DATA__
 
-option default --if s/\\.(pgp|gpg|asc)$//:&App::Greple::pgp::filter
+option default --if s/\\.(pgp|gpg|asc)$//:&__PACKAGE__::filter
 
 builtin pgppass=s $opt_pgppass // pgp passphrase
