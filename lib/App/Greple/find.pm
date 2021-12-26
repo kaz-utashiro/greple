@@ -49,7 +49,7 @@ sub set {
 }
 
 sub initialize {
-    my $rc = shift;
+    my $module = shift;
     my $argv = shift;
 
     if ($chdir) {
