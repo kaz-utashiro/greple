@@ -19,7 +19,7 @@ use Carp;
 use utf8;
 use Encode;
 use Encode::Guess;
-use open IO => ':utf8', ':std';
+use open IO => ':encoding(utf8)', ':std';
 
 use Data::Dumper;
 {
@@ -402,7 +402,7 @@ configure_getopt qw(debug) if $ENV{DEBUG_GETOPT};
 $Getopt::EX::Loader::debug = 1 if $ENV{DEBUG_GETOPTEX};
 
 ## decode
-map { $_ = decode 'utf8', $_ unless utf8::is_utf8($_) } @ARGV;
+@ARGV = map { utf8::is_utf8($_) ? $_ : decode('utf8', $_) } @ARGV;
 
 ## ~/.greplerc
 unless ((@ARGV and $ARGV[0] eq "--norc" and shift)
@@ -613,7 +613,7 @@ my $count_allow = 0;
 ## --matchcount
 ##
 my $count_match_sub = sub {
-    local $_ = shift or return undef;
+    local $_ = shift or return;
     /[^\d,]/ and die "$_ is not valid count.\n";
     my @c = map { $_ eq '' ? 0 : int } split(/,/, $_, -1);
     if (@c == 1) {
@@ -1138,7 +1138,7 @@ sub open_nextfile {
 	    open(STDIN, '-|') || exec("w3m -dump $file") || die "w3m: $!\n";
 	}
 	else {
-	    open(STDIN, $file) or do {
+	    open(STDIN, '<', $file) or do {
 		warn "$file: $!\n" unless -l $file;
 		next;
 	    };

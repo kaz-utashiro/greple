@@ -128,7 +128,7 @@ sub load_file {
 	my $select = (!-f $file and $file =~ s/\[([\d:,]+)\]$//) ? $1 : undef;
 	open my $fh, '<:encoding(utf8)', $file or die "$file: $!\n";
 	my @p = do {
-	    map  { chomp ; s{\s*//.*}{} ; $_ }
+	    map  { chomp ; s{\s*//.*}{}r }
 	    grep { not m{^\s*(?:#|//|$)} }
 	    <$fh>
 	};

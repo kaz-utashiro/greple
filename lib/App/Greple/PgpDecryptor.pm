@@ -168,13 +168,13 @@ sub _readphrase {
     my $passphrase_r = shift;
 
     print STDERR "Enter PGP Passphrase> ";
-    open TTY, "/dev/tty" or die;
-    $noecho->(*TTY);
-    if (defined (my $pass = ReadLine(0, *TTY))) {
+    open my $tty, '<', '/dev/tty' or die;
+    $noecho->($tty);
+    if (defined (my $pass = ReadLine(0, $tty))) {
 	chomp($$passphrase_r = $pass);
     }
-    $restore->(*TTY);
-    close TTY;
+    $restore->($tty);
+    close $tty;
     print STDERR "\n";
 
     $passphrase_r;
