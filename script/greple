@@ -1137,6 +1137,9 @@ sub open_nextfile {
 	elsif ($file =~ /^https?:\/\//) {
 	    open(STDIN, '-|') || exec("w3m -dump $file") || die "w3m: $!\n";
 	}
+	elsif ($file eq '-') {
+	    # nothing to do
+	}
 	else {
 	    open(STDIN, '<', $file) or do {
 		warn "$file: $!\n" unless -l $file;

@@ -21,4 +21,6 @@ is(run('-e "raccoon jumps" --exit=255 t/SAMPLE.txt')->status, 255, "--exit=255")
 ok(run('-e "(" t/SAMPLE.txt')->status > 1, "regexe error");
 ok(run('-e "(" t/SAMPLE.txt --exit=0')->status > 1, "regexe error with --exit=0");
 
+is(greple('fox')->setstdin("fox\n")->run->status, 0, "read from -");
+
 done_testing;
