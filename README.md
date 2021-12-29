@@ -64,7 +64,7 @@ Version 8.53
       --all                print whole data
       --border=pattern     border pattern
       --block=pattern      block of records
-      --blockend=s         block end mark (Default: "--\n")
+      --blockend=s         block end mark (Default: "--")
     REGION
       --inside=pattern     select matches inside of pattern
       --outside=pattern    select matches outside of pattern
@@ -1017,7 +1017,7 @@ For example, if you want to search repeated characters, use
 - **--blockend**=_string_
 
     Change the end mark displayed after **-pABC** or **--block** options.
-    Default value is "--\\n".
+    Default value is "--".
 
 ## REGIONS
 

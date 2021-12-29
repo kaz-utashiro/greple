@@ -121,7 +121,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --all                print whole data
     --border=pattern     border pattern
     --block=pattern      block of records
-    --blockend=s         block end mark (Default: "--\n")
+    --blockend=s         block end mark (Default: "--")
   REGION
     --inside=pattern     select matches inside of pattern
     --outside=pattern    select matches outside of pattern
@@ -813,9 +813,9 @@ my $border_re = do {
     }
 };
 
-my $blockend = "--\n";
+my $blockend = "--";
 if (defined $opt_blockend) {
-    ($blockend = $opt_blockend) =~ s/(?<=.)$/\n/;
+    $blockend = $opt_blockend =~ s/\\n/\n/gr;
 }
 if ($opt_C) {
     $opt_A ||= $opt_C;
@@ -1365,7 +1365,7 @@ sub display_result {
 
 	print $block;
 	print "\n" if $opt_newline and not $block =~ /\n\z/;
-	print $_blockend->($blockend) if $need_blockend;
+	print $_blockend->($blockend), "\n" if $need_blockend;
     }
 }
 
@@ -2364,7 +2364,7 @@ because it finds all blocks before processing.
 =item B<--blockend>=I<string>
 
 Change the end mark displayed after B<-pABC> or B<--block> options.
-Default value is "--\n".
+Default value is "--".
 
 =back
 
