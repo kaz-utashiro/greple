@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.54 2022-01-29T04:26:00Z
+
+    - Make --blockend option to specify string w/o newline.
+    - Accept file "-" as a STDIN.
+    - Make --face not to change colorspec if already effective.
+
 8.53 2021-12-13T13:12:47Z
 
     - Functional --cm sub{...} works even if --nocolor option given.
