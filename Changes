@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.55 2022-01-29T23:36:00Z
+
+    - Make --block option works with --all and -o option.
+
 8.54 2022-01-29T04:26:00Z
 
     - Make --blockend option to specify string w/o newline.

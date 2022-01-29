@@ -156,15 +156,15 @@ sub prepare {
     ## Setup BLOCKS
     ##
     my $bp = $self->{BLOCKS} = [ do {
-	if ($self->{all} or $self->{only}) {	# --all, --only-matching
-	    ( [ 0, length ] );
-	}
-	elsif (@{$self->{block}}) {		# --block
+	if (@{$self->{block}}) {		# --block
 	    my $text = \$_;
 	    merge_regions { nojoin => 1, destructive => 1 }, map {
 		grep { $_->[0] != $_->[1] }
 		get_regions($self->{filename}, $text, $_);
 	    } @{$self->{block}};
+	}
+	elsif ($self->{all} or $self->{only}) {	# --all, --only-matching
+	    ( [ 0, length ] );
 	}
 	elsif (@blocks) {			# from matched range
 	    my %opt = ( A => $self->{after},
@@ -261,6 +261,12 @@ sub compose {
 	} else {
 	    push @list, [ $bp->[$bi], @matched ];
 	}
+    }
+    ##
+    ## in the case --all and --block both specified
+    ##
+    if ($self->{all} and @list > 1) {
+	@list = ( [ [ 0, length ], map { shift @$_; @$_ } @list ] );
     }
 
     ##
