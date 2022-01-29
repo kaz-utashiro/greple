@@ -722,7 +722,8 @@ if (@opt_face) {
 		if ($+{rm}) {
 		    $c =~ s/[\Q$+{s}\E]//g;
 		} else {
-		    $c .= '^' . $+{s};
+		    my $spec = $+{s} =~ s/[\Q$c\E]//gr;
+		    $c .= '^' . ${spec} if $spec;
 		}
 	    }
 	}
