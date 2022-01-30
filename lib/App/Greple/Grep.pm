@@ -163,7 +163,7 @@ sub prepare {
 		get_regions($self->{filename}, $text, $_);
 	    } @{$self->{block}};
 	}
-	elsif ($self->{all} or $self->{only}) {	# --all, --only-matching
+	elsif ($self->{all}) {			# --all
 	    ( [ 0, length ] );
 	}
 	elsif (@blocks) {			# from matched range
