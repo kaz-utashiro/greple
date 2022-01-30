@@ -258,15 +258,12 @@ sub compose {
 	$self->{MATCHED} += @matched;
 	if ($self->{only}) {
 	    push @list, map({ [ $_, $_ ] } @matched);
+	} elsif ($self->{all}) {
+	    push @list, [ [ 0, length ] ] if @list == 0;
+	    push @{$list[0]}, @matched;
 	} else {
 	    push @list, [ $bp->[$bi], @matched ];
 	}
-    }
-    ##
-    ## in the case --all and --block both specified
-    ##
-    if ($self->{all} and @list > 1) {
-	@list = ( [ [ 0, length ], map { shift @$_; @$_ } @list ] );
     }
 
     ##
