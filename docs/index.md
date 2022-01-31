@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.53
+Version 8.5501
 
 # SYNOPSIS
 
@@ -32,6 +32,7 @@ Version 8.53
       -n                   print line number
       -H, -h               do or do not display filenames
       -o                   print only the matching part
+      --all                print entire data
       -m, --max=n[,m]      max count of blocks to be shown
       -A,-B,-C [n]         after/before/both match context
       --join               delete newline in the matched part
@@ -60,10 +61,9 @@ Version 8.53
       --face               set/unset visual effects
     BLOCK
       -p, --paragraph      paragraph mode
-      --all                print whole data
       --border=pattern     border pattern
       --block=pattern      block of records
-      --blockend=s         block end mark (Default: "--\n")
+      --blockend=s         block end mark (Default: "--")
     REGION
       --inside=pattern     select matches inside of pattern
       --outside=pattern    select matches outside of pattern
@@ -169,15 +169,10 @@ whole paragraph which contains the word \`foo', \`bar' and \`baz'.
 
     greple -p 'foo bar baz'
 
-Option **--all** takes whole file as a single block.  So next command
-find files which contains these strings, and print the all contents.
+Block also can be defined by pattern.  Next command treat the data as
+a series of 10-line unit.
 
-    greple --all 'foo bar baz'
-
-Block also can be defined as a pattern.  Next command search and print
-mail header, ignoring mail body text.
-
-    greple --block '\A(.+\n)+'
+    greple -n --border='(.*\n){1,10}'
 
 You can also define arbitrary complex blocks by writing script.
 
@@ -537,6 +532,11 @@ For example, if you want to search repeated characters, use
     Print matched string only.  Newline character is printed after matched
     string if it does not end with newline.  Use **--no-newline** option if
     you don't need extra newline.
+
+- **--all**
+
+    Print entire file.  This option does not affect to seach behavior or
+    block treatment.  Just print all contents.
 
 - **-m** _n_\[,_m_\], **--max-count**=_n_\[,_m_\]
 
@@ -941,10 +941,10 @@ For example, if you want to search repeated characters, use
 
 - **--face**=\[-+\]_effect_
 
-    Set or unset specified _effect_ for all color specs.  Use \`+'
+    Set or unset specified _effect_ for all indexed color specs.  Use \`+'
     (optional) to set, and \`-' to unset.  Effect is a single character
-    expressing: S (Stand-out), U (Underline), D (Double-struck), F (Flash)
-    or E (Erase Line).
+    expressing S (Stand-out), U (Underline), D (Double-struck), F (Flash)
+    and such.
 
     Next example remove D (double-struck) effect.
 
@@ -953,11 +953,6 @@ For example, if you want to search repeated characters, use
     Multiple effects can be set/unset at once.
 
         greple --face SF-D
-
-    Use \`/' to set effect to background.  Only \`E' makes sense to use in
-    background, though.
-
-        greple --face /E
 
 ## BLOCKS
 
@@ -979,13 +974,6 @@ For example, if you want to search repeated characters, use
 
     You can create original paragraph pattern by **--border** option.
 
-- **--all**
-
-    Treat entire file contents as a single block.  This is almost
-    identical to following command.
-
-        greple --block='(?s).*'
-
 - **--border**=_pattern_
 
     Specify record block border pattern.  Pattern match is done in the
@@ -1004,6 +992,13 @@ For example, if you want to search repeated characters, use
     Contrary to the next **--block** option, **--border** never produce
     disjoint records.
 
+    If you want to treat entire file as a single block, setting border to
+    start or end of whole data is efficient way.  Next commands works
+    same.
+
+        greple --border '\A'    # beginning of file
+        greple --border '\z'    # end of file
+
 - **--block**=_pattern_
 - **--block**=_&sub_
 
@@ -1021,7 +1016,7 @@ For example, if you want to search repeated characters, use
 - **--blockend**=_string_
 
     Change the end mark displayed after **-pABC** or **--block** options.
-    Default value is "--\\n".
+    Default value is "--".
 
 ## REGIONS
 
@@ -1709,7 +1704,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 1991-2021 Kazumasa Utashiro
+Copyright 1991-2022 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
