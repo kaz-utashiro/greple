@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.5501 2022-01-31T00:48:06Z
+
+    - Fix --all option bug.
+    - Make -o does not affect to --block/--border behavior.
+
 8.55 2022-01-29T23:36:00Z
 
     - Make --block option works with --all and -o option.
