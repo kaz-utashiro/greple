@@ -47,4 +47,20 @@ like(run('-i --and the --and fox t/SAMPLE.txt')->stdout,
 like(run('-i --must the --and fox t/SAMPLE.txt')->stdout,
      line(2), "--must");
 
+# -o / --all
+
+like(run('--and fox --and dog t/SAMPLE.txt')->stdout,
+     line(0), "fox and dog");
+
+# -o does not change matching behabior
+like(run('--and fox --and dog -o t/SAMPLE.txt')->stdout,
+     line(0), "fox and dog with -o");
+
+# --all does not change matching behabior
+like(run('--and fox --and dog --all t/SAMPLE.txt')->stdout,
+     line(0), "fox and dog with --all");
+
+like(run('--and fox --and dog --border "\A" -o t/SAMPLE.txt')->stdout,
+     line(2), "fox and dog with --border \"\\A\" -o");
+
 done_testing;

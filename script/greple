@@ -90,6 +90,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -n                   print line number
     -H, -h               do or do not display filenames
     -o                   print only the matching part
+    --all                print entire data
     -m, --max=n[,m]      max count of blocks to be shown
     -A,-B,-C [n]         after/before/both match context
     --join               delete newline in the matched part
@@ -118,7 +119,6 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --face               set/unset visual effects
   BLOCK
     -p, --paragraph      paragraph mode
-    --all                print whole data
     --border=pattern     border pattern
     --block=pattern      block of records
     --blockend=s         block end mark (Default: "--")
@@ -1467,15 +1467,10 @@ whole paragraph which contains the word `foo', `bar' and `baz'.
 
     greple -p 'foo bar baz'
 
-Option B<--all> takes whole file as a single block.  So next command
-find files which contains these strings, and print the all contents.
+Block also can be defined by pattern.  Next command treat the data as
+a series of 10-line unit.
 
-    greple --all 'foo bar baz'
-
-Block also can be defined as a pattern.  Next command search and print
-mail header, ignoring mail body text.
-
-    greple --block '\A(.+\n)+'
+    greple -n --border='(.*\n){1,10}'
 
 You can also define arbitrary complex blocks by writing script.
 
@@ -1858,6 +1853,11 @@ Display filename always.
 Print matched string only.  Newline character is printed after matched
 string if it does not end with newline.  Use B<--no-newline> option if
 you don't need extra newline.
+
+=item B<--all>
+
+Print entire file.  This option does not affect to seach behavior or
+block treatment.  Just print all contents.
 
 =item B<-m> I<n>[,I<m>], B<--max-count>=I<n>[,I<m>]
 
@@ -2325,13 +2325,6 @@ paragraph, while B<-pC1> will print with just surrounding spaces.
 
 You can create original paragraph pattern by B<--border> option.
 
-=item B<--all>
-
-Treat entire file contents as a single block.  This is almost
-identical to following command.
-
-    greple --block='(?s).*'
-
 =item B<--border>=I<pattern>
 
 Specify record block border pattern.  Pattern match is done in the
@@ -2349,6 +2342,13 @@ Next command treat the data as a series of 10-line unit.
 
 Contrary to the next B<--block> option, B<--border> never produce
 disjoint records.
+
+If you want to treat entire file as a single block, setting border to
+start or end of whole data is efficient way.  Next commands works
+same.
+
+    greple --border '\A'    # beginning of file
+    greple --border '\z'    # end of file
 
 =item B<--block>=I<pattern>
 

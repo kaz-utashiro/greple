@@ -163,9 +163,6 @@ sub prepare {
 		get_regions($self->{filename}, $text, $_);
 	    } @{$self->{block}};
 	}
-	elsif ($self->{all}) {			# --all
-	    ( [ 0, length ] );
-	}
 	elsif (@blocks) {			# from matched range
 	    my %opt = ( A => $self->{after},
 		        B => $self->{before},
