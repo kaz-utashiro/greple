@@ -106,14 +106,20 @@ sub get_path {
     my $pm_file = $module =~ s/::/\//gr . '.pm';
     require $pm_file;
     my $pm_path = $INC{$pm_file};
-    my $install =
-	($pm_path =~ m{(^.*) \blib (?:/[^/]+){0,2} /\Q$pm_file\E$}x)[0]
-	    // die $pm_path;
-    $install = '.' if $install eq '';
-    for my $dir (qw(bin script)) {
-	my $file = "$install/$dir/$script";
-	return $file if -f $file;
+    my $install = ($pm_path =~ m{(^.*) \blib (?:/[^/]+){0,2} /\Q$pm_file\E$}x)[0];
+    if (defined $install) {
+	$install = '.' if $install eq '';
+	for my $dir (qw(bin script)) {
+	    my $file = "$install/$dir/$script";
+	    return $file if -f $file;
+	}
     }
+    # Otherwise search from $PATH
+    else {
+	my @script = grep { -x "$_/$script" } split /:+/, $ENV{PATH};
+	return $script[0] if @script > 0;
+    }
+    die $pm_path;
 }
 
 1;
