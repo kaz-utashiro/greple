@@ -116,7 +116,7 @@ sub get_path {
     }
     # Otherwise search from $PATH
     else {
-	my @script = grep { -x "$_/$script" } split /:+/, $ENV{PATH};
+	my @script = grep { -x $_ } map "$_/$script", split /:+/, $ENV{PATH};
 	return $script[0] if @script > 0;
     }
     die $pm_path;
