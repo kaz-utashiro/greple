@@ -1,3 +1,0 @@
-[submodule "t/runner"]
-	path = t/runner
-	url = https://github.com/kaz-utashiro/p5-script-runner.git
