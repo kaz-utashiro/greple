@@ -58,6 +58,8 @@ L<find(1)>, L<git-ls-files(1)>
 =cut
 
 package App::Greple::dig;
+use strict;
+use warnings;
 
 1;
 
