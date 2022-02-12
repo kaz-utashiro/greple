@@ -4,41 +4,44 @@
       "Kazumasa Utashiro"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Milla version v1.0.20, Dist::Zilla version 6.024, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Minilla/v3.1.15, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "perl_5"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-      "version" : "2"
+      "version" : 2
    },
    "name" : "App-Greple",
    "no_index" : {
       "directory" : [
-         "eg",
-         "examples",
+         "t",
+         "xt",
          "inc",
          "share",
-         "t",
-         "xt"
+         "eg",
+         "examples",
+         "author",
+         "builder"
       ]
    },
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "Module::Build::Tiny" : "0.034"
+            "Module::Build::Tiny" : "0.035"
          }
       },
       "develop" : {
          "requires" : {
-            "Dist::Milla" : "v1.0.20",
-            "Dist::Zilla::Plugin::AssertOS" : "0",
-            "Test::Pod" : "1.41"
+            "Test::CPAN::Meta" : "0",
+            "Test::MinimumVersion::Fast" : "0.04",
+            "Test::PAUSE::Permissions" : "0.07",
+            "Test::Pod" : "1.41",
+            "Test::Spellunker" : "v0.2.7"
          }
       },
       "runtime" : {
          "requires" : {
-            "Devel::AssertOS" : "0",
             "Getopt::EX" : "v1.26.0",
             "Hash::Util" : "0",
             "List::BinarySearch" : "0",
@@ -52,7 +55,7 @@
          }
       }
    },
-   "release_status" : "stable",
+   "release_status" : "unstable",
    "resources" : {
       "bugtracker" : {
          "web" : "https://github.com/kaz-utashiro/greple/issues"
@@ -64,15 +67,13 @@
          "web" : "https://github.com/kaz-utashiro/greple"
       }
    },
-   "version" : "8.56",
+   "version" : "8.5501",
+   "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
-      "Kaz Utashiro <kaz@utashiro.com>",
+      "Kazumasa Utashiro <kaz@utashiro.com>",
       "Mohammad S Anwar <Mohammad.Anwar@yahoo.com>",
       "Toshifumi Sakaguchi <sischkg@gmail.com>"
    ],
-   "x_generated_by_perl" : "v5.30.3",
-   "x_serialization_backend" : "JSON::XS version 4.02",
-   "x_spdx_expression" : "Artistic-1.0-Perl OR GPL-1.0-or-later",
+   "x_serialization_backend" : "JSON::PP version 4.02",
    "x_static_install" : 0
 }
-
