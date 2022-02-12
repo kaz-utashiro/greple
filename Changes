@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.56  2022-02-12 17:47:41 JST
+
+    - Switch from Minilla to Milla.
+
 8.5501 2022-01-31T00:48:06Z
 
     - Fix --all option bug.
