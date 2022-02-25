@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.5602 2022-02-25T00:32:39Z
+
+    - Change filter debug flag to -dF.
+
 8.5601 2022-02-12T15:49:01Z
 
     - Go back to Minilla.

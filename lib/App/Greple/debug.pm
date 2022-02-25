@@ -23,11 +23,12 @@ are available.
     directory   -dd  Change directory information
     file        -df  Show search file names
     number      -dn  Show number of processing files
-    misc        -dm  Pattern and other information
+    match       -dm  Match pattern
     option      -do  Show command option processing
     process     -dp  Exec ps command before exit
     stat        -ds  Show statistic information
     grep        -dg  Show grep internal state
+    filter      -dF  Show filter informaiton
     unused      -du  Show unused 1-char option name
 
 When used without function call, default target is enabled; currently
@@ -86,6 +87,7 @@ my %flags = (
     process   => \$opt_d{p},
     stat      => \$opt_d{s},
     grep      => \$opt_d{g},
+    filter    => \$opt_d{F},
     unused    => \$opt_d{u},
     );
 
@@ -100,6 +102,7 @@ sub option    { on ( option    => 1 ) }
 sub process   { on ( process   => 1 ) }
 sub stat      { on ( stat      => 1 ) }
 sub grep      { on ( grep      => 1 ) }
+sub filter    { on ( filter    => 1 ) }
 sub unused    { on ( unused    => 1 ) }
 
 my %exclude = map { $_ => 1 } qw(unused number);

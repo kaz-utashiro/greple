@@ -63,7 +63,7 @@ sub push_output_filter {
     my $fh = shift;
     my $pkg = caller;
     for my $filter (reverse @_) {
-	$opt_d{m} and warn "Push output Filter: \"$filter\"\n";
+	$opt_d{F} and warn "Push output Filter: \"$filter\"\n";
 	my $pid = open($fh, '|-') // die "$filter: $!\n";
 	if ($pid == 0) {
 	    if ($filter =~ /^&/ and
@@ -85,7 +85,7 @@ sub push_input_filter {
     my %arg = ref $_[0] eq 'HASH' ? %{+shift} : ();
     my $pkg = caller;
     for my $filter (@_) {
-	$opt_d{m} and warn "Push input Filter: \"$filter\"\n";
+	$opt_d{F} and warn "Push input Filter: \"$filter\"\n";
 	if ($filter =~ /^&/ and
 	    my $f = parse_func({ PACKAGE => $pkg }, $filter)) {
 	    if ($arg{&FILELABEL}) {
