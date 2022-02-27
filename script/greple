@@ -1344,14 +1344,14 @@ sub display_result {
 
 	$block = join '', @blocks;
 
+	my @line;
 	if ($opt_n) {
 	    if ($opt_linestyle eq 'line') {
 		my $increment = $block =~ /[\n$mark]/ ? 1 : 0;
-		$block =~ s{(?:($mark)|(?<=\n)|\A)(?=.)}{
-			    my $s = $1 ? $opt_joinby
-				       : $_line->($line);
+		$block =~ s{(?:(?<mark>$mark)|(?<=\n)|\A)(?=.)}{
+		    	    push @line, $_line->($line) unless $+{mark};
 			    $line += $increment;
-			    $s;
+			    $+{mark} ? $opt_joinby : '';
 			   }gse;
 	    } else {
 		$line += $block =~ tr/\n/\n/;
@@ -1360,12 +1360,16 @@ sub display_result {
 
 	return if $block eq "";
 
+	$block = $_text->($block) if $colormap{TEXT} ne "";
+
+	if (@line) {
+	    $block =~ s/^/shift @line/mge;
+	}
+
 	if ($opt_filestyle eq 'line') {
 	    my $s = $_file->($file);
 	    $block =~ s/^/$s/mg;
 	}
-
-	$block = $_text->($block) if $colormap{TEXT} ne "";
 
 	print $block;
 	print "\n" if $opt_newline and not $block =~ /\n\z/;
