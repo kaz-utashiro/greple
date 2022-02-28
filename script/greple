@@ -122,6 +122,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --border=pattern     border pattern
     --block=pattern      block of records
     --blockend=s         block end mark (Default: "--")
+    --join-blocks        join back-to-back consecutive blocks
   REGION
     --inside=pattern     select matches inside of pattern
     --outside=pattern    select matches outside of pattern
@@ -184,6 +185,7 @@ my @opt_callback;
 my $opt_noif;
 my $opt_all;
 my $opt_blockend;
+my $opt_join_blocks = 0;
 my $opt_color = 'auto';
 my $opt_ansicolor = '256';
 my @opt_colormap;
@@ -292,6 +294,7 @@ my @optargs = (
     'border=s'           => \$opt_border,
     'block=s'            => \@opt_block,
     'blockend:s'         => \$opt_blockend,
+    'join-blocks!'       => \$opt_join_blocks,
     'inside=s'           => \@opt_inside,
     'outside=s'          => \@opt_outside,
     'include=s'          => \@opt_include,
@@ -1206,6 +1209,7 @@ sub grep_data {
 	callback     => @opt_callback ? $opt_callback[-1] : undef,
 	alert_size   => $opt_alert{size},
 	alert_time   => $opt_alert{time},
+	join_blocks  => $opt_join_blocks,
 	)->run;
     my $matched = $grep->matched;
 
@@ -2373,6 +2377,12 @@ because it finds all blocks before processing.
 
 Change the end mark displayed after B<-pABC> or B<--block> options.
 Default value is "--".
+
+=item B<--join-blocks>
+
+Join consecutive blocks together.  Logical operation is done for each
+individual blocks, but if the results are back-to-back connected, make
+them single block.
 
 =back
 

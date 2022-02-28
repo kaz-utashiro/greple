@@ -31,4 +31,7 @@ is(run(qw{ -e いろは --block .. --blockend= t/SAMPLE.txt --cm sub{"[$_]"} })-
 like(run(qw{ -e イーハトーヴォ -e モリーオ --block (?:.+\\n)+ t/JA.txt })->stdout,
      qr/\A(.*\n){4}--\n\z/, "--block with Japanese");
 
+like(run(qw{ -i the --blockend=-- --join-blocks t/SAMPLE.txt })->stdout,
+     qr/\A.*the.*\n.*the.*\n--\n/i, "--join-blocks");
+
 done_testing;

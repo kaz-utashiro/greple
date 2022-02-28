@@ -11,7 +11,7 @@ our @EXPORT_OK   = qw();
 our @ISA = qw(App::Greple::Text);
 
 use Data::Dumper;
-use List::Util qw(min max);
+use List::Util qw(min max reduce);
 
 use Getopt::EX::Func qw(callable);
 
@@ -261,6 +261,21 @@ sub compose {
 	} else {
 	    push @list, [ $bp->[$bi], @matched ];
 	}
+    }
+
+    ##
+    ## --join-blocks
+    ##
+    if ($self->{join_blocks} and @list > 1) {
+	reduce {
+	    if ($a->[-1][0][-1] == $b->[0][0]) {
+		$a->[-1][0][-1]  = $b->[0][1];
+		push @{$a->[-1]}, splice @$b, 1;
+	    } else {
+		push @$a, $b;
+	    }
+	    $a;
+	} \@list, splice @list, 1;
     }
 
     ##

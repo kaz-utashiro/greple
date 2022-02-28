@@ -65,6 +65,7 @@ Version 8.5602
       --border=pattern     border pattern
       --block=pattern      block of records
       --blockend=s         block end mark (Default: "--")
+      --join-blocks        join back-to-back consecutive blocks
     REGION
       --inside=pattern     select matches inside of pattern
       --outside=pattern    select matches outside of pattern
@@ -1018,6 +1019,12 @@ For example, if you want to search repeated characters, use
 
     Change the end mark displayed after **-pABC** or **--block** options.
     Default value is "--".
+
+- **--join-blocks**
+
+    Join consecutive blocks together.  Logical operation is done for each
+    individual blocks, but if the results are back-to-back connected, make
+    them single block.
 
 ## REGIONS
 
