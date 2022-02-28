@@ -5,7 +5,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.5602
+Version 8.57
 
 # SYNOPSIS
 
@@ -661,6 +661,14 @@ For example, if you want to search repeated characters, use
     Next example will show line numbers in five digits with tab space:
 
         --format LINE='%05d\t'
+
+- **--frame-top**=_string_
+- **--frame-middle**=_string_
+- **--frame-bottom**=_string_
+
+    Print surrounding frames before and after each blocks.  `top` frame
+    is printed at the beginning, `bottom` frame at the end, `middle`
+    frame between each blocks.
 
 ## FILES
 

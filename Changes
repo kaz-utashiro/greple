@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.57 2022-02-28T02:11:13Z
+
+    - Now TEXT color does not affect FILE and LINE color.
+    - Introduce --join-blocks option.
+
 8.5602 2022-02-25T00:32:39Z
 
     - Change filter debug flag to -dF.

@@ -60,7 +60,7 @@ greple - extensible grep with lexical expression and region control
 =head1 VERSION
 
 
-Version 8.5602
+Version 8.57
 
 
 =head1 SYNOPSIS
@@ -184,6 +184,9 @@ my @opt_epilogue;
 my @opt_callback;
 my $opt_noif;
 my $opt_all;
+my $opt_frame_top    = '';
+my $opt_frame_middle = '';
+my $opt_frame_bottom = '';
 my $opt_blockend;
 my $opt_join_blocks = 0;
 my $opt_color = 'auto';
@@ -293,6 +296,9 @@ my @optargs = (
     'noif'               => \$opt_noif,
     'border=s'           => \$opt_border,
     'block=s'            => \@opt_block,
+    'frame-top:s'        => \$opt_frame_top,
+    'frame-middle:s'     => \$opt_frame_middle,
+    'frame-bottom:s'     => \$opt_frame_bottom,
     'blockend:s'         => \$opt_blockend,
     'join-blocks!'       => \$opt_join_blocks,
     'inside=s'           => \@opt_inside,
@@ -686,6 +692,9 @@ my %colormap = (
     TEXT     => "",
     BLOCKEND => "/WE",
     PROGRESS => "B",
+    TOP      => "",
+    MIDDLE   => "",
+    BOTTOM   => "",
     );
 
 my @colors;
@@ -748,6 +757,9 @@ my $_file     = sub { $color_handler->color('FILE'    , sprintf($opt_format{FILE
 my $_line     = sub { $color_handler->color('LINE'    , sprintf($opt_format{LINE}, $_[0])) };
 my $_text     = sub { $color_handler->color('TEXT'    , $_[0]) };
 my $_blockend = sub { $color_handler->color('BLOCKEND', $_[0]) };
+my $_top      = $color_handler->color('TOP'     , $opt_frame_top);
+my $_middle   = $color_handler->color('MIDDLE'  , $opt_frame_middle);
+my $_bottom   = $color_handler->color('BOTTOM'  , $opt_frame_bottom);
 
 sub index_color {
     $color_handler->index_color(@_);
@@ -1267,7 +1279,11 @@ sub display_result {
 
     my $line = 1;
     my $lastpos = 0;
-    for my $result ($grep->result) {
+    my @result = $grep->result;
+    for my $rix (0 .. $#result) {
+	my $result = $result[$rix];
+	my $is_top    = $rix == 0;
+	my $is_bottom = $rix == $#result;
 
 	my($block_start, $block_end) = @{shift @$result};
 	my $block = $grep->cut($block_start, $block_end);
@@ -1375,9 +1391,15 @@ sub display_result {
 	    $block =~ s/^/$s/mg;
 	}
 
+	print "$_top\n" if $is_top && $_top ne '';
 	print $block;
 	print "\n" if $opt_newline and not $block =~ /\n\z/;
 	print $_blockend->($blockend), "\n" if $need_blockend;
+	if ($is_bottom) {
+	    print "$_bottom\n" if $_bottom ne '';
+	} else {
+	    print "$_middle\n" if $_middle ne '';
+	}
     }
 }
 
@@ -1991,6 +2013,16 @@ expressed as C<\t>.
 Next example will show line numbers in five digits with tab space:
 
     --format LINE='%05d\t'
+
+=item B<--frame-top>=I<string>
+
+=item B<--frame-middle>=I<string>
+
+=item B<--frame-bottom>=I<string>
+
+Print surrounding frames before and after each blocks.  C<top> frame
+is printed at the beginning, C<bottom> frame at the end, C<middle>
+frame between each blocks.
 
 =back
 
