@@ -753,10 +753,15 @@ for (values %opt_format) {
     s{\\(.)}{ { t => "\t", n => "\n" }->{$1} // $1 }egx;
 }
 
+my $blockend = "--";
+if (defined $opt_blockend) {
+    $blockend = $opt_blockend =~ s/\\n/\n/gr;
+}
+
 my $_file     = sub { $color_handler->color('FILE'    , sprintf($opt_format{FILE}, $_[0])) };
 my $_line     = sub { $color_handler->color('LINE'    , sprintf($opt_format{LINE}, $_[0])) };
 my $_text     = sub { $color_handler->color('TEXT'    , $_[0]) };
-my $_blockend = sub { $color_handler->color('BLOCKEND', $_[0]) };
+my $_blockend = $color_handler->color('BLOCKEND', $blockend);
 my $_top      = $color_handler->color('TOP'     , $opt_frame_top);
 my $_middle   = $color_handler->color('MIDDLE'  , $opt_frame_middle);
 my $_bottom   = $color_handler->color('BOTTOM'  , $opt_frame_bottom);
@@ -829,10 +834,6 @@ my $border_re = do {
     }
 };
 
-my $blockend = "--";
-if (defined $opt_blockend) {
-    $blockend = $opt_blockend =~ s/\\n/\n/gr;
-}
 if ($opt_C) {
     $opt_A ||= $opt_C;
     $opt_B ||= $opt_C;
@@ -1394,7 +1395,7 @@ sub display_result {
 	print "$_top\n" if $is_top && $_top ne '';
 	print $block;
 	print "\n" if $opt_newline and not $block =~ /\n\z/;
-	print $_blockend->($blockend), "\n" if $need_blockend;
+	print "$_blockend\n" if $need_blockend;
 	if ($is_bottom) {
 	    print "$_bottom\n" if $_bottom ne '';
 	} else {
