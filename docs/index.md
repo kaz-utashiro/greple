@@ -4,7 +4,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.5501
+Version 8.57
 
 # SYNOPSIS
 
@@ -64,6 +64,7 @@ Version 8.5501
       --border=pattern     border pattern
       --block=pattern      block of records
       --blockend=s         block end mark (Default: "--")
+      --join-blocks        join back-to-back consecutive blocks
     REGION
       --inside=pattern     select matches inside of pattern
       --outside=pattern    select matches outside of pattern
@@ -263,32 +264,32 @@ When it does not work, use `perldoc App::Greple::dig`.
 - **colors**
 
     Color variation module.
-    See [App::Greple::colors](https://metacpan.org/pod/App::Greple::colors).
+    See [App::Greple::colors](https://metacpan.org/pod/App%3A%3AGreple%3A%3Acolors).
 
 - **find**
 
     Module to use [find(1)](http://man.he.net/man1/find) command to help recursive search.
-    See [App::Greple::find](https://metacpan.org/pod/App::Greple::find).
+    See [App::Greple::find](https://metacpan.org/pod/App%3A%3AGreple%3A%3Afind).
 
 - **dig**
 
     Module for recursive search using **find** module.
-    See [App::Greple::dig](https://metacpan.org/pod/App::Greple::dig).
+    See [App::Greple::dig](https://metacpan.org/pod/App%3A%3AGreple%3A%3Adig).
 
 - **pgp**
 
     Module to search **pgp** files.
-    See [App::Greple::pgp](https://metacpan.org/pod/App::Greple::pgp).
+    See [App::Greple::pgp](https://metacpan.org/pod/App%3A%3AGreple%3A%3Apgp).
 
 - **select**
 
     Module to select files.
-    See [App::Greple::select](https://metacpan.org/pod/App::Greple::select).
+    See [App::Greple::select](https://metacpan.org/pod/App%3A%3AGreple%3A%3Aselect).
 
 - **perl**
 
     Sample module to search from perl source files.
-    See [App::Greple::perl](https://metacpan.org/pod/App::Greple::perl).
+    See [App::Greple::perl](https://metacpan.org/pod/App%3A%3AGreple%3A%3Aperl).
 
 Other modules are available at CPAN, or git repository
 [https://github.com/kaz-utashiro/](https://github.com/kaz-utashiro/).
@@ -326,9 +327,9 @@ For example, if you want to search repeated characters, use
         greple --le='foo bar -baz ?yabba ?dabba -doo'
 
     Multiple `?` preceded tokens are treated all mixed together.  That
-    means `?A|B&nbsp;?C|D` is equivalent to `?A|B|C|D`.  If you
-    want to mean `(A&nbsp;or&nbsp;B)` and `(C&nbsp;or&nbsp;D)`, use AND syntax
-    instead: `A|B&nbsp;C|D`.
+    means `?A|B ?C|D` is equivalent to `?A|B|C|D`.  If you
+    want to mean `(A or B)` and `(C or D)`, use AND syntax
+    instead: `A|B C|D`.
 
     This is the summary of start character for **--le** option:
 
@@ -491,14 +492,14 @@ For example, if you want to search repeated characters, use
 
         greple -f pattern_file --select 1,5:7
 
-    See [App::Greple::subst](https://metacpan.org/pod/App::Greple::subst) module.
+    See [App::Greple::subst](https://metacpan.org/pod/App%3A%3AGreple%3A%3Asubst) module.
 
 - **--select**=_index_
 
     When you want to choose specific pattern in the pattern file provided
     by **-f** option, use **--select** option.  _index_ is number list
     separated by comma (,) character and each numbers are interpreted by
-    [Getopt::EX::Numbers](https://metacpan.org/pod/Getopt::EX::Numbers) module.  Take a look at the module document for
+    [Getopt::EX::Numbers](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3ANumbers) module.  Take a look at the module document for
     detail.
 
     Next command use 1st and 5,6,7th pattern in the file.
@@ -660,6 +661,14 @@ For example, if you want to search repeated characters, use
 
         --format LINE='%05d\t'
 
+- **--frame-top**=_string_
+- **--frame-middle**=_string_
+- **--frame-bottom**=_string_
+
+    Print surrounding frames before and after each blocks.  `top` frame
+    is printed at the beginning, `bottom` frame at the end, `middle`
+    frame between each blocks.
+
 ## FILES
 
 - **--glob**=_pattern_
@@ -707,7 +716,7 @@ For example, if you want to search repeated characters, use
 - **--colormap**=_spec_
 
     Specify color map.  Because this option is mostly implemented by
-    [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap) module, consult its document for detail and
+    [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap) module, consult its document for detail and
     up-to-date specification.
 
     Color specification is combination of single uppercase character
@@ -789,7 +798,7 @@ For example, if you want to search repeated characters, use
 
         greple --cm R -e foo --cm G -e bar --cm B -e baz
 
-    Coloring capability is implemented in [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt::EX::Colormap) module.
+    Coloring capability is implemented in [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap) module.
 
 - **--colormap**=_field_=_spec_,...
 
@@ -802,7 +811,7 @@ For example, if you want to search repeated characters, use
         PROGRESS  Progress status with -dnf option
 
     In current release, `BLOCKEND` mark is colored with `E` effect
-    recently implemented in [Getopt::EX](https://metacpan.org/pod/Getopt::EX) module, which allows to fill up
+    recently implemented in [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX) module, which allows to fill up
     the line with background color.  This effect uses irregular escape
     sequence, and you may need to define `LESSANSIENDCHARS` environment
     as "mK" to see the result with [less](https://metacpan.org/pod/less) command.
@@ -829,7 +838,7 @@ For example, if you want to search repeated characters, use
         greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
 
     Experimentally, function can be combined with other normal color
-    specifications.  Also the form _&func;_ can be repeated.
+    specifications.  Also the form _&amp;func;_ can be repeated.
 
         greple --cm 'BF/544;sub{uc}'
 
@@ -1017,6 +1026,12 @@ For example, if you want to search repeated characters, use
 
     Change the end mark displayed after **-pABC** or **--block** options.
     Default value is "--".
+
+- **--join-blocks**
+
+    Join consecutive blocks together.  Logical operation is done for each
+    individual blocks, but if the results are back-to-back connected, make
+    them single block.
 
 ## REGIONS
 
@@ -1452,7 +1467,7 @@ interpreted as a bare word.
 
 - **-Mdebug**, **-d**_x_
 
-    Debug option is described in [App::Greple::debug](https://metacpan.org/pod/App::Greple::debug) module.
+    Debug option is described in [App::Greple::debug](https://metacpan.org/pod/App%3A%3AGreple%3A%3Adebug) module.
 
 # ENVIRONMENT and STARTUP FILE
 
@@ -1467,11 +1482,11 @@ interpreted as a bare word.
 
 - **DEBUG\_GETOPT**
 
-    Enable [Getopt::Long](https://metacpan.org/pod/Getopt::Long) debug option.
+    Enable [Getopt::Long](https://metacpan.org/pod/Getopt%3A%3ALong) debug option.
 
 - **DEBUG\_GETOPTEX**
 
-    Enable [Getopt::EX](https://metacpan.org/pod/Getopt::EX) debug option.
+    Enable [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX) debug option.
 
 - **NO\_COLOR**
 
@@ -1551,7 +1566,7 @@ on user's home directory.  Following directives can be used.
 - **builtin** _spec_ _variable_
 
     Define built-in option which should be processed by option parser.
-    Arguments are assumed to be [Getopt::Long](https://metacpan.org/pod/Getopt::Long) style spec, and
+    Arguments are assumed to be [Getopt::Long](https://metacpan.org/pod/Getopt%3A%3ALong) style spec, and
     _variable_ is string start with `$`, `@` or `%`.  They will be
     replaced by a reference to the object which the string represent.
 
@@ -1672,11 +1687,11 @@ You can use the module like this:
 
 If special subroutine `initialize()` and `finalize()` are defined in
 the module, they are called at the beginning with
-[Getopt::EX::Module](https://metacpan.org/pod/Getopt::EX::Module) object as a first argument.  Second argument is
+[Getopt::EX::Module](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AModule) object as a first argument.  Second argument is
 the reference to `@ARGV`, and you can modify actual `@ARGV` using
-it.  See [App::Greple::find](https://metacpan.org/pod/App::Greple::find) module as an example.
+it.  See [App::Greple::find](https://metacpan.org/pod/App%3A%3AGreple%3A%3Afind) module as an example.
 
-Calling sequence is like this.  See [Getopt::EX::Module](https://metacpan.org/pod/Getopt::EX::Module) for detail.
+Calling sequence is like this.  See [Getopt::EX::Module](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AModule) for detail.
 
     1) Call initialize()
     2) Call function given in -Mmod::func() style
@@ -1694,9 +1709,9 @@ option interfaces, and change the command name. (2013.11)
 
 [grep(1)](http://man.he.net/man1/grep), [perl(1)](http://man.he.net/man1/perl)
 
-[App::Greple](https://metacpan.org/pod/App::Greple), [https://github.com/kaz-utashiro/greple](https://github.com/kaz-utashiro/greple)
+[App::Greple](https://metacpan.org/pod/App%3A%3AGreple), [https://github.com/kaz-utashiro/greple](https://github.com/kaz-utashiro/greple)
 
-[Getopt::EX](https://metacpan.org/pod/Getopt::EX), [https://github.com/kaz-utashiro/Getopt-EX](https://github.com/kaz-utashiro/Getopt-EX)
+[Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX), [https://github.com/kaz-utashiro/Getopt-EX](https://github.com/kaz-utashiro/Getopt-EX)
 
 # AUTHOR
 
