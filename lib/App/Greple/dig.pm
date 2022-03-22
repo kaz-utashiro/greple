@@ -29,6 +29,8 @@ as autoload module in your F<~/.greplerc>.
 
     autoload -Mdig --dig --git
 
+Use B<--git-r> to search submodules recursively.
+
 =head1 OPTIONS
 
 =over 7
@@ -44,6 +46,9 @@ Search files under git control.  Specify at the end of B<greple>
 options, because all the rest is taken as option for
 L<git-ls-files(1)> command.
 
+=item B<--git-r> I<ls-files-option>
+
+Short cut for B<--git --recurse-submodules>.
 
 =back
 
@@ -104,3 +109,6 @@ option --dig -Mfind \
 
 option --git \
 	-Mfind !git ls-files $<move> -- --warn skip=0
+
+option --git-r \
+	-Mfind !git ls-files --recurse-submodules $<move> -- --warn skip=0
