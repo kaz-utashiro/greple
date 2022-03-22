@@ -1610,8 +1610,8 @@ See L<App::Greple::find>.
 
 =item B<dig>
 
-Module for recursive search using B<find> module.
-See L<App::Greple::dig>.
+Module for recursive search using B<find> module.  Defines B<--dig>,
+B<--git> and B<--git-r> options. See L<App::Greple::dig>.
 
 =item B<pgp>
 
@@ -3046,10 +3046,10 @@ option is found in the command arguments.
 
 For example,
 
-    autoload -Mdig --dig
+    autoload -Mdig --dig --git
 
-replaces option "I<--dig>" to "I<-Mdig --dig>", and I<dig> module is
-loaded before processing I<--dig> option.
+replaces option "I<--dig>" to "I<-Mdig --dig>", so that I<dig> module
+is loaded before processing I<--dig> option.
 
 =back
 

@@ -274,8 +274,8 @@ When it does not work, use `perldoc App::Greple::dig`.
 
 - **dig**
 
-    Module for recursive search using **find** module.
-    See [App::Greple::dig](https://metacpan.org/pod/App%3A%3AGreple%3A%3Adig).
+    Module for recursive search using **find** module.  Defines **--dig**,
+    **--git** and **--git-r** options. See [App::Greple::dig](https://metacpan.org/pod/App%3A%3AGreple%3A%3Adig).
 
 - **pgp**
 
@@ -1580,10 +1580,10 @@ on user's home directory.  Following directives can be used.
 
     For example,
 
-        autoload -Mdig --dig
+        autoload -Mdig --dig --git
 
-    replaces option "_--dig_" to "_-Mdig --dig_", and _dig_ module is
-    loaded before processing _--dig_ option.
+    replaces option "_--dig_" to "_-Mdig --dig_", so that _dig_ module
+    is loaded before processing _--dig_ option.
 
 Environment variable substitution is done for string specified by
 \`option' and \`define' directives.  Use Perl syntax **$ENV{NAME}** for
