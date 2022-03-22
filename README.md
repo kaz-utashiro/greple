@@ -5,7 +5,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 8.57
+Version 8.5701
 
 # SYNOPSIS
 
@@ -1032,7 +1032,7 @@ For example, if you want to search repeated characters, use
 
     Join consecutive blocks together.  Logical operation is done for each
     individual blocks, but if the results are back-to-back connected, make
-    them single block.
+    them single block for final output.
 
 ## REGIONS
 

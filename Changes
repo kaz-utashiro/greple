@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.5701 2022-03-22T00:10:35Z
+
+    - Add --git-r option in -Mdig to recurse submodules.
+
 8.57 2022-02-28T02:11:13Z
 
     - Now TEXT color does not affect FILE and LINE color.
