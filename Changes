@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.5702 2022-03-27T01:32:48Z
+
+    - Fix a bug of reading non-utf8 files.
+
 8.5701 2022-03-22T00:10:35Z
 
     - Add --git-r option in -Mdig to recurse submodules.
