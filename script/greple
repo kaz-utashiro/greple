@@ -19,7 +19,7 @@ use Carp;
 use utf8;
 use Encode;
 use Encode::Guess;
-use open IO => ':encoding(utf8)', ':std';
+use open IO => ':utf8', ':std';
 
 use Data::Dumper;
 {
