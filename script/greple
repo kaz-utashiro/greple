@@ -2188,9 +2188,9 @@ the line with background color.  This effect uses irregular escape
 sequence, and you may need to define C<LESSANSIENDCHARS> environment
 as "mK" to see the result with L<less> command.
 
-=item B<--colormap>=I<&func>
+=item B<--colormap>=C<&func>
 
-=item B<--colormap>=I<sub{...}>
+=item B<--colormap>=C<sub{...}>
 
 You can also set the name of perl subroutine name or definition to be
 called handling matched words.  Target word is passed as variable

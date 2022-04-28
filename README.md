@@ -817,8 +817,8 @@ For example, if you want to search repeated characters, use
     sequence, and you may need to define `LESSANSIENDCHARS` environment
     as "mK" to see the result with [less](https://metacpan.org/pod/less) command.
 
-- **--colormap**=_&func_
-- **--colormap**=_sub{...}_
+- **--colormap**=`&func`
+- **--colormap**=`sub{...}`
 
     You can also set the name of perl subroutine name or definition to be
     called handling matched words.  Target word is passed as variable
