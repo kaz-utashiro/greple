@@ -1427,8 +1427,6 @@ __END__
 =head2 CPANMINUS
 
     $ cpanm App::Greple
-    or
-    $ curl -sL http://cpanmin.us | perl - App::Greple
 
 
 =head1 DESCRIPTION

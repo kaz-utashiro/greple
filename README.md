@@ -105,8 +105,6 @@ Version 8.5702
 ## CPANMINUS
 
     $ cpanm App::Greple
-    or
-    $ curl -sL http://cpanmin.us | perl - App::Greple
 
 # DESCRIPTION
 
