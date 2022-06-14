@@ -163,194 +163,198 @@ my @baseclass = qw( App::Greple Getopt::EX );
 my $rcloader = Getopt::EX::Loader
     ->new(BASECLASS => \@baseclass);
 
-my @opt_pattern;
+my $app = {
+    pattern            => \ my @opt_pattern,
+    if                 => \ my @opt_if,
+    of                 => \ my @opt_of,
+    pf                 => \ my @opt_pf,
+    glob               => \ my @opt_glob,
+    icode              => \ my @opt_icode,
+    border             => \ my $opt_border,
+    block              => \ my @opt_block,
+    inside             => \ my @opt_inside,
+    outside            => \ my @opt_outside,
+    include            => \ my @opt_include,
+    exclude            => \ my @opt_exclude,
+    chdir              => \ my @opt_chdir,
+    begin              => \ my @opt_begin,
+    end                => \ my @opt_end,
+    prologue           => \ my @opt_prologue,
+    epilogue           => \ my @opt_epilogue,
+    callback           => \ my @opt_callback,
+    noif               => \ my $opt_noif,
+    all                => \ my $opt_all,
+    frame_top          => \(my $opt_frame_top    = ''),
+    frame_middle       => \(my $opt_frame_middle = ''),
+    frame_bottom       => \(my $opt_frame_bottom = ''),
+    blockend           => \(my $opt_blockend),
+    join_blocks        => \(my $opt_join_blocks = 0),
+    color              => \(my $opt_color = 'auto'),
+    ansicolor          => \(my $opt_ansicolor = '256'),
+    colormap           => \ my @opt_colormap,
+    colorful           => \(my $opt_colorful = 1),
+    colorindex         => \(my $opt_colorindex = ''),
+    face               => \ my @opt_face,
+    uniqcolor          => \(my $opt_uniqcolor),
+    uniqsub            => \ my @opt_uniqsub,
+    random             => \ my $opt_random,
+    regioncolor        => \ my $opt_regioncolor,
+    ocode              => \ my $opt_ocode,
+    man                => \ my $opt_man,
+    show               => \ my $opt_show,
+    path               => \ my $opt_path,
+    join               => \ my $opt_join,
+    joinby             => \(my $opt_joinby = ""),
+    newline            => \(my $opt_newline = 1),
+    clean              => \ my $opt_clean,
+    readlist           => \ my $opt_readlist,
+    need               => \ my @opt_need,
+    allow              => \ my @opt_allow,
+    matchcount         => \ my $opt_matchcount,
+    strict             => \(my $opt_strict = 0),
+    print              => \ my @opt_print,
+    continue           => \ my $opt_continue,
+    filestyle          => \(my $opt_filestyle = 'line'),
+    linestyle          => \(my $opt_linestyle = 'line'),
+    warn               => \ my %opt_warn,
+    format             => \ my %opt_format,
+    alert              => \ my %opt_alert,
+    error              => \(my $opt_error = 'skip'),
+    usage              => \ my $opt_usage,
+    exit               => \ my $opt_exit,
+    count              => \ my $opt_c,
+    debug              => \ my @opt_d,
+    file               => \ my @opt_f,
+    select             => \ my $opt_select,
+    no_filename        => \ my $opt_h,
+    ignore_case        => \ my $opt_i,
+    line_number        => \ my $opt_n,
+    only_matching      => \ my $opt_o,
+    max_count          => \ my $opt_m,
+    paragraph          => \ my $opt_p,
+    files_with_matches => \ my $opt_l,
+    after_context      => \(my $opt_A = 0),
+    before_context     => \(my $opt_B = 0),
+    context            => \(my $opt_C = 0),
+    filename           => \ my $opt_H,
+#   M                  => \ my $opt_M,
+    };
 
-my @opt_if;
-my @opt_of;
-my @opt_pf;
-my @opt_glob;
-my @opt_icode;
-my $opt_border;
-my @opt_block;
-my @opt_inside;
-my @opt_outside;
-my @opt_include;
-my @opt_exclude;
-my @opt_chdir;
-my @opt_begin;
-my @opt_end;
-my @opt_prologue;
-my @opt_epilogue;
-my @opt_callback;
-my $opt_noif;
-my $opt_all;
-my $opt_frame_top    = '';
-my $opt_frame_middle = '';
-my $opt_frame_bottom = '';
-my $opt_blockend;
-my $opt_join_blocks = 0;
-my $opt_color = 'auto';
-my $opt_ansicolor = '256';
-my @opt_colormap;
-my $opt_colorful = 1;
-my $opt_colorindex = '';
-my @opt_face;
-my $opt_uniqcolor;
-my @opt_uniqsub;
-my $opt_random;
-my $opt_regioncolor;
-my $opt_icode;
-my $opt_ocode;
-my $opt_man;
-my $opt_show;
-my $opt_path;
-my $opt_join;
-my $opt_joinby = "";
-my $opt_newline = 1;
-my $opt_clean;
-my $opt_readlist;
-my @opt_need;
-my @opt_allow;
-my $opt_matchcount;
-my $opt_strict = 0;
-my @opt_print;
-my $opt_continue;
-my $opt_filestyle = 'line';
-my $opt_linestyle = 'line';
-my %opt_warn = (read => 0, skip => 1, retry => 0, begin => 0);
-my %opt_format = (LINE => '%d:', FILE => '%s:');
-my %opt_alert = (size => 512 * 1024, time => 2);
-my $opt_error = 'skip';
-my $opt_usage;
-my $opt_exit;
-
-my $opt_c;
-my @opt_d = ();
-my @opt_f;
-my $opt_select;
-my $opt_h;
-my $opt_i;
-my $opt_n;
-my $opt_o;
-my $opt_m;
-my $opt_p;
-my $opt_l;
-my $opt_A = 0;
-my $opt_B = 0;
-my $opt_C = 0;
-my $opt_H;
-#my $opt_M;
+%{$app->{warn}}   = (read => 0, skip => 1, retry => 0, begin => 0);
+%{$app->{format}} = (LINE => '%d:', FILE => '%s:');
+%{$app->{alert}}  = (size => 512 * 1024, time => 2);
 
 sub opt_pattern {
     push @opt_pattern, [ map "$_", @_ ];
     $opt_pattern[-1];
 }
 
-my @optargs = (
-    'and|e=s'            => \&opt_pattern,
-    'must|r=s'           => \&opt_pattern,
-    'not|v=s'            => \&opt_pattern,
-    'le|x=s'             => \&opt_pattern,
-    're=s'               => \&opt_pattern,
-    'fe=s'               => \&opt_pattern,
-    'or=s'               => sub {
+my @optargs =
+   (
+    'and  |e =s' => \&opt_pattern,
+    'must |r =s' => \&opt_pattern,
+    'not  |v =s' => \&opt_pattern,
+    'le   |x =s' => \&opt_pattern,
+    're      =s' => \&opt_pattern,
+    'fe      =s' => \&opt_pattern,
+    'or      =s' => sub {
 	state $or = opt_pattern('or');
 	push @$or, $_[1];
     },
-    'need=s'             => \@opt_need,
-    'allow=s'            => \@opt_allow,
-    'matchcount|mc=s'    => \$opt_matchcount,
-    'i|ignore-case!'     => \$opt_i,
-    'l'                  => \$opt_l,
-    'c|count'            => \$opt_c,
-    'n|line-number!'     => \$opt_n,
-    'h|no-filename'      => \$opt_h,
-    'H'                  => \$opt_H,
-    'filestyle|fs=s'     => \$opt_filestyle,
-    'linestyle|ls=s'     => \$opt_linestyle,
-    'separate'           => sub {
+    'need                   =s',
+    'allow                  =s',
+    'matchcount         |mc =s',
+    'ignore-case        |i !',
+    'files-with-matches |l',
+    'count              |c',
+    'line-number        |n !',
+    'no-filename        |h',
+    'filename           |H',
+    'filestyle          |fs =s',
+    'linestyle          |ls =s',
+    'separate' => sub {
 	$opt_filestyle = $opt_linestyle = $_[0]
     },
-    'o|only-matching!'   => \$opt_o,
-    'm|max-count=s'      => \$opt_m,
-    'p|paragraph!'       => \$opt_p,
-    'A|after-context:2'  => \$opt_A,
-    'B|before-context:2' => \$opt_B,
-    'C|context:2'        => \$opt_C,
-    'all'                => \$opt_all,
-    'f|file=s'           => \@opt_f,
-    'select=s'           => \$opt_select,
-    'readlist!'          => \$opt_readlist,
-    'd=s'                => \@opt_d,
-    'man|doc'            => \$opt_man,
-    'show|less'          => \$opt_show,
-    'path'               => \$opt_path,
-    'icode=s'            => \@opt_icode,
-    'ocode=s'            => \$opt_ocode,
-    'join!'              => \$opt_join,
-    'joinby=s'           => \$opt_joinby,
-    'newline!'           => \$opt_newline,
-    'if=s'               => \@opt_if,
-    'of=s'               => \@opt_of,
-    'pf=s'               => \@opt_pf,
-    'noif'               => \$opt_noif,
-    'border=s'           => \$opt_border,
-    'block=s'            => \@opt_block,
-    'frame-top:s'        => \$opt_frame_top,
-    'frame-middle:s'     => \$opt_frame_middle,
-    'frame-bottom:s'     => \$opt_frame_bottom,
-    'blockend:s'         => \$opt_blockend,
-    'join-blocks!'       => \$opt_join_blocks,
-    'inside=s'           => \@opt_inside,
-    'outside=s'          => \@opt_outside,
-    'include=s'          => \@opt_include,
-    'exclude=s'          => \@opt_exclude,
-    'strict!'            => \$opt_strict,
-    'chdir=s'            => \@opt_chdir,
-    'glob=s'             => \@opt_glob,
-    'begin=s'            => \@opt_begin,
-    'end=s'              => \@opt_end,
-    'prologue=s'         => \@opt_prologue,
-    'epilogue=s'         => \@opt_epilogue,
-    'callback=s'         => \@opt_callback,
-    'clean!'             => \$opt_clean,
-    'color=s'            => \$opt_color,
-    'colormap|cm=s'      => \@opt_colormap,
-    'nocolor|no-color'   => sub { $opt_color = 'never' },
-    'colorful!'          => \$opt_colorful,
-    'colorindex|ci=s'    => \$opt_colorindex,
-    'face=s'             => \@opt_face,
-    'uniqcolor|uc!'      => \$opt_uniqcolor,
-    'uniqsub|us=s'       => \@opt_uniqsub,
-    'random!'            => sub {
+    'only-matching  |o !',
+    'max-count      |m =s',
+    'paragraph      |p !',
+    'after-context  |A :2',
+    'before-context |B :2',
+    'context        |C :2',
+    'all',
+    'file           |f =s',
+    'select            =s',
+    'readlist          !',
+    'debug          |d =s',
+    'man  | doc',
+    'show | less',
+    'path',
+    'icode           =s',
+    'ocode           =s',
+    'join            !',
+    'joinby          =s',
+    'newline         !',
+    'if              =s',
+    'of              =s',
+    'pf              =s',
+    'noif',
+    'border          =s',
+    'block           =s',
+    'frame-top       :s',
+    'frame-middle    :s',
+    'frame-bottom    :s',
+    'blockend        :s',
+    'join-blocks     !',
+    'inside          =s',
+    'outside         =s',
+    'include         =s',
+    'exclude         =s',
+    'strict          !',
+    'chdir           =s',
+    'glob            =s',
+    'begin           =s',
+    'end             =s',
+    'prologue        =s',
+    'epilogue        =s',
+    'callback        =s',
+    'clean           !',
+    'color           =s',
+    'colormap | cm   =s',
+    'nocolor | no-color' => sub { $opt_color = 'never' },
+    'colorful        !',
+    'colorindex | ci =s',
+    'face            =s',
+    'uniqcolor | uc  !',
+    'uniqsub | us    =s',
+    'random!' => sub {
 	if ($_[1]) { $opt_colorindex .= 'R' }
 	else       { $opt_colorindex =~ s/R//gi }
     },
-    'ansicolor=s'        => \$opt_ansicolor,
-    '256!'               => sub { $opt_ansicolor = $_[1] ? '256' : '16' },
-    'regioncolor|rc!'    => \$opt_regioncolor,
-    'print=s'            => \@opt_print,
-    'continue!'          => \$opt_continue,
-    'w|warn:1%'          => sub {
+    'ansicolor=s',
+    '256!' => sub { $opt_ansicolor = $_[1] ? '256' : '16' },
+    'regioncolor | rc !',
+    'print            =s',
+    'continue         !',
+    'w|warn:1%' => sub {
 	map { $opt_warn{$_} = $_[2] }
 	map { $_ eq 'all' ? keys %opt_warn : $_ }
 	$_[1] =~ /\w+/g;
     },
-    'conceal:1%'         => sub {
+    'conceal:1%' => sub {
 	warn "Option --conceal will be deprecated.  Use --warn.\n";
 	map { $opt_warn{$_} = $_[2] ? 0 : 1 }
 	map { $_ eq 'all' ? keys %opt_warn : $_ }
 	$_[1] =~ /\w+/g;
     },
-    'persist!'           => sub {
+    'persist!' => sub {
 	$opt_error = $_[1] ? 'retry' : 'skip';
     },
-    'format=s'           => \%opt_format,
-    'alert=i'            => \%opt_alert,
-    'error=s'            => \$opt_error,
-    'usage:s'            => \$opt_usage,
-    'exit=i'             => \$opt_exit,
-    'M:s'                => sub {
+    'format =s',
+    'alert  =i',
+    'error  =s',
+    'usage  :s',
+    'exit   =i',
+    'M:s' => sub {
 	warn "Use -M option at the beginning with module name.\n";
 	if (my @modules = uniq($rcloader->modules())) {
 	    warn "Available modules:\n";
@@ -359,6 +363,12 @@ my @optargs = (
 	exit 2;
     },
 );
+
+for (@optargs) {
+    next if ref;
+    s/\s+//g;
+    s/^(?=\w+-)([-\w]+)/$1 =~ tr[-][_]r . "|$1"/e;
+}
 
 sub newopt {
     push @optargs, @_;
@@ -431,7 +441,7 @@ $ENV{'GREPLEOPTS'} and unshift @ARGV, shellwords($ENV{'GREPLEOPTS'});
 
 ## GetOptions
 my @SAVEDARGV = @ARGV;
-$parser->getoptions(@optargs) || usage();
+$parser->getoptions($app, @optargs) || usage();
 
 our %opt_d;
 @opt_d = map { split // } @opt_d;
@@ -1249,7 +1259,7 @@ sub grep_data {
 	@opt_of && push_output_filter(
 	    { &FILELABEL => $current_file },
 	    \*STDOUT, @opt_of);
-	display_result($grep);
+	output($grep);
 	@opt_of && recover_stdout;
     }
 
@@ -1265,7 +1275,7 @@ sub grep_data {
     $matched;
 }
 
-sub display_result {
+sub output {
     my $grep = shift;
     my $file = $grep->{filename};
 
