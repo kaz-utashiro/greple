@@ -1375,12 +1375,6 @@ interpreted as a bare word.
 
     Include arbitrary perl program.
 
-- **--conceal** _type_=_val_
-
-    Use following **--warn** option in reverse context.  This option
-    remains for backward compatibility and will be deprecated in the near
-    future.
-
 - **--persist**
 
     Same as **--error=retry**.  It may be deprecated in the future.

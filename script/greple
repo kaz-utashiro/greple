@@ -350,12 +350,6 @@ push @optargs ,
 	map { $_ eq 'all' ? keys %opt_warn : $_ }
 	$_[1] =~ /\w+/g;
     },
-    'conceal:1%' => sub {
-	warn "Option --conceal will be deprecated.  Use --warn.\n";
-	map { $opt_warn{$_} = $_[2] ? 0 : 1 }
-	map { $_ eq 'all' ? keys %opt_warn : $_ }
-	$_[1] =~ /\w+/g;
-    },
     'persist !' => sub {
 	$opt_error = $_[1] ? 'retry' : 'skip';
     },
@@ -2826,12 +2820,6 @@ information can be display by giving appropriate flag to -d option.
     v: internal match information
 
 =end comment
-
-=item B<--conceal> I<type>=I<val>
-
-Use following B<--warn> option in reverse context.  This option
-remains for backward compatibility and will be deprecated in the near
-future.
 
 =item B<--persist>
 
