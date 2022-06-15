@@ -43,6 +43,9 @@ Version 8.5702
       --linestyle=style    how line number printed (separate, line)
       --separate           set filestyle and linestyle both "separate"
       --format LABEL=...   define line number and file name format
+      --frame-top          top frame
+      --frame-middle       middle frame
+      --frame-bottom       bottom frame
     FILE
       --glob=glob          glob target files
       --chdir=dir          change directory before search
@@ -93,6 +96,7 @@ Version 8.5702
       --norc               skip reading startup file
       --man                display command or module manual page
       --show               display module file
+      --path               show module file path
       --require=file       include perl program
       --persist            same as --error=retry
       --error=action       action after read error
