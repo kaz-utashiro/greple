@@ -154,7 +154,6 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --man                display command or module manual page
     --show               display module file
     --path               show module file path
-    --require=file       include perl program
     --persist            same as --error=retry
     --error=action       action after read error
     --warn=type          run time error control
@@ -187,7 +186,7 @@ push @optargs ,
     ' le     |x =s ' => \&opt_pattern ,
     ' re        =s ' => \&opt_pattern ,
     ' fe        =s ' => \&opt_pattern ,
-    ' or        =s ' => sub { state $or = opt_pattern('or'); push @$or, $_[1] } ,
+    ' or        =s ' => sub { push @{ state $or = opt_pattern('or') }, $_[1] } ,
     ' file   |f =s ' => \ my @opt_f ,
     ' select    =s ' => \ my $opt_select ,
 
@@ -235,14 +234,14 @@ push @optargs ,
     ## COLOR
     ##
     ' color                  =s ' => \(my $opt_color = 'auto') ,
-    ' colormap    | cm       =s ' => \ my @opt_colormap ,
-    ' colorful               !  ' => \(my $opt_colorful = 1) ,
-    ' colorindex  | ci       =s ' => \(my $opt_colorindex = '') ,
+    ' colormap           |cm =s ' => \ my @opt_colormap ,
+    ' colorful              !   ' => \(my $opt_colorful = 1) ,
+    ' colorindex         |ci =s ' => \(my $opt_colorindex = '') ,
     ' ansicolor              =s ' => \(my $opt_ansicolor = '256') ,
     # 256
-    ' regioncolor | rc       !  ' => \ my $opt_regioncolor ,
-    ' uniqcolor   | uc       !  ' => \(my $opt_uniqcolor) ,
-    ' uniqsub     | us       =s ' => \ my @opt_uniqsub ,
+    ' regioncolor        |rc !  ' => \ my $opt_regioncolor ,
+    ' uniqcolor          |uc !  ' => \(my $opt_uniqcolor) ,
+    ' uniqsub            |us =s ' => \ my @opt_uniqsub ,
     # random
     ' face                   =s ' => \ my @opt_face ,
 
@@ -292,13 +291,12 @@ push @optargs ,
     ##
     ## OTHERS
     ##
-    ' usage                  :s ' => \ my $opt_usage,
-    ' exit                   =i ' => \ my $opt_exit,
+    ' usage                  :s ' => \ my $opt_usage ,
+    ' exit                   =i ' => \ my $opt_exit ,
     # norc
     ' man  | doc                ' => \ my $opt_man ,
     ' show | less               ' => \ my $opt_show ,
     ' path                      ' => \ my $opt_path ,
-    # require
     # persist
     ' error                  =s ' => \(my $opt_error = 'skip') ,
     # warn
@@ -2801,10 +2799,6 @@ Show module file path.  Use with B<-M> option.
 Do not read startup file: F<~/.greplerc>.  This option have to be
 placed before any other options including B<-M> module options.
 Setting C<GREPLE_NORC> environment have same effect.
-
-=item B<--require>=I<filename>
-
-Include arbitrary perl program.
 
 =begin comment
 

@@ -97,7 +97,6 @@ Version 8.58
       --man                display command or module manual page
       --show               display module file
       --path               show module file path
-      --require=file       include perl program
       --persist            same as --error=retry
       --error=action       action after read error
       --warn=type          run time error control
@@ -1370,10 +1369,6 @@ interpreted as a bare word.
     Do not read startup file: `~/.greplerc`.  This option have to be
     placed before any other options including **-M** module options.
     Setting `GREPLE_NORC` environment have same effect.
-
-- **--require**=_filename_
-
-    Include arbitrary perl program.
 
 - **--conceal** _type_=_val_
 
