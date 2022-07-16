@@ -1,10 +1,13 @@
 name = "App-Greple"
 readme_from = "script/greple"
 script_files = [ "script/greple" ]
-badges = ['github-actions/test', 'metacpan']
-authority="cpan:UTASHIRO"
+badges = [ 'github-actions/test', 'metacpan' ]
+authority = "cpan:UTASHIRO"
 
 module_maker="ModuleBuildTiny"
+
+[release]
+branch = "master"
 
 [unsupported]
 os = [
