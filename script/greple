@@ -322,9 +322,9 @@ push @optargs ,
 
 ;
 
-my %opt_warn  = (read => 0, skip => 1, retry => 0, begin => 0);
-%opt_format = (LINE => '%d:', FILE => '%s:');
-%opt_alert  = (size => 512 * 1024, time => 2);
+my %opt_warn = (read => 0, skip => 1, retry => 0, begin => 0);
+%opt_format  = (LINE => '%d:', FILE => '%s:');
+%opt_alert   = (size => 512 * 1024, time => 2);
 
 push @optargs ,
 
@@ -363,7 +363,7 @@ push @optargs ,
 for (@optargs) {
     next if ref;
     s/\s+//g;
-    s/^(?=\w+-)([-\w]+)/$1 =~ tr[-][_]r . "|$1"/e;
+    s/^(?=\w+-)([-\w]+)/$1 =~ tr[-][_]r . "|$1"/e; # "a-b" -> "a_b|a-b"
 }
 
 sub newopt {
@@ -1825,8 +1825,7 @@ match count 0 to 10, 20 to 30, and 40-or-greater.
 =item B<-f> I<file>, B<--file>=I<file>
 
 Specify the file which contains search pattern.  When file contains
-multiple lines, patterns on each lines are mixed together by OR
-context.
+multiple lines, patterns are mixed together by OR context.
 
 Blank line and the line starting with sharp (#) character is ignored.
 Two slashes (//) and following string are taken as a comment and
@@ -1847,7 +1846,7 @@ See L<App::Greple::subst> module.
 
 When you want to choose specific pattern in the pattern file provided
 by B<-f> option, use B<--select> option.  I<index> is number list
-separated by comma (,) character and each numbers are interpreted by
+separated by comma (,) character and each number is interpreted by
 L<Getopt::EX::Numbers> module.  Take a look at the module document for
 detail.
 
@@ -1912,7 +1911,7 @@ status.
 
 Note that B<grep> command also has same option, but it's behavior is
 different when invoked to multiple files.  B<greple> produces given
-number of output for each files, while B<grep> takes it as a total
+number of output for each file, while B<grep> takes it as a total
 number of output.
 
 =item B<-m> I<*>, B<--max-count>=I<*>
@@ -2025,9 +2024,9 @@ Next example will show line numbers in five digits with tab space:
 
 =item B<--frame-bottom>=I<string>
 
-Print surrounding frames before and after each blocks.  C<top> frame
-is printed at the beginning, C<bottom> frame at the end, C<middle>
-frame between each blocks.
+Print surrounding frames before and after each block.  C<top> frame is
+printed at the beginning, C<bottom> frame at the end, C<middle> frame
+between blocks.
 
 =back
 
@@ -2233,7 +2232,7 @@ other combination of 3, 4, 5 for 256 colors mode.  Enabled by default.
 
 When single pattern is specified, first color in colormap is used for
 the pattern.  If multiple patterns and multiple colors are specified,
-each patterns are colored with corresponding colors cyclically.
+each pattern is colored with corresponding color cyclically.
 
 Option B<--regioncolor>, B<--uniqcolor> and B<--colorindex> change
 this behavior.
@@ -2290,7 +2289,7 @@ Shortcut for B<--ansicolor>=I<256> or I<16>.
 
 =item B<--[no]regioncolor>, B<--[no]rc>
 
-Use different colors for each B<--inside>/B<outside> regions.
+Use different colors for each B<--inside>/B<outside> region.
 
 Disabled by default, but automatically enabled when only single search
 pattern is specified.  Use B<--no-regioncolor> to cancel automatic
@@ -2452,8 +2451,8 @@ When multiple B<inside> and B<outside> regions are specified, those
 regions are mixed up in union way.
 
 In multiple color environment, and if single keyword is specified,
-matches in each B<--inside>/B<outside> regions are printed in
-different colors.  Forcing this operation with multiple keywords, use
+matches in each B<--inside>/B<outside> region is printed in different
+color.  Forcing this operation with multiple keywords, use
 B<--regioncolor> option.
 
 =item B<--inside>=I<&function>
@@ -2561,7 +2560,7 @@ Specify output code.  Default is utf8.
 
 =item B<--if>=I<filter>, B<--if>=I<EXP>:I<filter>
 
-You can specify filter command which is applied to each files before
+You can specify filter command which is applied to each file before
 search.  If only one filter command is specified, it is applied to all
 files.  If filter information include colon, first field will be perl
 expression to check the filename saved in variable $_.  If it
@@ -2601,7 +2600,7 @@ be decompressed automatically.
 Specify output filter which process the output of B<greple> command.
 Filter command can be specified in multiple times, and they are
 invoked for each file to be processed.  So next command reset the line
-number for each files.
+number for each file.
 
     greple --of 'cat -n' string file1 file2 ...
 
@@ -2876,8 +2875,8 @@ instead.
 
 Control runtime message mainly about file operation related to
 B<--error> option.  Repeatable.  Value is optional and 1 is assumed
-when omitted.  So B<-wall> option enables all messages and B<-wall=0>
-disables them.
+when omitted.  So B<-wall> option is same as B<-wall=1> and enables
+all messages, and B<-wall=0> disables all.
 
 Types are:
 
@@ -2898,8 +2897,8 @@ errors when reading binary or ambiguous text file.
 
 =item B<begin>
 
-(Default 0) When B<--begin> function died with "SKIP" message, the
-file is skipped without any notice.  Enables this to see the dying
+(Default 0) When B<--begin> function died with C</^SKIP/i> message,
+the file is skipped without any notice.  Enables this to see the dying
 message.
 
 =item B<all>

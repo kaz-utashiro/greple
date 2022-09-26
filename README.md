@@ -478,8 +478,7 @@ For example, if you want to search repeated characters, use
 - **-f** _file_, **--file**=_file_
 
     Specify the file which contains search pattern.  When file contains
-    multiple lines, patterns on each lines are mixed together by OR
-    context.
+    multiple lines, patterns are mixed together by OR context.
 
     Blank line and the line starting with sharp (#) character is ignored.
     Two slashes (//) and following string are taken as a comment and
@@ -500,7 +499,7 @@ For example, if you want to search repeated characters, use
 
     When you want to choose specific pattern in the pattern file provided
     by **-f** option, use **--select** option.  _index_ is number list
-    separated by comma (,) character and each numbers are interpreted by
+    separated by comma (,) character and each number is interpreted by
     [Getopt::EX::Numbers](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3ANumbers) module.  Take a look at the module document for
     detail.
 
@@ -559,7 +558,7 @@ For example, if you want to search repeated characters, use
 
     Note that **grep** command also has same option, but it's behavior is
     different when invoked to multiple files.  **greple** produces given
-    number of output for each files, while **grep** takes it as a total
+    number of output for each file, while **grep** takes it as a total
     number of output.
 
 - **-m** _\*_, **--max-count**=_\*_
@@ -667,9 +666,9 @@ For example, if you want to search repeated characters, use
 - **--frame-middle**=_string_
 - **--frame-bottom**=_string_
 
-    Print surrounding frames before and after each blocks.  `top` frame
-    is printed at the beginning, `bottom` frame at the end, `middle`
-    frame between each blocks.
+    Print surrounding frames before and after each block.  `top` frame is
+    printed at the beginning, `bottom` frame at the end, `middle` frame
+    between blocks.
 
 ## FILES
 
@@ -858,7 +857,7 @@ For example, if you want to search repeated characters, use
 
     When single pattern is specified, first color in colormap is used for
     the pattern.  If multiple patterns and multiple colors are specified,
-    each patterns are colored with corresponding colors cyclically.
+    each pattern is colored with corresponding color cyclically.
 
     Option **--regioncolor**, **--uniqcolor** and **--colorindex** change
     this behavior.
@@ -911,7 +910,7 @@ For example, if you want to search repeated characters, use
 
 - **--\[no\]regioncolor**, **--\[no\]rc**
 
-    Use different colors for each **--inside**/**outside** regions.
+    Use different colors for each **--inside**/**outside** region.
 
     Disabled by default, but automatically enabled when only single search
     pattern is specified.  Use **--no-regioncolor** to cancel automatic
@@ -1059,8 +1058,8 @@ For example, if you want to search repeated characters, use
     regions are mixed up in union way.
 
     In multiple color environment, and if single keyword is specified,
-    matches in each **--inside**/**outside** regions are printed in
-    different colors.  Forcing this operation with multiple keywords, use
+    matches in each **--inside**/**outside** region is printed in different
+    color.  Forcing this operation with multiple keywords, use
     **--regioncolor** option.
 
 - **--inside**=_&function_
@@ -1152,7 +1151,7 @@ For example, if you want to search repeated characters, use
 
 - **--if**=_filter_, **--if**=_EXP_:_filter_
 
-    You can specify filter command which is applied to each files before
+    You can specify filter command which is applied to each file before
     search.  If only one filter command is specified, it is applied to all
     files.  If filter information include colon, first field will be perl
     expression to check the filename saved in variable $\_.  If it
@@ -1191,7 +1190,7 @@ For example, if you want to search repeated characters, use
     Specify output filter which process the output of **greple** command.
     Filter command can be specified in multiple times, and they are
     invoked for each file to be processed.  So next command reset the line
-    number for each files.
+    number for each file.
 
         greple --of 'cat -n' string file1 file2 ...
 
@@ -1421,8 +1420,8 @@ interpreted as a bare word.
 
     Control runtime message mainly about file operation related to
     **--error** option.  Repeatable.  Value is optional and 1 is assumed
-    when omitted.  So **-wall** option enables all messages and **-wall=0**
-    disables them.
+    when omitted.  So **-wall** option is same as **-wall=1** and enables
+    all messages, and **-wall=0** disables all.
 
     Types are:
 
@@ -1441,8 +1440,8 @@ interpreted as a bare word.
 
     - **begin**
 
-        (Default 0) When **--begin** function died with "SKIP" message, the
-        file is skipped without any notice.  Enables this to see the dying
+        (Default 0) When **--begin** function died with `/^SKIP/i` message,
+        the file is skipped without any notice.  Enables this to see the dying
         message.
 
     - **all**
