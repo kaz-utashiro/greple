@@ -12,7 +12,7 @@ use File::stat;
 use IO::Handle;
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(min max first sum uniq shuffle notall pairmap);
+use List::Util qw(min max first sum uniq shuffle notall pairs);
 use Cwd qw(getcwd abs_path);
 use Carp;
 
@@ -450,20 +450,19 @@ if ($opt_d{o}) {
 ## -m option
 my @splicer = (not defined $opt_m) ? () : do {
     my @param = split /,/, $opt_m, -1;
+    push @param, '' if @param % 2;
     if (notall { /^(-?\d+)?$/ } @param) {
 	die "$opt_m: option format error.\n";
     }
-    pairmap {
-	do { # this block is necessary to escape pairmap bug
-	    my($offset, $length) = ($a, $b);
-	    if ($length ne '') {
-		sub { splice @{+shift}, $offset || 0, $length }
-	    } else {
-		sub { splice @{+shift}, $offset || 0 }
-	    }
-	};
+    map {
+	my($offset, $length) = @$_;
+	if ($length ne '') {
+	    sub { splice @{+shift}, $offset || 0, $length }
+	} else {
+	    sub { splice @{+shift}, $offset || 0 }
+	}
     }
-    (@param, @param % 2 ? '' : ());
+    pairs @param;
 };
 
 my $file_code;
