@@ -864,8 +864,11 @@ For example, if you want to search repeated characters, use
 
 - **--colorindex**=_spec_, **--ci**=_spec_
 
-    Specify color index method by combination of spec characters.
-    Meaningful combinations are **A**, **D**, **AB**, **DB** and **R**.
+    Specify color index method by combination of spec characters.  **A**
+    (ascend) and **D** (descend) can be mixed with **B** (block) and/or **S**
+    (shuffle) like **--ci=ABS**.  **R** (random) can be too but it does not
+    make sense.  When **S** is used alone, colormap is shuffled with normal
+    behavior.
 
     - A (Ascending)
 
@@ -874,20 +877,20 @@ For example, if you want to search repeated characters, use
 
     - D (Descending)
 
-        Apply different color sequentially according to the reversed order of
+        Apply different color sequentially according to the reverse order of
         appearance.
 
     - B (Block)
 
         Reset sequential index on every block.
 
-    - R (Random)
-
-        Use random color index every time.
-
     - S (Shuffle)
 
         Shuffle indexed color.
+
+    - R (Random)
+
+        Use random color index every time.
 
     - N (Normal)
 

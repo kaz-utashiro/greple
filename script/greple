@@ -2238,8 +2238,11 @@ this behavior.
 
 =item B<--colorindex>=I<spec>, B<--ci>=I<spec>
 
-Specify color index method by combination of spec characters.
-Meaningful combinations are B<A>, B<D>, B<AB>, B<DB> and B<R>.
+Specify color index method by combination of spec characters.  B<A>
+(ascend) and B<D> (descend) can be mixed with B<B> (block) and/or B<S>
+(shuffle) like B<--ci=ABS>.  B<R> (random) can be too but it does not
+make sense.  When B<S> is used alone, colormap is shuffled with normal
+behavior.
 
 =over 4
 
@@ -2250,20 +2253,20 @@ appearance.
 
 =item D (Descending)
 
-Apply different color sequentially according to the reversed order of
+Apply different color sequentially according to the reverse order of
 appearance.
 
 =item B (Block)
 
 Reset sequential index on every block.
 
-=item R (Random)
-
-Use random color index every time.
-
 =item S (Shuffle)
 
 Shuffle indexed color.
+
+=item R (Random)
+
+Use random color index every time.
 
 =item N (Normal)
 
