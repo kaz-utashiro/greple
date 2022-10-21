@@ -153,7 +153,9 @@ sub include { @{shift->{include}} }
 
 sub exclude { @{shift->{exclude}} }
 
-package filter_ent {
+package #
+    FilterEnt
+{
     sub new {
 	my $class = shift;
 	bless [ @_ ], $class;
@@ -167,7 +169,7 @@ sub add {
     my $obj = shift;
     my($type, $regex, $action) = @_;
     my $list = $action ? $obj->{include} : $obj->{exclude};
-    push @{$list}, filter_ent->new($type, $regex, $action);
+    push @{$list}, FilterEnt->new($type, $regex, $action);
 }
 
 sub check {
@@ -213,7 +215,7 @@ sub prologue {
 	    map { $re ? $re->($_) : qr/$_/ }
 	    map { $split ? split($split, $_) : $_ }
 	    @$list;
-	}
+	};
     }
 }
 

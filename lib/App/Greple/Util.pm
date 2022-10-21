@@ -16,7 +16,9 @@ sub shellquote {
     @_;
 }
 
-package UniqIndex {
+package #
+    UniqIndex
+{
     use strict;
     use warnings;
 
@@ -72,7 +74,9 @@ package UniqIndex {
     }
 }
 
-package Indexer {
+package #
+    Indexer
+{
     sub new {
 	my $class = shift;
 	my $obj = { @_ };
