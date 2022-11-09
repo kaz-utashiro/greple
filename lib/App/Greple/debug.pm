@@ -38,9 +38,9 @@ C<getoptex> and C<option>.
 
 Specify required target with C<on> function like:
 
-    $ greple -Mdebug::on(color,misc,option)
+    $ greple -Mdebug::on(color,match,option)
 
-    $ greple -Mdebug::on=color,misc,option
+    $ greple -Mdebug::on=color,match,option
 
 Calling C<debug::on=all> enables all targets, except C<unused> and
 C<number>.
@@ -48,7 +48,7 @@ C<number>.
 Target name marked with C<-dx> can be enabled in that form.  Following
 commands are all equivalent.
 
-    $ greple -Mdebug::on=color,misc,option
+    $ greple -Mdebug::on=color,match,option
 
     $ greple -dc -dm -do
 
@@ -82,6 +82,7 @@ my %flags = (
     directory => \$opt_d{d},
     file      => \$opt_d{f},
     number    => \$opt_d{n},
+    match     => \$opt_d{m},
     misc      => \$opt_d{m},
     option    => \$opt_d{o},
     process   => \$opt_d{p},
@@ -97,7 +98,8 @@ sub color     { on ( color     => 1 ) }
 sub directory { on ( directory => 1 ) }
 sub file      { on ( file      => 1 ) }
 sub number    { on ( number    => 1 ) }
-sub misc      { on ( misc      => 1 ) }
+sub match     { on ( match     => 1 ) }
+sub misc      { on ( match     => 1 ) }
 sub option    { on ( option    => 1 ) }
 sub process   { on ( process   => 1 ) }
 sub stat      { on ( stat      => 1 ) }
