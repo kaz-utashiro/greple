@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.59 2022-11-22T08:56:56Z
+
+    - Deprecate --require option.
+
 8.58 2022-06-15T11:21:50Z
 
     - Deprecate --conceal option.
