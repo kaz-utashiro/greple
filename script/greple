@@ -1442,8 +1442,8 @@ __END__
 
 B<greple> has almost same function as Unix command L<egrep(1)> but
 search is done in a manner similar to Internet search engine.  For
-example, next command print lines those contain all of `foo' and bar'
-and `baz'.
+example, next command print lines those contain all of C<foo> and
+C<bar> and C<baz>.
 
     greple 'foo bar baz' ...
 
@@ -1454,18 +1454,18 @@ this command find all of following lines.
     baz bar foo
     the foo, bar and baz
 
-If you want to use OR syntax, prepend question mark (`?') on each
+If you want to use OR syntax, prepend question mark (C<?>) on each
 token, or use regular expression.
 
     greple 'foo bar baz ?yabba ?dabba ?doo'
     greple 'foo bar baz yabba|dabba|doo'
 
-This command will print lines those contains all of `foo', `bar' and
-`baz' and one or more of `yabba', `dabba' or `doo'.
+This command will print lines those contains all of C<foo>, C<bar> and
+C<baz> and one or more of C<yabba>, C<dabba> or C<doo>.
 
 NOT operator can be specified by prefixing the token by minus sign
-(`-').  Next example will show lines those contain both `foo' and bar'
-but none of `yabba', `dabba' or `doo'.
+(C<->).  Next example will show lines those contain both C<foo> and
+C<bar> but none of C<yabba>, C<dabba> or C<doo>.
 
     greple 'foo bar -yabba -dabba -doo'
 
@@ -1474,17 +1474,17 @@ This can be written as this using B<-e> and B<-v> option.
     greple -e foo -e bar -v yabba -v dabba -v doo
     greple -e foo -e bar -v 'yabba|dabba|doo'
 
-If `+' is placed to positive matching pattern, that pattern is marked
+If C<+> is placed to positive matching pattern, that pattern is marked
 as required, and required match count is automatically set to the
 number of required patterns.  So
 
     greple '+foo bar baz'
 
 commands implicitly set the option C<--need 1>, and consequently print
-all lines including `foo'.  In other words, it makes other patterns
+all lines including C<foo>.  In other words, it makes other patterns
 optional, but they are highlighted if exist.  If you want to search
-lines which includes `foo' and either or both of `bar' and `baz', use
-like this:
+lines which includes C<foo> and either or both of C<bar> and C<baz>,
+use like this:
 
     greple '+foo bar baz' --need 2
     greple '+foo bar baz' --need +1
@@ -1495,9 +1495,9 @@ like this:
 
 
 Default data block B<greple> search and print is a line.  Using
-B<--paragraph> (or B<-p> in short) option, series of text separated
-by empty line is taken as a record block.  So next command will print
-whole paragraph which contains the word `foo', `bar' and `baz'.
+B<--paragraph> (or B<-p> in short) option, series of text separated by
+empty line is taken as a record block.  So next command will print
+whole paragraph which contains the word C<foo>, C<bar> and C<baz>.
 
     greple -p 'foo bar baz'
 
@@ -1542,8 +1542,8 @@ lines.
 
 As for ascii word list, space character in the pattern matches any
 kind of space including newline.  Next example will search the word
-sequence of `foo', `bar' and 'baz', even they spread out to multiple
-lines.
+sequence of C<foo>, C<bar> and C<baz>, even they spread out to
+multiple lines.
 
     greple -e 'foo bar baz'
 
@@ -1665,11 +1665,12 @@ S<< C<(\w)\1> >>.
 =item B<-x> I<pattern>, B<--le>=I<pattern>
 
 Treat the string as a collection of tokens separated by spaces.  Each
-token is interpreted by the first character.  Token start with `-'
-means negative pattern, `?' means alternative, and `+' does required.
+token is interpreted by the first character.  Token start with C<->
+means negative pattern, C<?> means alternative, and C<+> does
+required.
 
-Next example print lines which contains `foo' and `bar', and one or
-more of `yabba' and 'dabba', and none of `baz' and `doo'.
+Next example print lines which contains C<foo> and C<bar>, and one or
+more of C<yabba> and C<dabba>, and none of C<baz> and C<doo>.
 
     greple --le='foo bar -baz ?yabba ?dabba -doo'
 
@@ -1687,7 +1688,7 @@ This is the summary of start character for B<--le> option:
 
 =item B<-x>=[B<+->]B<&>I<function>, B<--le>=[B<+->]B<&>I<function>
 
-If the pattern start with ampersand (`&'), it is treated as a
+If the pattern start with ampersand (C<&>), it is treated as a
 function, and the function is called instead of searching pattern.
 Function call interface is same as the one for block/region options.
 
@@ -1716,15 +1717,15 @@ Specify positive match token.  Next two commands are equivalent.
     greple -e foo -e bar -e baz
 
 First character is not interpreted, so next commands will search the
-pattern `-baz'.
+pattern C<-baz>.
 
     greple -e -baz
 
 Space characters are treated specially by B<-e> and B<-v> options.
-They are replaced by the pattern which matches any number of
-white spaces including newline.  So the pattern can be expand to
-multiple lines.  Next commands search the series of word `foo', `bar'
-and `baz' even if they are separated by newlines.
+They are replaced by the pattern which matches any number of white
+spaces including newline.  So the pattern can be expand to multiple
+lines.  Next commands search the series of word C<foo>, C<bar> and
+C<baz> even if they are separated by newlines.
 
     greple -e 'foo bar baz'
 
@@ -1785,9 +1786,9 @@ condition to be overlooked.
 
     greple --need=2 --allow=1 'foo bar baz -yabba -dabba -doo'
 
-Above command prints the line which contains two or more from `foo',
-`bar' and `baz', and does not include more than one of `yabba',
-`dabba' or `doo'.
+Above command prints the line which contains two or more from C<foo>,
+C<bar> and C<baz>, and does not include more than one of C<yabba>,
+C<dabba> or C<doo>.
 
 Using option B<--need>=I<1>, B<greple> produces same result as B<grep>
 command.
@@ -1832,7 +1833,7 @@ removed with preceding spaces.
 
 When multiple files specified, each file produces individual pattern.
 
-If the file name is followed by `[index]` string, it is treated as
+If the file name is followed by C<[index]> string, it is treated as
 specified by B<--select> option.  Next two commands are equivalent.
 
     greple -f pattern_file'[1,5:7]'
@@ -1952,8 +1953,8 @@ Moreover
 
     greple -C1 'foo baz'
 
-also matches this text, because matching blocks around `foo' and `bar'
-overlaps each other and makes single block.
+also matches this text, because matching blocks around C<foo> and
+C<bar> overlaps each other and makes single block.
 
 =item B<--join>
 
@@ -1969,7 +1970,7 @@ across multiple lines.
     greple -ho --join '\p{InKatakana}+(\n\p{InKatakana}+)*'
 
 Space separated word sequence can be processed with B<--joinby>
-option.  Next example prints all `for *something*' pattern in pod
+option.  Next example prints all C<for *something*> pattern in pod
 documents within Perl script.
 
     greple -Mperl --pod -ioe '\bfor \w+' --joinby ' '
@@ -2071,12 +2072,12 @@ Using B<find> module, this can be done like:
 
 =over 7
 
-=item B<--color>=I<auto>|I<always>|I<never>, B<--nocolor>
+=item B<--color>=[C<auto>,C<always>,C<never>], B<--nocolor>
 
 Use terminal color capability to emphasize the matched text.  Default
-is `auto': effective when STDOUT is a terminal and option B<-o> is not
-given, not otherwise.  Option value `always' and `never' will work as
-expected.
+is C<auto>: effective when STDOUT is a terminal and option B<-o> is
+not given, not otherwise.  Option value C<always> and C<never> will
+work as expected.
 
 Option B<--nocolor> is alias for B<--color>=I<never>.
 
@@ -2165,8 +2166,8 @@ Example:
 
 Multiple colors can be specified separating by white space or comma,
 or by repeating options.  Those colors will be applied for each
-pattern keywords.  Next command will show word `foo' in red, `bar' in
-green and `baz' in blue.
+pattern keywords.  Next command will show word C<foo> in red, C<bar>
+in green and C<baz> in blue.
 
     greple --colormap='R G B' 'foo bar baz'
 
@@ -2213,7 +2214,7 @@ print line numbers in seven digits.
     greple -n --cm 'LINE=sub{s/(\d+)/sprintf("%07d",$1)/e;$_}'
 
 Experimentally, function can be combined with other normal color
-specifications.  Also the form I<&func;> can be repeated.
+specifications.  Also the form C<&func;> can be repeated.
 
     greple --cm 'BF/544;sub{uc}'
 
@@ -2225,8 +2226,8 @@ to use user defined function for 'TEXT' field.
 
 =item B<--[no]colorful>
 
-Shortcut for B<--colormap>='I<RD GD BD CD MD YD>' in ANSI 16 colors
-mode, and B<--colormap>='I<D/544 D/454 D/445 D/455 D/454 D/554>' and
+Shortcut for B<--colormap>='C<RD GD BD CD MD YD>' in ANSI 16 colors
+mode, and B<--colormap>='C<D/544 D/454 D/445 D/455 D/454 D/554>' and
 other combination of 3, 4, 5 for 256 colors mode.  Enabled by default.
 
 When single pattern is specified, first color in colormap is used for
@@ -2279,15 +2280,15 @@ B<--ci=N> can be used to reset the behavior set by previous options.
 
 Shortcut for B<--colorindex=R>.
 
-=item B<--ansicolor>=I<16>|I<256>|I<24bit>
+=item B<--ansicolor>=[C<16>,C<256>,C<24bit>]
 
-If set as I<16>, use ANSI 16 colors as a default color set, otherwise
-ANSI 256 colors.  When set as I<24bit>, 6 hex digits notation produces
-24bit color sequence.  Default is I<256>.
+If set as C<16>, use ANSI 16 colors as a default color set, otherwise
+ANSI 256 colors.  When set as C<24bit>, 6 hex digits notation produces
+24bit color sequence.  Default is C<256>.
 
 =item B<--[no]256>
 
-Shortcut for B<--ansicolor>=I<256> or I<16>.
+Shortcut for B<--ansicolor>=C<256> or C<16>.
 
 =item B<--[no]regioncolor>, B<--[no]rc>
 
@@ -2302,8 +2303,8 @@ action.
 Use different colors for different string matched.
 Disabled by default.
 
-Next example prints all words start by `color' and display them all in
-different colors.
+Next example prints all words start by C<color> and display them all
+in different colors.
 
     greple --uniqcolor 'colou?r\w*'
 
@@ -2332,10 +2333,10 @@ color for each entire line by their commit ids.
 
 =item B<--face>=[-+]I<effect>
 
-Set or unset specified I<effect> for all indexed color specs.  Use `+'
-(optional) to set, and `-' to unset.  Effect is a single character
-expressing S (Stand-out), U (Underline), D (Double-struck), F (Flash)
-and such.
+Set or unset specified I<effect> for all indexed color specs.  Use
+C<+> (optional) to set, and C<-> to unset.  Effect is a single
+character expressing S (Stand-out), U (Underline), D (Double-struck),
+F (Flash) and such.
 
 Next example remove D (double-struck) effect.
 
@@ -2435,8 +2436,8 @@ them single block for final output.
 =item B<--outside>=I<pattern>
 
 Option B<--inside> and B<--outside> limit the text area to be matched.
-For simple example, if you want to find string `and' not in the word
-`command', it can be done like this.
+For simple example, if you want to find string C<and> not in the word
+C<command>, it can be done like this.
 
     greple --outside=command and
 
@@ -2530,7 +2531,7 @@ option to set specific encoding.  When handling Japanese text, you may
 choose from 7bit-jis (jis), euc-jp or shiftjis (sjis).  Multiple code
 can be supplied using multiple option or combined code names with
 space or comma, then file encoding is guessed from those code sets.
-Use encoding name `guess' for automatic recognition from default code
+Use encoding name C<guess> for automatic recognition from default code
 list which is euc-jp and 7bit-jis.  Following commands are all
 equivalent.
 
@@ -2581,7 +2582,7 @@ B<--noif> option is given.  Default action is like this:
 
     greple --if='s/\.Z$//:zcat' --if='s/\.g?z$//:gunzip -c'
 
-File with I<.gpg> suffix is filtered by B<gpg> command.  In that case,
+File with C<.gpg> suffix is filtered by B<gpg> command.  In that case,
 pass-phrase is asked for each file.  If you want to input pass-phrase
 only once to find from multiple files, use B<-Mpgp> module.
 
@@ -2873,7 +2874,7 @@ will work like L<string(1)> command.
 If you want read all files as binary data, use B<--icode=binary>
 instead.
 
-=item B<-w>, B<--warn> I<type>=[I<0>,I<1>]
+=item B<-w>, B<--warn> I<type>=[C<0>,C<1>]
 
 Control runtime message mainly about file operation related to
 B<--error> option.  Repeatable.  Value is optional and 1 is assumed
@@ -2959,15 +2960,15 @@ disabled.  See L<https://no-color.org/>.
 
 =back
 
-Before starting execution, I<greple> reads the file named F<.greplerc>
+Before starting execution, B<greple> reads the file named F<.greplerc>
 on user's home directory.  Following directives can be used.
 
 =over 7
 
 =item B<option> I<name> string
 
-Argument I<name> of `option' directive is user defined option name.
-The rest are processed by I<shellwords> routine defined in
+Argument I<name> of B<option> directive is user defined option name.
+The rest are processed by C<shellwords> routine defined in
 Text::ParseWords module.  Be sure that this module sometimes requires
 escape backslashes.
 
@@ -3027,9 +3028,9 @@ use in command line,
 
 =item B<help> I<name>
 
-If `help' directive is used for same option name, it will be printed
-in usage message.  If the help message is `ignore', corresponding line
-won't show up in the usage.
+If B<help> directive is used for same option name, it will be printed
+in usage message.  If the help message is C<ignore>, corresponding
+line won't show up in the usage.
 
 =item B<builtin> I<spec> I<variable>
 
@@ -3049,16 +3050,16 @@ For example,
 
     autoload -Mdig --dig --git
 
-replaces option "I<--dig>" to "I<-Mdig --dig>", so that I<dig> module
-is loaded before processing I<--dig> option.
+replaces option "C<--dig>" to "C<-Mdig --dig>", so that B<dig> module
+is loaded before processing C<--dig> option.
 
 =back
 
 Environment variable substitution is done for string specified by
-`option' and `define' directives.  Use Perl syntax B<$ENV{NAME}> for
+C<option> and C<define> directives.  Use Perl syntax B<$ENV{NAME}> for
 this purpose.  You can use this to make a portable module.
 
-When I<greple> found C<__PERL__> line in F<.greplerc> file, the rest
+When B<greple> found C<__PERL__> line in F<.greplerc> file, the rest
 of the file is evaluated as a Perl program.  You can define your own
 subroutines which can be used by B<--inside>/B<outside>,
 B<--include>/B<exclude>, B<--block> options.
