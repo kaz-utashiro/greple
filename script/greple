@@ -1593,9 +1593,12 @@ but this command is finally translated into following option list.
 =head2 INCLUDED MODUES
 
 This release include some sample modules.  Read document in each
-modules for detail.  You can read the document by B<--man> option.
+modules for detail.  You can read the document by B<--man> option or
+L<perldoc> command.
 
     greple -Mdig --man
+
+    perldoc App::Greple::dig
 
 When it does not work, use C<perldoc App::Greple::dig>.
 
@@ -1983,14 +1986,14 @@ makes similar situation.  In that case, extra newline is appended at
 the end of block to be shown.  Option B<--no-newline> disables this
 behavior.
 
-=item B<--filestyle>=I<line>|I<once>|I<separate>, B<--fs>
+=item B<--filestyle>=[C<line>,C<once>,C<separate>], B<--fs>
 
 Default style is I<line>, and B<greple> prints filename at the
 beginning of each line.  Style I<once> prints the filename only once
 at the first time.  Style I<separate> prints filename in the separate
 line before each line or block.
 
-=item B<--linestyle>=I<line>|I<separate>, B<--ls>
+=item B<--linestyle>=[C<line>,C<separate>], B<--ls>
 
 Default style is I<line>, and B<greple> prints line numbers at the
 beginning of each line.  Style I<separate> prints line number in the
@@ -2910,7 +2913,7 @@ Set same value for all types.
 
 =back
 
-=item B<--alert> [ I<size>=# | I<time>=# ]
+=item B<--alert> [ C<size>=#, C<time>=# ]
 
 Set alert parameter for large file.  B<Greple> scans whole file
 content to know line borders, and it takes several seconds or more if

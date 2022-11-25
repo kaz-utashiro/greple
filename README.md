@@ -257,9 +257,12 @@ but this command is finally translated into following option list.
 ## INCLUDED MODUES
 
 This release include some sample modules.  Read document in each
-modules for detail.  You can read the document by **--man** option.
+modules for detail.  You can read the document by **--man** option or
+[perldoc](https://metacpan.org/pod/perldoc) command.
 
     greple -Mdig --man
+
+    perldoc App::Greple::dig
 
 When it does not work, use `perldoc App::Greple::dig`.
 
@@ -628,14 +631,14 @@ For example, if you want to search repeated characters, use
     the end of block to be shown.  Option **--no-newline** disables this
     behavior.
 
-- **--filestyle**=_line_|_once_|_separate_, **--fs**
+- **--filestyle**=\[`line`,`once`,`separate`\], **--fs**
 
     Default style is _line_, and **greple** prints filename at the
     beginning of each line.  Style _once_ prints the filename only once
     at the first time.  Style _separate_ prints filename in the separate
     line before each line or block.
 
-- **--linestyle**=_line_|_separate_, **--ls**
+- **--linestyle**=\[`line`,`separate`\], **--ls**
 
     Default style is _line_, and **greple** prints line numbers at the
     beginning of each line.  Style _separate_ prints line number in the
@@ -1452,7 +1455,7 @@ interpreted as a bare word.
 
         Set same value for all types.
 
-- **--alert** \[ _size_=# | _time_=# \]
+- **--alert** \[ `size`=#, `time`=# \]
 
     Set alert parameter for large file.  **Greple** scans whole file
     content to know line borders, and it takes several seconds or more if
