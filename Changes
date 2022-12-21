@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+8.60 2022-12-21T08:42:41Z
+
+    - Mainly document update.
+    - Possiblly the final release of Version 8.
+
 8.59 2022-11-22T08:56:56Z
 
     - Deprecate --require option.
