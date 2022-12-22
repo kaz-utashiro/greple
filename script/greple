@@ -477,7 +477,7 @@ binmode STDOUT, ":encoding($output_code)";
 ## show unused option characters
 if ($opt_d{u}) {
     my $s = join('','0'..'9',"\n",'a'..'z',"\n",'A'..'Z',"\n");
-    map { /^([0-9a-zA-Z])(?:\|[^=]+)*(?:=[is])?$/ && $s =~ s/$1/./ } @optargs;
+    map { /\|([0-9a-zA-Z])\b/ && $s =~ s/$1/./ } @optargs;
     die $s;
 }
 
