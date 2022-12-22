@@ -18,17 +18,19 @@ use constant {
     FLAG_NONE       => 0,
     FLAG_NEGATIVE   => 1,
     FLAG_REQUIRED   => 2,
-    FLAG_REGEX      => 4,
-    FLAG_IGNORECASE => 8,
-    FLAG_COOK       => 16,
-    FLAG_OR         => 32,
-    FLAG_LEXICAL    => 64,
-    FLAG_FUNCTION   => 128,
+    FLAG_OPTIONAL   => 4,
+    FLAG_REGEX      => 8,
+    FLAG_IGNORECASE => 16,
+    FLAG_COOK       => 32,
+    FLAG_OR         => 64,
+    FLAG_LEXICAL    => 128,
+    FLAG_FUNCTION   => 256,
 };
 push @EXPORT, qw(
     FLAG_NONE
     FLAG_NEGATIVE
     FLAG_REQUIRED
+    FLAG_OPTIONAL
     FLAG_REGEX
     FLAG_IGNORECASE
     FLAG_COOK
@@ -106,6 +108,7 @@ sub function { shift->field ( FUNCTION => @_ )      }
 sub is_positive   { !($_[0]->flag & FLAG_NEGATIVE)  };
 sub is_negative   {   $_[0]->flag & FLAG_NEGATIVE   };
 sub is_required   {   $_[0]->flag & FLAG_REQUIRED   };
+sub is_optional   {   $_[0]->flag & FLAG_OPTIONAL   };
 sub is_regex      {   $_[0]->flag & FLAG_REGEX      };
 sub is_ignorecase {   $_[0]->flag & FLAG_IGNORECASE };
 sub is_multiline  {   $_[0]->flag & FLAG_COOK       };

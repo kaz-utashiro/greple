@@ -85,19 +85,14 @@ sub lexical_opt {
 
 	my $flag = $orig_flag;
 
-	if (s/^\?//) {					# ?pattern
-	    unless ($or) {
-		push @pattern, $or = [ { flag => $orig_flag | FLAG_OR } ];
-	    }
-	    push @$or, $_;
-	    next;
-	}
-
 	if (s/^\+//) {					# +pattern
 	    $flag |= FLAG_REQUIRED;
 	}
 	elsif (s/^-//) {				# -pattern
 	    $flag |= FLAG_NEGATIVE;
+	}
+	elsif (s/^\?//) {				# ?pattern
+	    $flag |= FLAG_OPTIONAL;
 	}
 
 	if (s/^\&//) {					# &func(...)

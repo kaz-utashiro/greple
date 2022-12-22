@@ -12,12 +12,12 @@ Version 8.60
 **greple** \[**-M**_module_\] \[ **-options** \] pattern \[ file... \]
 
     PATTERN
-      pattern              'and +must -not ?alternative &function'
+      pattern              'and +must -not ?optional &function'
       -x, --le   pattern   lexical expression (same as bare pattern)
       -e, --and  pattern   pattern match across line boundary
       -r, --must pattern   pattern cannot be compromised
+      -t, --may  pattern   pattern may be exist
       -v, --not  pattern   pattern not to be matched
-          --or   pattern   alternative pattern group
           --re   pattern   regular expression
           --fe   pattern   fixed expression
       -f, --file file      file contains search pattern
@@ -127,10 +127,8 @@ this command find all of following lines.
     baz bar foo
     the foo, bar and baz
 
-If you want to use OR syntax, prepend question mark (`?`) on each
-token, or use regular expression.
+If you want to use OR syntax, use regular expression.
 
-    greple 'foo bar baz ?yabba ?dabba ?doo'
     greple 'foo bar baz yabba|dabba|doo'
 
 This command will print lines those contains all of `foo`, `bar` and
@@ -162,6 +160,14 @@ use like this:
     greple '+foo bar baz' --need 2
     greple '+foo bar baz' --need +1
     greple 'foo bar|baz'
+
+IMPORTANT: From version 9, `?` mark means optional keyword.  If any
+optional keyword exist, all positive keyword is taken as required.
+Next commands are all equivalent.
+
+    greple '+foo +bar  baz'  # mark foo and bar as required
+    greple ' foo  bar ?baz'  # mark baz as optional
+    greple '+foo  bar ?baz'  # bar is promoted to required
 
 ## FLEXIBLE BLOCKS
 
@@ -324,27 +330,30 @@ For example, if you want to search repeated characters, use
 
     Treat the string as a collection of tokens separated by spaces.  Each
     token is interpreted by the first character.  Token start with `-`
-    means negative pattern, `?` means alternative, and `+` does
-    required.
+    means **negative** pattern, `?` means **optional**, and `+` does
+    **required**.
 
     Next example print lines which contains `foo` and `bar`, and one or
     more of `yabba` and `dabba`, and none of `baz` and `doo`.
 
-        greple --le='foo bar -baz ?yabba ?dabba -doo'
+        greple --le='foo bar -baz yabba|dabba -doo'
 
-    Multiple `?` preceded tokens are treated all mixed together.  That
-    means `?A|B ?C|D` is equivalent to `?A|B|C|D`.  If you
-    want to mean `(A or B)` and `(C or D)`, use AND syntax
-    instead: `A|B C|D`.
+    If optional pattern exists, it makes all other patterns required.  If
+    required pattern exists, it makes all other patterns optional (as far
+    as any optional pattern does not exist).
+
+        greple '+foo +bar  baz'  # mark foo and bar as required
+        greple ' foo  bar ?baz'  # mark baz as optional
+        greple '+foo  bar ?baz'  # bar is promoted to required
 
     This is the summary of start character for **--le** option:
 
         +  Required pattern
         -  Negative match pattern
-        ?  Alternative pattern
+        ?  Optional pattern
         &  Function call (see next section)
 
-- **-x**=\[**+-**\]**&**_function_, **--le**=\[**+-**\]**&**_function_
+- **-x** \[**+?-**\]**&**_function_, **--le**=\[**+?-**\]**&**_function_
 
     If the pattern start with ampersand (`&`), it is treated as a
     function, and the function is called instead of searching pattern.
@@ -356,16 +365,15 @@ For example, if you want to search repeated characters, use
 
         greple -n '&odd_line' file
 
-    Required (`+`) and negative (`-`) mark can be used for function
-    pattern.
+    Required (`+`), optional (`?`) and negative (`-`) mark can be used
+    for function pattern.
 
-    This version experimentally support callback function for each
-    pattern.  Region list returned by function can have two extra element
-    besides start/end position.  Third element is index.  Fourth element
-    is callback function pointer which is called to produce string to be
-    shown in command output.  Callback function takes four argument (start
-    position, end position, index, matched string) and returns replacement
-    string.
+    **CALLBACK FUNCTION**: Region list returned by function can have two
+    extra element besides start/end position.  Third element is index.
+    Fourth element is callback function pointer which is called to produce
+    string to be shown in command output.  Callback function takes four
+    argument (start position, end position, index, matched string) and
+    returns replacement string.
 
 - **-e** _pattern_, **--and**=_pattern_
 
@@ -394,6 +402,14 @@ For example, if you want to search repeated characters, use
         greple '+foo bar baz'
         greple -r foo -e bar -e baz
 
+- **-t** _pattern_, **--may**=_pattern_
+
+    Specify optional (tentative) match token.  Next two commands are
+    equivalent.
+
+        greple 'foo ?bar ?baz'
+        greple -e foo -t bar -t baz
+
 - **-v** _pattern_, **--not**=_pattern_
 
     Specify negative match token.  Because it does not affect to the bare
@@ -405,21 +421,14 @@ For example, if you want to search repeated characters, use
 
 - **--or**=_pattern_
 
-    Specify logical-or match token group.  Same as `?` marked token in
-    **--le** option.  Next commands are all equivalent.
+    Specify logical-or match token group.  Next commands are all
+    equivalent.
 
-        greple --le 'foo bar ?yabba ?dabba'
+        greple --le 'foo bar yabba|dabba'
         greple --and foo --and bar --or yabba --or dabba
         greple -e foo -e bar -e 'yabba|dabba'
 
-    Option **--or** group and each **--le** pattern makes individual
-    pattern.  So
-
-        greple --le '?foo ?yabba' --le '?bar ?dabba' --or baz --or doo
-
-    is same as:
-
-        greple -e 'foo|yabba' -e 'bar|dabba' -e 'baz|doo'
+    This option may be deprecated.
 
 - **--re**=_pattern_
 

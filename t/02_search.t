@@ -39,13 +39,39 @@ like(run('--or dog --or fox t/SAMPLE.txt')->stdout,
 
 # --and
 
-like(run('-i --and the --and fox t/SAMPLE.txt')->stdout,
-     line(1), "--and");
+like(run('--and brown --and fox t/SAMPLE.txt')->stdout,
+     line(1), "--and (match)");
+
+like(run('--and brown --and dog t/SAMPLE.txt')->stdout,
+     line(0), "--and (not match)");
 
 # --must
 
-like(run('-i --must the --and fox t/SAMPLE.txt')->stdout,
-     line(2), "--must");
+like(run('-o --must brown --and fox t/SAMPLE.txt')->stdout,
+     line(2), "--must (match)");
+
+like(run('-o --must brown --and dog t/SAMPLE.txt')->stdout,
+     line(1), "--must (not match)");
+
+like(run('-o --le "+brown fox" t/SAMPLE.txt')->stdout,
+     line(2), "+brown fox (match)");
+
+like(run('-o --le "+brown dog" t/SAMPLE.txt')->stdout,
+     line(1), "+brown dog (not match)");
+
+# --may
+
+like(run('-o --and brown --may fox t/SAMPLE.txt')->stdout,
+     line(2), "--may (match)");
+
+like(run('-o --and brown --may dog t/SAMPLE.txt')->stdout,
+     line(1), "--may (not match)");
+
+like(run('-o --le "brown ?fox" t/SAMPLE.txt')->stdout,
+     line(2), "brown ?fox");
+
+like(run('-o --le "brown ?dog" t/SAMPLE.txt')->stdout,
+     line(1), "brown ?dog");
 
 # -o / --all
 
