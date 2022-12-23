@@ -187,7 +187,6 @@ push @optargs ,
     ' le     |x =s ' => \&opt_pattern ,
     ' re        =s ' => \&opt_pattern ,
     ' fe        =s ' => \&opt_pattern ,
-    ' or        =s ' => sub { push @{ state $or = opt_pattern('or') }, $_[1] } ,
     ' file   |f =s ' => \ my @opt_f ,
     ' select    =s ' => \ my $opt_select ,
 
@@ -568,7 +567,6 @@ my %pat_flag = (
     not  => FLAG_REGEX | FLAG_COOK | FLAG_NEGATIVE,
     may  => FLAG_REGEX | FLAG_COOK | FLAG_OPTIONAL,
     le   => FLAG_REGEX | FLAG_COOK | FLAG_LEXICAL,
-    or   => FLAG_REGEX | FLAG_COOK | FLAG_OR,
     and  => FLAG_REGEX | FLAG_COOK,
     re   => FLAG_REGEX,
     fe   => FLAG_NONE,
@@ -1778,17 +1776,6 @@ pattern argument, you can narrow down the search result like this.
     greple foo file
     greple foo file -v bar
     greple foo file -v bar -v baz
-
-=item B<--or>=I<pattern>
-
-Specify logical-or match token group.  Next commands are all
-equivalent.
-
-    greple --le 'foo bar yabba|dabba'
-    greple --and foo --and bar --or yabba --or dabba
-    greple -e foo -e bar -e 'yabba|dabba'
-
-This option may be deprecated.
 
 =item B<--re>=I<pattern>
 

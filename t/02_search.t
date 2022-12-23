@@ -32,11 +32,6 @@ is(run('-e "\\\\z" t/SAMPLE.txt')->stdout,
 is(run('-e ^ --color=never t/SAMPLE.txt')->stdout,
      `cat t/SAMPLE.txt`, "-e ^ --color=never");
 
-# --or
-
-like(run('--or dog --or fox t/SAMPLE.txt')->stdout,
-     line(2), "--or");
-
 # --and
 
 like(run('--and brown --and fox t/SAMPLE.txt')->stdout,

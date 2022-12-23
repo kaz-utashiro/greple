@@ -369,11 +369,11 @@ For example, if you want to search repeated characters, use
     for function pattern.
 
     **CALLBACK FUNCTION**: Region list returned by function can have two
-    extra element besides start/end position.  Third element is index.
-    Fourth element is callback function pointer which is called to produce
-    string to be shown in command output.  Callback function takes four
-    argument (start position, end position, index, matched string) and
-    returns replacement string.
+    extra elements besides start/end position.  Third element is index.
+    Fourth element is a callback function pointer which will be called to
+    produce string to be shown in command output.  Callback function is
+    called with four arguments (start position, end position, index,
+    matched string) and expected to return replacement string.
 
 - **-e** _pattern_, **--and**=_pattern_
 
@@ -418,17 +418,6 @@ For example, if you want to search repeated characters, use
         greple foo file
         greple foo file -v bar
         greple foo file -v bar -v baz
-
-- **--or**=_pattern_
-
-    Specify logical-or match token group.  Next commands are all
-    equivalent.
-
-        greple --le 'foo bar yabba|dabba'
-        greple --and foo --and bar --or yabba --or dabba
-        greple -e foo -e bar -e 'yabba|dabba'
-
-    This option may be deprecated.
 
 - **--re**=_pattern_
 
