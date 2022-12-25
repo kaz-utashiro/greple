@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.00_01 2022-12-25T11:39:02Z
+
+    - Now `?' means optional keyword in the --le pattern
+    - Option --may was introduced
+    - Option --or was deprecated
+
 8.60 2022-12-21T08:42:41Z
 
     - Mainly document update.
