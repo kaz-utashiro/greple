@@ -113,12 +113,14 @@ Version 8.60
 
 ## MULTIPLE KEYWORDS
 
-**greple** has almost same function as Unix command [egrep(1)](http://man.he.net/man1/egrep) but
-search is done in a manner similar to Internet search engine.  For
+### AND
+
+**greple** can take multiple search patterns by **-e** option, but
+unlike [egrep(1)](http://man.he.net/man1/egrep) command, they are searched in AND context.  For
 example, next command print lines those contain all of `foo` and
 `bar` and `baz`.
 
-    greple 'foo bar baz' ...
+    greple -e foo -e bar -e baz ...
 
 Each word can appear in any order and any place in the string.  So
 this command find all of following lines.
@@ -129,45 +131,63 @@ this command find all of following lines.
 
 If you want to use OR syntax, use regular expression.
 
-    greple 'foo bar baz yabba|dabba|doo'
+    greple -e foo -e bar -e baz -e 'yabba|dabba|doo'
 
 This command will print lines those contains all of `foo`, `bar` and
 `baz` and one or more of `yabba`, `dabba` or `doo`.
 
-NOT operator can be specified by prefixing the token by minus sign
-(`-`).  Next example will show lines those contain both `foo` and
+### NOT
+
+Use option **-v** to specify keyword which should not found in the data
+record.  Next example will show lines those contain both `foo` and
 `bar` but none of `yabba`, `dabba` or `doo`.
-
-    greple 'foo bar -yabba -dabba -doo'
-
-This can be written as this using **-e** and **-v** option.
 
     greple -e foo -e bar -v yabba -v dabba -v doo
     greple -e foo -e bar -v 'yabba|dabba|doo'
 
-If `+` is placed to positive matching pattern, that pattern is marked
-as required, and required match count is automatically set to the
-number of required patterns.  So
+### MAY
 
-    greple '+foo bar baz'
+When you are focusing on multiple words, there may be words those are
+not necessary but would be of interest if there were.
 
-commands implicitly set the option `--need 1`, and consequently print
-all lines including `foo`.  In other words, it makes other patterns
-optional, but they are highlighted if exist.  If you want to search
-lines which includes `foo` and either or both of `bar` and `baz`,
-use like this:
+Use option **--may** or **-t** (tentative) to specify that kind of
+words.  They will be a subject of search, and highlighted if exist,
+but are optional.
 
-    greple '+foo bar baz' --need 2
-    greple '+foo bar baz' --need +1
-    greple 'foo bar|baz'
+Next command print all lines including `foo` and `bar`, and
+highlight `baz` as well.
 
-IMPORTANT: From version 9, `?` mark means optional keyword.  If any
-optional keyword exist, all positive keyword is taken as required.
-Next commands are all equivalent.
+    greple -e foo -e bar -t baz
 
-    greple '+foo +bar  baz'  # mark foo and bar as required
-    greple ' foo  bar ?baz'  # mark baz as optional
-    greple '+foo  bar ?baz'  # bar is promoted to required
+### MUST
+
+Option **--must** or **-r** is another way to specify optional keyword.
+If required keyword exists, all other positive match keyword becomes
+optional.  Next command is equivalent to the above example.
+
+    greple -r foo -r bar -e baz
+
+## LEXICAL EXPRESSION
+
+**greple** takes the first argument as a search pattern specified by
+**--le** option.  In **--le** pattern, you can set multiple keywords in
+a single parameter.  Each keyword is separated by spaces, and the
+first character describe the type.
+
+    none  And pattern            : --and  -e
+    +     Required pattern       : --must -r
+    -     Negative match pattern : --not  -v
+    ?     Optional pattern       : --may  -t
+
+Just like internet search engine, you can simply provide `foo bar
+baz` to search lines including all words.
+
+    greple 'foo bar baz'
+
+Next command show lines which include `foo`, but does not include
+`bar`, and highlight `baz` if exists.
+
+    greple 'foo -bar ?baz'
 
 ## FLEXIBLE BLOCKS
 
@@ -326,25 +346,73 @@ For example, if you want to search repeated characters, use
 `(\w)\g{-1}` or `(?<c>\w)\g{c}` rather than
 `(\w)\1`.
 
+- **-e** _pattern_, **--and**=_pattern_
+
+    Specify the positive match token.  Next command print lines contains
+    all of `foo`, `bar` and `baz`.
+
+        greple -e foo -e bar -e baz
+
+- **-t** _pattern_, **--may**=_pattern_
+
+    Specify the optional (tentative) match token.  Next command print
+    lines contains `foo` and `bar`, and highlight `baz` if exists.
+
+        greple -e foo -e bar -t baz
+
+- **-r** _pattern_, **--must**=_pattern_
+
+    Specify the required match token.  If one or more required pattern
+    exist, other positive match pattern becomes optional.
+
+        greple -r foo -r bar -e baz
+
+    Because **-t** promote all other **-e** patterns required, next command
+    do the same thing.  Mixing **-r**, **-e** and **-t** is not recommended,
+    though.
+
+        greple -r foo -e bar -t baz
+
+- **-v** _pattern_, **--not**=_pattern_
+
+    Specify the negative match token.  Because it does not affect to the
+    bare pattern argument, you can narrow down the search result like
+    this.
+
+        greple foo file
+        greple foo file -v bar
+        greple foo file -v bar -v baz
+
+In the above pattern options, space characters are treated specially.
+They are replaced by the pattern which matches any number of white
+spaces including newline.  So the pattern can be expand to multiple
+lines.  Next commands search the series of word `foo`, `bar` and
+`baz` even if they are separated by newlines.
+
+    greple -e 'foo bar baz'
+
+This is done by converting pattern `foo bar baz` to
+`foo\s+bar\+baz`, so that word separator can match one or more white
+spaces.
+
+As for Asian wide characters, pattern is cooked as zero or more white
+spaces can be allowed between any characters.  So Japanese string
+pattern `日本語` will be converted to `日\s*本\s*語`.
+
+If you don't want these conversion, use **--re** option.
+
 - **-x** _pattern_, **--le**=_pattern_
 
-    Treat the string as a collection of tokens separated by spaces.  Each
-    token is interpreted by the first character.  Token start with `-`
-    means **negative** pattern, `?` means **optional**, and `+` does
-    **required**.
+    Treat the pattern string as a collection of tokens separated by
+    spaces.  Each token is interpreted by the first character.  Token
+    start with `-` means **negative** pattern, `?` means **optional**, and
+    `+` does **required**.
 
-    Next example print lines which contains `foo` and `bar`, and one or
-    more of `yabba` and `dabba`, and none of `baz` and `doo`.
+    Next example print lines which contain `foo` and `yabba`, and none
+    of `bar` and `dabba`, with highlighting `baz` and `doo` if they
+    exist.
 
-        greple --le='foo bar -baz yabba|dabba -doo'
-
-    If optional pattern exists, it makes all other patterns required.  If
-    required pattern exists, it makes all other patterns optional (as far
-    as any optional pattern does not exist).
-
-        greple '+foo +bar  baz'  # mark foo and bar as required
-        greple ' foo  bar ?baz'  # mark baz as optional
-        greple '+foo  bar ?baz'  # bar is promoted to required
+        greple --le='foo -bar ?baz yabba -dabba ?doo'
 
     This is the summary of start character for **--le** option:
 
@@ -375,50 +443,6 @@ For example, if you want to search repeated characters, use
     called with four arguments (start position, end position, index,
     matched string) and expected to return replacement string.
 
-- **-e** _pattern_, **--and**=_pattern_
-
-    Specify positive match token.  Next two commands are equivalent.
-
-        greple 'foo bar baz'
-        greple -e foo -e bar -e baz
-
-    First character is not interpreted, so next commands will search the
-    pattern `-baz`.
-
-        greple -e -baz
-
-    Space characters are treated specially by **-e** and **-v** options.
-    They are replaced by the pattern which matches any number of white
-    spaces including newline.  So the pattern can be expand to multiple
-    lines.  Next commands search the series of word `foo`, `bar` and
-    `baz` even if they are separated by newlines.
-
-        greple -e 'foo bar baz'
-
-- **-r** _pattern_, **--must**=_pattern_
-
-    Specify required match token.  Next two commands are equivalent.
-
-        greple '+foo bar baz'
-        greple -r foo -e bar -e baz
-
-- **-t** _pattern_, **--may**=_pattern_
-
-    Specify optional (tentative) match token.  Next two commands are
-    equivalent.
-
-        greple 'foo ?bar ?baz'
-        greple -e foo -t bar -t baz
-
-- **-v** _pattern_, **--not**=_pattern_
-
-    Specify negative match token.  Because it does not affect to the bare
-    pattern argument, you can narrow down the search result like this.
-
-        greple foo file
-        greple foo file -v bar
-        greple foo file -v bar -v baz
-
 - **--re**=_pattern_
 
     Specify regular expression.  No special treatment for space and wide
@@ -426,7 +450,7 @@ For example, if you want to search repeated characters, use
 
 - **--fe**=_pattern_
 
-    Specify fixed string pattern, like fgrep.
+    Specify the fixed string pattern, like fgrep.
 
 - **-i**, **--ignore-case**
 
@@ -457,7 +481,8 @@ For example, if you want to search repeated characters, use
     If the option **--need=0** is specified and no pattern was found,
     entire data is printed.  This is true even for required pattern.
 
-- **--matchcount**=_count_|_min_,_max_, **--mc**=...
+- **--matchcount**=_count_ **--mc**=...
+- **--matchcount**=_min_,_max_ **--mc**=...
 
     When option **--matchcount** is specified, only blocks which have given
     match count will be shown.  Minimum and maximum number can be given,
