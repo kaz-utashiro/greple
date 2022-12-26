@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.00_02 2022-12-26T09:48:38Z
+
+    - Introduce --colorsub/--cs option
+
 9.00_01 2022-12-25T11:39:02Z
 
     - Now `?' means optional keyword in the --le pattern
