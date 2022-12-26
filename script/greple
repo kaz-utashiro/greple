@@ -1708,21 +1708,21 @@ S<< C<(\w)\1> >>.
 
 =item B<-e> I<pattern>, B<--and>=I<pattern>
 
-Specify the positive match token.  Next command print lines contains
+Specify the positive match pattern.  Next command print lines contains
 all of C<foo>, C<bar> and C<baz>.
 
     greple -e foo -e bar -e baz
 
 =item B<-t> I<pattern>, B<--may>=I<pattern>
 
-Specify the optional (tentative) match token.  Next command print
+Specify the optional (tentative) match pattern.  Next command print
 lines contains C<foo> and C<bar>, and highlight C<baz> if exists.
 
     greple -e foo -e bar -t baz
 
 =item B<-r> I<pattern>, B<--must>=I<pattern>
 
-Specify the required match token.  If one or more required pattern
+Specify the required match pattern.  If one or more required pattern
 exist, other positive match pattern becomes optional.
 
     greple -r foo -r bar -e baz
@@ -1735,7 +1735,7 @@ though.
 
 =item B<-v> I<pattern>, B<--not>=I<pattern>
 
-Specify the negative match token.  Because it does not affect to the
+Specify the negative match pattern.  Because it does not affect to the
 bare pattern argument, you can narrow down the search result like
 this.
 
@@ -1747,9 +1747,9 @@ this.
 
 In the above pattern options, space characters are treated specially.
 They are replaced by the pattern which matches any number of white
-spaces including newline.  So the pattern can be expand to multiple
-lines.  Next commands search the series of word C<foo>, C<bar> and
-C<baz> even if they are separated by newlines.
+spaces including newline.  So the pattern can expand to multiple
+lines.  Next commands search the series of word C<foo> C<bar> C<baz>
+even if they are separated by newlines.
 
     greple -e 'foo bar baz'
 

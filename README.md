@@ -348,21 +348,21 @@ For example, if you want to search repeated characters, use
 
 - **-e** _pattern_, **--and**=_pattern_
 
-    Specify the positive match token.  Next command print lines contains
+    Specify the positive match pattern.  Next command print lines contains
     all of `foo`, `bar` and `baz`.
 
         greple -e foo -e bar -e baz
 
 - **-t** _pattern_, **--may**=_pattern_
 
-    Specify the optional (tentative) match token.  Next command print
+    Specify the optional (tentative) match pattern.  Next command print
     lines contains `foo` and `bar`, and highlight `baz` if exists.
 
         greple -e foo -e bar -t baz
 
 - **-r** _pattern_, **--must**=_pattern_
 
-    Specify the required match token.  If one or more required pattern
+    Specify the required match pattern.  If one or more required pattern
     exist, other positive match pattern becomes optional.
 
         greple -r foo -r bar -e baz
@@ -375,7 +375,7 @@ For example, if you want to search repeated characters, use
 
 - **-v** _pattern_, **--not**=_pattern_
 
-    Specify the negative match token.  Because it does not affect to the
+    Specify the negative match pattern.  Because it does not affect to the
     bare pattern argument, you can narrow down the search result like
     this.
 
@@ -385,9 +385,9 @@ For example, if you want to search repeated characters, use
 
 In the above pattern options, space characters are treated specially.
 They are replaced by the pattern which matches any number of white
-spaces including newline.  So the pattern can be expand to multiple
-lines.  Next commands search the series of word `foo`, `bar` and
-`baz` even if they are separated by newlines.
+spaces including newline.  So the pattern can expand to multiple
+lines.  Next commands search the series of word `foo` `bar` `baz`
+even if they are separated by newlines.
 
     greple -e 'foo bar baz'
 

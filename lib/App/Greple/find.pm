@@ -8,7 +8,7 @@ greple -Mfind find-options -- greple-options ...
 
 =head1 DESCRIPTION
 
-Provide B<find> command option with ending '--'.
+Provide B<find> command option with ending C<-->.
 
 B<Greple> will invoke B<find> command with provided options and read
 its output from STDIN, with option B<--readlist>.  So
@@ -19,11 +19,19 @@ is equivalent to:
 
     find . -type f | greple --readlist pattern
 
-If the first argument start with `!', it is taken as a command name
+If the first argument start with C<!>, it is taken as a command name
 and executed in place of B<find>.  You can search git managed files
 like this:
 
     greple -Mfind !git ls-files -- pattern
+
+=head1 SEE ALSO
+
+L<App::Greple>
+
+L<App::Greple::dig>
+
+L<App::Greple::select>
 
 =cut
 
