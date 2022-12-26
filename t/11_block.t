@@ -25,7 +25,7 @@ like(run(qw{ tocaba --block .* -C1 t/SAMPLE.txt })->stdout,
 is(run(qw{ -e fox --block . --blockend= t/SAMPLE.txt })->stdout,
      "f\no\nx\n", "--block . (shorter block)");
 
-is(run(qw{ -e いろは --block .. --blockend= t/SAMPLE.txt --cm sub{"[$_]"} })->stdout,
+is(run(qw{ -e いろは --block .. --blockend= t/SAMPLE.txt --cs "[$_]" })->stdout,
      "[いろ]\n[は]に\n", "--block .. (overflowed shorter block)");
 
 like(run(qw{ -e イーハトーヴォ -e モリーオ --block (?:.+\\n)+ t/JA.txt })->stdout,

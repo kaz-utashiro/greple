@@ -54,6 +54,7 @@ Version 9.00\_01
       --color=when         use terminal color (auto, always, never)
       --nocolor            same as --color=never
       --colormap=color     R, G, B, C, M, Y etc.
+      --colorsub=...       shortcut for --colormap="sub{...}"
       --colorful           use default multiple colors
       --colorindex=flags   color index method: Ascend/Descend/Block/Random
       --ansicolor=s        ANSI color 16, 256 or 24bit
@@ -741,7 +742,7 @@ If you don't want these conversion, use **--re** option.
     When color output is disabled, ANSI terminal sequence is not produced,
     but functional colormap, such as `--cm sub{...}`, still works.
 
-- **--colormap**=_spec_
+- **--colormap**=_spec_, **--cm**=...
 
     Specify color map.  Because this option is mostly implemented by
     [Getopt::EX::Colormap](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3AColormap) module, consult its document for detail and
@@ -875,6 +876,19 @@ If you don't want these conversion, use **--re** option.
     When color for 'TEXT' field is specified, whole text including matched
     part is passed to the function, exceptionally.  It is not recommended
     to use user defined function for 'TEXT' field.
+
+- **--colorsub**=`...`, **--cs**=...
+
+    **--colorsub** or **--cs** is a shortcut for subroutine colormap.  It
+    simply enclose the argument by `sub{ ... }` expression.  So
+
+        greple -cm 'sub{uc}'
+
+    can be written as simple as this.
+
+        greple -cs uc
+
+    You can not use this option for labeled color.
 
 - **--\[no\]colorful**
 

@@ -113,6 +113,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --color=when         use terminal color (auto, always, never)
     --nocolor            same as --color=never
     --colormap=color     R, G, B, C, M, Y etc.
+    --colorsub=...       shortcut for --colormap="sub{...}"
     --colorful           use default multiple colors
     --colorindex=flags   color index method: Ascend/Descend/Block/Random
     --ansicolor=s        ANSI color 16, 256 or 24bit
@@ -171,11 +172,14 @@ my $rcloader = Getopt::EX::Loader
 my @optargs;
 
 my @opt_pattern;
-
 sub opt_pattern {
     push @opt_pattern, [ map "$_", @_ ];
     $opt_pattern[-1];
 }
+
+my @opt_colormap;
+sub opt_colormap { push @opt_colormap, $_[1] }
+sub opt_colorsub { push @opt_colormap, "sub{ $_[1] }" }
 
 push @optargs ,
 
@@ -236,7 +240,8 @@ push @optargs ,
     ## COLOR
     ##
     ' color                  =s ' => \(my $opt_color = 'auto') ,
-    ' colormap           |cm =s ' => \ my @opt_colormap ,
+    ' colormap           |cm =s ' => \&opt_colormap ,
+    ' colorsub           |cs =s ' => \&opt_colorsub ,
     ' colorful              !   ' => \(my $opt_colorful = 1) ,
     ' colorindex         |ci =s ' => \(my $opt_colorindex = '') ,
     ' ansicolor              =s ' => \(my $opt_ansicolor = '256') ,
@@ -2130,7 +2135,7 @@ Option B<--nocolor> is alias for B<--color>=I<never>.
 When color output is disabled, ANSI terminal sequence is not produced,
 but functional colormap, such as C<--cm sub{...}>, still works.
 
-=item B<--colormap>=I<spec>
+=item B<--colormap>=I<spec>, B<--cm>=...
 
 Specify color map.  Because this option is mostly implemented by
 L<Getopt::EX::Colormap> module, consult its document for detail and
@@ -2269,6 +2274,19 @@ specifications.  Also the form C<&func;> can be repeated.
 When color for 'TEXT' field is specified, whole text including matched
 part is passed to the function, exceptionally.  It is not recommended
 to use user defined function for 'TEXT' field.
+
+=item B<--colorsub>=C<...>, B<--cs>=...
+
+B<--colorsub> or B<--cs> is a shortcut for subroutine colormap.  It
+simply enclose the argument by C<sub{ ... }> expression.  So
+
+    greple -cm 'sub{uc}'
+
+can be written as simple as this.
+
+    greple -cs uc
+
+You can not use this option for labeled color.
 
 =item B<--[no]colorful>
 
