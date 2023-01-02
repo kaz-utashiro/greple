@@ -2275,7 +2275,7 @@ When color for 'TEXT' field is specified, whole text including matched
 part is passed to the function, exceptionally.  It is not recommended
 to use user defined function for 'TEXT' field.
 
-=item B<--colorsub>=C<...>, B<--cs>=...
+=item B<--colorsub>=C<...>, B<--cs>=C<...>
 
 B<--colorsub> or B<--cs> is a shortcut for subroutine colormap.  It
 simply enclose the argument by C<sub{ ... }> expression.  So

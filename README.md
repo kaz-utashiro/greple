@@ -877,7 +877,7 @@ If you don't want these conversion, use **--re** option.
     part is passed to the function, exceptionally.  It is not recommended
     to use user defined function for 'TEXT' field.
 
-- **--colorsub**=`...`, **--cs**=...
+- **--colorsub**=`...`, **--cs**=`...`
 
     **--colorsub** or **--cs** is a shortcut for subroutine colormap.  It
     simply enclose the argument by `sub{ ... }` expression.  So
