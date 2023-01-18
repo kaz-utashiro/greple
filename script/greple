@@ -171,6 +171,16 @@ my $rcloader = Getopt::EX::Loader
 
 my @optargs;
 
+sub newopt {
+    my @args = @_;
+    for (@args) {
+	next if ref;
+	s/\s+//g;
+	s/^(?=\w+-)([-\w]+)/$1 =~ tr[-][_]r . "|$1"/e; # "a-b" -> "a_b|a-b"
+    }
+    push @optargs, @args;
+}
+
 my @opt_pattern;
 sub opt_pattern {
     push @opt_pattern, [ map "$_", @_ ];
@@ -181,7 +191,7 @@ my @opt_colormap;
 sub opt_colormap { push @opt_colormap, $_[1] }
 sub opt_colorsub { push @opt_colormap, "sub{ $_[1] }" }
 
-push @optargs ,
+newopt
 
     ##
     ## PATTERN
@@ -333,7 +343,7 @@ my %opt_warn = (read => 0, skip => 1, retry => 0, begin => 0);
 %opt_format  = (LINE => '%d:', FILE => '%s:');
 %opt_alert   = (size => 512 * 1024, time => 2);
 
-push @optargs ,
+newopt
 
     'separate' => sub {
 	$opt_filestyle = $opt_linestyle = $_[0];
@@ -367,21 +377,11 @@ push @optargs ,
 
 ;
 
-for (@optargs) {
-    next if ref;
-    s/\s+//g;
-    s/^(?=\w+-)([-\w]+)/$1 =~ tr[-][_]r . "|$1"/e; # "a-b" -> "a_b|a-b"
-}
-
-sub newopt {
-    push @optargs, @_;
-}
-
 my %optargs;
 sub setopt {
     unless (%optargs) {
-	for (my $i = 0; $i <= $#optargs; $i += 2) {
-	    my($spec, $ref) = @optargs[$i, $i + 1];
+	for (pairs @optargs) {
+	    my($spec, $ref) = @$_;
 	    while ($spec =~ /\G(\w+)\|?/g) {
 		$optargs{$1} = $ref;
 	    }
