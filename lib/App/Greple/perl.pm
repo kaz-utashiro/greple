@@ -9,6 +9,7 @@ greple -Mperl [ options ]
 =head1 SAMPLES
 
 greple -Mperl option pattern
+
     --code      search from perl code outisde of pod document
     --pod       search from pod document
     --comment   search from comment part
@@ -30,7 +31,14 @@ use v5.14;
 use warnings;
 use Carp;
 use App::Greple::Common;
-use App::Greple::Regions;
+use App::Greple::Regions qw(
+    REGION_INSIDE REGION_OUTSIDE
+    REGION_UNION  REGION_INTERSECT
+    match_regions
+    select_regions
+    merge_regions
+    reverse_regions
+    );
 use Data::Dumper;
 
 use Exporter 'import';
@@ -38,17 +46,20 @@ our @EXPORT      = qw(part pod comment doc code);
 our %EXPORT_TAGS = ( );
 our @EXPORT_OK   = qw();
 
-
-my $target = -1;
 my %part;
 
-my $pod_re = qr{^=\w+(?s:.*?)(?:\z|^=cut[ \t]*\n)}m;
+my $pod_re     = qr{^=\w+(?s:.*?)(?:\z|^=cut[ \t]*\n)}m;
 my $comment_re = qr{^(?:[ \t]*#.*\n)+}m;
-my $data_re = qr{^__DATA__\n(?s:.*)}m;
-my $empty_re = qr{^(?:[ \t]*\n)+}m;
+my $data_re    = qr{^__DATA__\n(?s:.*)}m;
+my $empty_re   = qr{^(?:[ \t]*\n)+}m;
 
 sub setup {
-    return $target if $target == \$_;
+    state $target = -1;
+    if ($target == \$_) {
+	return $target;
+    } else {
+	$target = \$_;
+    }
     my @pod     = match_regions(pattern => $pod_re);
     my @comment = select_regions([ match_regions(pattern => $comment_re) ],
 				 \@pod, REGION_OUTSIDE);
@@ -68,7 +79,6 @@ sub setup {
 	noncode => \@noncode,
 	empty   => \@empty,
 	);
-    $target = \$_;
 }
 
 sub part {
