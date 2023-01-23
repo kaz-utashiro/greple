@@ -1462,10 +1462,10 @@ __END__
 
 =head3 AND
 
-B<greple> can take multiple search patterns by B<-e> option, but
-unlike L<egrep(1)> command, they are searched in AND context.  For
-example, next command print lines those contain all of C<foo> and
-C<bar> and C<baz>.
+B<greple> can take multiple search patterns with the B<-e> option, but
+unlike the L<egrep(1)> command, it will searches them in an AND
+context.  For example, the next command print lines those containing
+all of C<foo> and C<bar> and C<baz>.
 
     greple -e foo -e bar -e baz ...
 
@@ -2430,9 +2430,10 @@ space characters.  Example:
     greple -pe '^struct sockaddr' /usr/include/sys/socket.h
 
 It changes the unit of context specified by B<-A>, B<-B>, B<-C>
-options.  Space gap between paragraphs are also treated as block
-unit.  Thus, option B<-pC2> will print with previous and next
-paragraph, while B<-pC1> will print with just surrounding spaces.
+options.  Space gap between paragraphs are also treated as a block
+unit.  Thus, option B<-pC2> will print target paragraph along with
+previous and next paragraph.  Option B<-pC1> causes consecutive
+paragraphs to be output as the same block in an easy-to-read format.
 
 You can create original paragraph pattern by B<--border> option.
 

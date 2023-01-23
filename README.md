@@ -116,10 +116,10 @@ Version 9.00\_02
 
 ### AND
 
-**greple** can take multiple search patterns by **-e** option, but
-unlike [egrep(1)](http://man.he.net/man1/egrep) command, they are searched in AND context.  For
-example, next command print lines those contain all of `foo` and
-`bar` and `baz`.
+**greple** can take multiple search patterns with the **-e** option, but
+unlike the [egrep(1)](http://man.he.net/man1/egrep) command, it will searches them in an AND
+context.  For example, the next command print lines those containing
+all of `foo` and `bar` and `baz`.
 
     greple -e foo -e bar -e baz ...
 
@@ -1022,9 +1022,10 @@ If you don't want these conversion, use **--re** option.
         greple -pe '^struct sockaddr' /usr/include/sys/socket.h
 
     It changes the unit of context specified by **-A**, **-B**, **-C**
-    options.  Space gap between paragraphs are also treated as block
-    unit.  Thus, option **-pC2** will print with previous and next
-    paragraph, while **-pC1** will print with just surrounding spaces.
+    options.  Space gap between paragraphs are also treated as a block
+    unit.  Thus, option **-pC2** will print target paragraph along with
+    previous and next paragraph.  Option **-pC1** causes consecutive
+    paragraphs to be output as the same block in an easy-to-read format.
 
     You can create original paragraph pattern by **--border** option.
 
