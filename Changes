@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.00_03 2023-01-27T05:19:34Z
+
+    - Require Getopt::EX@2.1.2
+    - Update -Mperl module
+
 9.00_02 2022-12-26T09:48:38Z
 
     - Introduce --colorsub/--cs option
