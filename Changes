@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.01 2023-01-29T04:59:38Z
+
+    - Release 9.01
+
 9.00_03 2023-01-27T05:19:34Z
 
     - Require Getopt::EX@2.1.2
