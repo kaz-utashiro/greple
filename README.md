@@ -192,7 +192,7 @@ Next command show lines which include `foo`, but does not include
 
 ## PHRASE SEARCH
 
-**greple** searchs a given pattern across line boundaries.  This is
+**greple** searches a given pattern across line boundaries.  This is
 especially useful to handle Asian multi-byte text, more specifically
 Japanese.  Japanese text can be separated by newline almost any place
 in the text.  So the search pattern may spread out onto multiple
