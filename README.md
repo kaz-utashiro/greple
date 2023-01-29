@@ -190,6 +190,24 @@ Next command show lines which include `foo`, but does not include
 
     greple 'foo -bar ?baz'
 
+## PHRASE SEARCH
+
+**greple** searchs a given pattern across line boundaries.  This is
+especially useful to handle Asian multi-byte text, more specifically
+Japanese.  Japanese text can be separated by newline almost any place
+in the text.  So the search pattern may spread out onto multiple
+lines.
+
+As for ascii word list, space character in the pattern matches any
+kind of space including newline.  Next example will search the word
+sequence of `foo`, `bar` and `baz`, even they spread out to
+multiple lines.
+
+    greple -e 'foo bar baz'
+
+Option `-e` is necessary because space is taken as a token separator
+in the bare or `--le` pattern.
+
 ## FLEXIBLE BLOCKS
 
 Default data block **greple** search and print is a line.  Using
@@ -225,24 +243,6 @@ area to be matched.  There are similar option
 
 These four options also take user defined function and any complex
 region can be used.
-
-## LINE ACROSS MATCH
-
-**greple** search a given pattern across line boundaries.  This is
-especially useful to handle Asian multi-byte text, more specifically
-Japanese.  Japanese text can be separated by newline almost any place
-in the text.  So the search pattern may spread out onto multiple
-lines.
-
-As for ascii word list, space character in the pattern matches any
-kind of space including newline.  Next example will search the word
-sequence of `foo`, `bar` and `baz`, even they spread out to
-multiple lines.
-
-    greple -e 'foo bar baz'
-
-Option `-e` is necessary because space is taken as a token separator
-in the bare or `--le` pattern.
 
 ## MODULE AND CUSTOMIZATION
 

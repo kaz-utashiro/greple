@@ -1450,6 +1450,7 @@ __END__
 
 =head1 INSTALL
 
+
 =head2 CPANMINUS
 
     $ cpanm App::Greple
@@ -1459,6 +1460,7 @@ __END__
 
 
 =head2 MULTIPLE KEYWORDS
+
 
 =head3 AND
 
@@ -1514,7 +1516,9 @@ optional.  Next command is equivalent to the above example.
 
     greple -r foo -r bar -e baz
 
+
 =head2 LEXICAL EXPRESSION
+
 
 B<greple> takes the first argument as a search pattern specified by
 C<--le> option.  In C<--le> pattern, you can set multiple keywords in
@@ -1535,6 +1539,26 @@ Next command show lines which include C<foo>, but does not include
 C<bar>, and highlight C<baz> if exists.
 
     greple 'foo -bar ?baz'
+
+
+=head2 PHRASE SEARCH
+
+
+B<greple> searchs a given pattern across line boundaries.  This is
+especially useful to handle Asian multi-byte text, more specifically
+Japanese.  Japanese text can be separated by newline almost any place
+in the text.  So the search pattern may spread out onto multiple
+lines.
+
+As for ascii word list, space character in the pattern matches any
+kind of space including newline.  Next example will search the word
+sequence of C<foo>, C<bar> and C<baz>, even they spread out to
+multiple lines.
+
+    greple -e 'foo bar baz'
+
+Option C<-e> is necessary because space is taken as a token separator
+in the bare or C<--le> pattern.
 
 
 =head2 FLEXIBLE BLOCKS
@@ -1577,26 +1601,6 @@ These four options also take user defined function and any complex
 region can be used.
 
 
-=head2 LINE ACROSS MATCH
-
-
-B<greple> search a given pattern across line boundaries.  This is
-especially useful to handle Asian multi-byte text, more specifically
-Japanese.  Japanese text can be separated by newline almost any place
-in the text.  So the search pattern may spread out onto multiple
-lines.
-
-As for ascii word list, space character in the pattern matches any
-kind of space including newline.  Next example will search the word
-sequence of C<foo>, C<bar> and C<baz>, even they spread out to
-multiple lines.
-
-    greple -e 'foo bar baz'
-
-Option C<-e> is necessary because space is taken as a token separator
-in the bare or C<--le> pattern.
-
-
 =head2 MODULE AND CUSTOMIZATION
 
 
@@ -1637,6 +1641,7 @@ but this command is finally translated into following option list.
 
 
 =head2 INCLUDED MODUES
+
 
 This release include some sample modules.  Read document in each
 modules for detail.  You can read the document by C<--man> option or
