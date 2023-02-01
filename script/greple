@@ -1390,6 +1390,7 @@ sub output {
 	}
 
 	$block = join '', @blocks;
+	next if $block eq "";
 
 	my @line;
 	if ($opt_n) {
@@ -1404,8 +1405,6 @@ sub output {
 		$line += $block =~ tr/\n/\n/;
 	    }
 	}
-
-	return if $block eq "";
 
 	$block = $_text->($block) if $colormap{TEXT} ne "";
 
