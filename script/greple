@@ -150,6 +150,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --end=func           call function after search
     --prologue=func      call function before command execution
     --epilogue=func      call function after command execution
+    --postgrep=func      call function after each grep operation
   OTHER
     --usage[=expand]     show this message
     --exit=n             command exit status
@@ -304,6 +305,7 @@ newopt
     ' end                    =s ' => \ my @opt_end ,
     ' prologue               =s ' => \ my @opt_prologue ,
     ' epilogue               =s ' => \ my @opt_epilogue ,
+    ' postgrep               =s ' => \ my @opt_postgrep ,
 
     ##
     ## OTHERS
@@ -886,6 +888,7 @@ for my $set (
     [ "epilogue", \@opt_epilogue, 0 ],
     [ "callback", \@opt_callback, 0 ],
     [ "uniqsub" , \@opt_uniqsub , 0 ],
+    [ "postgrep", \@opt_postgrep, 0 ],
     [ "block"   , \@opt_block   , 1 ], # need &
     [ "inside"  , \@opt_inside  , 1 ], # need &
     [ "outside" , \@opt_outside , 1 ], # need &
@@ -1252,6 +1255,11 @@ sub grep_data {
 	)->run;
     my $matched = $grep->matched;
 
+    ## --postgrep
+    for my $f (@opt_postgrep) {
+	$f->call($grep);
+    }
+    ## -m
     for my $splice (@splicer) {
 	$splice->($grep->result_ref);
     }
@@ -1315,6 +1323,7 @@ sub output {
 	my($block_start, $block_end) = @{shift @$result};
 	my $block = $grep->cut($block_start, $block_end);
 
+	## --print
 	if (@opt_print) {
 	    local *_ = \$block;
 	    for my $func (@opt_print) {
@@ -2789,6 +2798,15 @@ this form, the function will be called with module package name.  So
 you don't have to export it.  Because it is called only once at the
 beginning of command execution, before starting file processing,
 C<FILELABEL> parameter is not given exceptionally.
+
+=item B<--postgrep>=I<function>(I<...>)
+
+=item B<--postgrep>=I<function>=I<...>
+
+Specify the function called after each search operation.  Funciton is
+called with C<App::Greple::Grep> object which cotains all information
+about the search.  This interface highly depends on the internal
+structure, so use with the utmost cation.
 
 =back
 

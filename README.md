@@ -91,6 +91,7 @@ Version 9.0101
       --end=func           call function after search
       --prologue=func      call function before command execution
       --epilogue=func      call function after command execution
+      --postgrep=func      call function after each grep operation
     OTHER
       --usage[=expand]     show this message
       --exit=n             command exit status
@@ -1338,6 +1339,14 @@ If you don't want these conversion, use `--re` option.
     you don't have to export it.  Because it is called only once at the
     beginning of command execution, before starting file processing,
     `FILELABEL` parameter is not given exceptionally.
+
+- **--postgrep**=_function_(_..._)
+- **--postgrep**=_function_=_..._
+
+    Specify the function called after each search operation.  Funciton is
+    called with `App::Greple::Grep` object which cotains all information
+    about the search.  This interface highly depends on the internal
+    structure, so use with the utmost cation.
 
 For these run-time functions, optional argument list can be set in the
 form of `key` or `key=value`, connected by comma.  These arguments
