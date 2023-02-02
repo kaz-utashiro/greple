@@ -62,7 +62,7 @@ greple - extensible grep with lexical expression and region control
 =head1 VERSION
 
 
-Version 9.0101
+Version 9.02
 
 
 =head1 SYNOPSIS
