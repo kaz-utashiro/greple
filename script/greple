@@ -1314,13 +1314,13 @@ sub output {
 
     my $line = 1;
     my $lastpos = 0;
-    my @result = $grep->result;
-    for my $rix (0 .. $#result) {
-	my $result = $result[$rix];
+    my @results = $grep->result;
+    for my $rix (0 .. $#results) {
 	my $is_top    = $rix == 0;
-	my $is_bottom = $rix == $#result;
+	my $is_bottom = $rix == $#results;
 
-	my($block_start, $block_end) = @{shift @$result};
+	my($blk, @result) = @{$results[$rix]};
+	my($block_start, $block_end) = @$blk;
 	my $block = $grep->cut($block_start, $block_end);
 
 	## --print
@@ -1355,18 +1355,18 @@ sub output {
 
 	if ($indexer) {
 	    $indexer->reset if $indexer->block;
-	    for ($indexer->reverse ? reverse @$result : @$result) {
+	    for ($indexer->reverse ? reverse @result : @result) {
 		$_->[2] = $indexer->index;
 	    }
 	}
 
-	my $template = unpack_template($result, $block_start);
-	my @blocks = unpack($template, $block);
+	my $template = unpack_template(\@result, $block_start);
+	my @slice = unpack($template, $block);
 
 	my $mark = "\001";
-	for my $i (0 .. $#{$result}) {
-	    my($start, $end, $pi, $callback) = @{$result->[$i]};
-	    local *b = \$blocks[$i * 2 + 1];
+	for my $i (0 .. $#result) {
+	    my($start, $end, $pi, $callback) = @{$result[$i]};
+	    local *b = \$slice[$i * 2 + 1];
 
 	    ## run callback function
 	    if ($callback) {
@@ -1374,7 +1374,7 @@ sub output {
 		    if (ref $callback eq 'CODE') {
 			$callback->($start, $end, $pi, $b);
 		    }
-		    elsif (callable $callback) {
+		    elsif (callable($callback)) {
 			$callback->call(
 			    &FILELABEL => $file,
 			    start => $start,
@@ -1398,7 +1398,7 @@ sub output {
 	    $b = index_color($pi, $b);
 	}
 
-	$block = join '', @blocks;
+	$block = join '', @slice;
 	next if $block eq "";
 
 	my @line;
