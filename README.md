@@ -118,9 +118,9 @@ Version 9.02
 ### AND
 
 **greple** can take multiple search patterns with the `-e` option, but
-unlike the [egrep(1)](http://man.he.net/man1/egrep) command, it will searches them in an AND
-context.  For example, the next command print lines those containing
-all of `foo` and `bar` and `baz`.
+unlike the [egrep(1)](http://man.he.net/man1/egrep) command, it will search them in AND context.
+For example, the next command print lines those containing all of
+`foo` and `bar` and `baz`.
 
     greple -e foo -e bar -e baz ...
 
@@ -172,17 +172,17 @@ optional.  Next command is equivalent to the above example.
 ## LEXICAL EXPRESSION
 
 **greple** takes the first argument as a search pattern specified by
-`--le` option.  In `--le` pattern, you can set multiple keywords in
-a single parameter.  Each keyword is separated by spaces, and the
-first character describe the type.
+`--le` option.  In the `--le` pattern, you can set multiple keywords
+in a single parameter.  Each keyword is separated by spaces, and the
+first letter describes its type.
 
     none  And pattern            : --and  -e
     +     Required pattern       : --must -r
     -     Negative match pattern : --not  -v
     ?     Optional pattern       : --may  -t
 
-Just like internet search engine, you can simply provide `foo bar
-baz` to search lines including all words.
+Just like internet search engines, you can simply provide `foo bar
+baz` to search lines including all of them.
 
     greple 'foo bar baz'
 
