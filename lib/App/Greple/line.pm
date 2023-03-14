@@ -33,9 +33,9 @@ It is ok to use B<-L> option multiple times, like:
 
 But this command produce nothing, because each line definitions are
 taken as a different pattern, and B<greple> prints lines only when all
-patterns matched.  You can relax the condition by B<--need 1> option
-in such case, then you will get expected result.  Note that next
-example will display 10th, 20th and 30th lines in different colors.
+patterns matched.  You can relax the condition by C<--need 1> option
+in such case, then you will get expected result.  Next example will
+display 10th, 20th and 30th lines in different colors.
 
     greple -Mline -L 10 -L 20 -L 30 --need 1
 
@@ -93,14 +93,16 @@ Next command prints all 10 line blocks which include the pattern.
 
     greple -Mline --block L=:::10 pattern
 
+In this case, however, it is faster and easier to use regex.
+
+    greple --block '(.*\n){1,10}' pattern
+
 =back
 
-This module implicitly set B<-n> option.  Use B<--no-line-number>
-option to disable it.
-
 Using this module, it is impossible to give single C<L> in command
-line arguments.  Use like B<--le=L> to search C<L>.  You have a file
-named F<L>?  Stop substitution by placing C<--> before target files.
+line arguments.  Use like B<--le=L> to search letter C<L>.  You have a
+file named F<L>?  Stop substitution by placing C<--> before the target
+files.
 
 =head1 SEE ALSO
 
@@ -149,8 +151,6 @@ sub line {
 1;
 
 __DATA__
-
-option default -n
 
 option L &line=$<shift>
 help   L Region spec by line number
