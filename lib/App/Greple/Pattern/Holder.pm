@@ -45,7 +45,7 @@ sub append {
 		($_, flag => $arg->{flag} & ~FLAG_IGNORECASE)
 		->cooked;
 	} @_;
-	my $p = "(?x)\n" . join(" |\n", map { s/(\s)/\\$1/gr } @p);
+	my $p = "(?x)\n" . join(" |\n", map "(?^m:$_)", @p);
 	$arg->{flag} |= FLAG_REGEX;
 	$arg->{flag} &= ~FLAG_COOK;
 	push @$obj, App::Greple::Pattern->new($p, flag => $arg->{flag});
@@ -117,7 +117,7 @@ sub load_file {
     my $arg = ref $_[0] eq 'HASH' ? shift : {};
 
     $arg->{type} = 'pattern';
-    my $flag = ( $arg->{flag} // 0 ) | FLAG_REGEX | FLAG_COOK | FLAG_OR;
+    my $flag = ( $arg->{flag} // 0 ) | FLAG_REGEX | FLAG_OR;
 
     for my $file (@_) {
 	my $select = (!-f $file and $file =~ s/\[([\d:,]+)\]$//) ? $1 : undef;

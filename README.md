@@ -506,14 +506,27 @@ If you don't want these conversion, use `--re` option.
 
 - **-f** _file_, **--file**=_file_
 
-    Specify the file which contains search pattern.  When file contains
-    multiple lines, patterns are mixed together by OR context.
+    Specifies the file containing the search pattern. If there are
+    multiple lines in the file, each pattern is combined by an OR context.
+    So the file:
+
+        A
+        B
+        C
+
+    makes the pattern as `A|B|C`.
 
     Blank line and the line starting with sharp (#) character is ignored.
     Two slashes (//) and following string are taken as a comment and
     removed with preceding spaces.
 
-    When multiple files specified, each file produces individual pattern.
+    In more detail, each of these patterns are evaluated under `(?^m)`
+    flags.  This is a situation where only the `m` (Multiline) flag is
+    enabled in the default environment. So if you enable some flags in a
+    pattern, they are only valid within itself.
+
+    If multiple files are specified, a separate group pattern is generated
+    for each file.
 
     If the file name is followed by `[index]` string, it is treated as
     specified by `--select` option.  Next two commands are equivalent.
