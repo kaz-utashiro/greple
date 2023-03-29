@@ -2,6 +2,8 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.03 2023-03-29T11:54:52Z
+
     - Fix option -f behavior:
       * do not treat space specially
       * enclose each pattern in (?^m: ... ) to reset
