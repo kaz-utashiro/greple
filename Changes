@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+    - Fix option -f behavior:
+      * do not treat space specially
+      * enclose each pattern in (?^m: ... ) to reset
+
 9.02 2023-02-02T13:19:13Z
 
     - Introduce --postgrep option.
