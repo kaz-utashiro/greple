@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.04 2023-03-30T08:40:34Z
+
+    - Fix --select option behavior:
+      * takes line number, rather than pattern number
+
 9.03 2023-03-29T11:54:52Z
 
     - Fix option -f behavior:
