@@ -122,14 +122,9 @@ sub load_file {
     for my $file (@_) {
 	my $select = (!-f $file and $file =~ s/\[([\d:,]+)\]$//) ? $1 : undef;
 	open my $fh, '<:encoding(utf8)', $file or die "$file: $!\n";
-	my @p = do {
-	    map  { chomp ; s{\s*//.*}{}r }
-	    grep { not m{^\s*(?:#|//|$)} }
-	    <$fh>
-	};
-	close $fh;
+	my @p = <$fh>;
 	if ($select //= $arg->{select}) {
-	    my $numbers = Getopt::EX::Numbers->new(min => 1, max => 0+@p);
+	    my $numbers = Getopt::EX::Numbers->new(min => 1, max => int @p);
 	    my @select = do {
 		map  { $_ - 1 }
 		sort { $a <=> $b }
@@ -139,6 +134,11 @@ sub load_file {
 	    };
 	    @p = @p[@select];
 	}
+	@p = do {
+	    map  { chomp ; s{\s*//.*}{}r }
+	    grep { not m{^\s*(?:#|//|$)} }
+	    @p;
+	};
 	$obj->append({ flag => $flag }, @p);
     }
 }

@@ -1913,23 +1913,23 @@ for each file.
 If the file name is followed by C<[index]> string, it is treated as
 specified by C<--select> option.  Next two commands are equivalent.
 
-    greple -f pattern_file'[1,5:7]'
+    greple -f pattern_file'[2,7:9]'
 
-    greple -f pattern_file --select 1,5:7
+    greple -f pattern_file --select 2,7:9
 
 See L<App::Greple::subst> module.
 
 =item B<--select>=I<index>
 
-When you want to choose specific pattern in the pattern file provided
-by C<-f> option, use C<--select> option.  I<index> is number list
+When you want to choose specific line in the pattern file provided by
+C<-f> option, use C<--select> option.  I<index> is number list
 separated by comma (,) character and each number is interpreted by
 L<Getopt::EX::Numbers> module.  Take a look at the module document for
 detail.
 
-Next command use 1st and 5,6,7th pattern in the file.
+Next command use 2nd and 7,8,9th lines in the pattern file.
 
-    greple -f pattern_file --select 1,5:7
+    greple -f pattern_file --select 2,7:9
 
 =back
 

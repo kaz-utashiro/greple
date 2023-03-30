@@ -531,23 +531,23 @@ If you don't want these conversion, use `--re` option.
     If the file name is followed by `[index]` string, it is treated as
     specified by `--select` option.  Next two commands are equivalent.
 
-        greple -f pattern_file'[1,5:7]'
+        greple -f pattern_file'[2,7:9]'
 
-        greple -f pattern_file --select 1,5:7
+        greple -f pattern_file --select 2,7:9
 
     See [App::Greple::subst](https://metacpan.org/pod/App%3A%3AGreple%3A%3Asubst) module.
 
 - **--select**=_index_
 
-    When you want to choose specific pattern in the pattern file provided
-    by `-f` option, use `--select` option.  _index_ is number list
+    When you want to choose specific line in the pattern file provided by
+    `-f` option, use `--select` option.  _index_ is number list
     separated by comma (,) character and each number is interpreted by
     [Getopt::EX::Numbers](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3ANumbers) module.  Take a look at the module document for
     detail.
 
-    Next command use 1st and 5,6,7th pattern in the file.
+    Next command use 2nd and 7,8,9th lines in the pattern file.
 
-        greple -f pattern_file --select 1,5:7
+        greple -f pattern_file --select 2,7:9
 
 ## STYLES
 
