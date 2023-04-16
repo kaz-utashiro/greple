@@ -73,6 +73,8 @@ __DATA__
 expand is_repository	( -name .git -o -name .svn -o -name RCS -o -name CVS )
 expand is_environment	( -name .vscode )
 expand is_temporary	( -name .build -o -name _build )
+expand is_hugo_gen	( -path */resources/_gen )
+
 expand is_dots		  -name .*
 expand is_version	  -name *,v
 expand is_backup	( -name *~ -o -name *.swp )
@@ -87,13 +89,14 @@ expand is_archive	( -iname *.tar -o -iname *.tar.gz -o -iname *.tbz -o -iname *.
 			)
 expand is_pdf		  -iname *.pdf
 expand is_db		( -name *.db -o -iname *.bdb )
+expand is_minimized	( -name *.min.js -o -name *.min.css )
 expand is_others	( -name *.bundle -o -name *.dylib -o -name *.o -o \
 			  -name *.fits )
 
 option --dig -Mfind \
 	$<move> \
 	( \
-		( is_repository -o is_environment -o is_temporary ) \
+		( is_repository -o is_environment -o is_temporary -o is_hugo_gen ) \
 		-prune -o \
 		-type f \
 	) \
@@ -105,6 +108,7 @@ option --dig -Mfind \
 	! is_pdf \
 	! is_db \
 	! is_others \
+	! is_minimized \
 	-print --
 
 option --git \
