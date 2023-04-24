@@ -5,7 +5,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 9.04
+Version 9.05
 
 # SYNOPSIS
 

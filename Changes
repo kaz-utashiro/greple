@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.05 2023-04-24T09:37:00Z
+
+    - Update -Mselect module
+      * enable multi-line mode and introduce --select-longer option
+    - Update -Mdig module
+      * update minimized file pattern
+
 9.04 2023-03-30T08:40:34Z
 
     - Fix --select option behavior:
