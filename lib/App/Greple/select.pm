@@ -125,6 +125,10 @@ Search or ignore files which contain lines longer than I<number>.
 
 =back
 
+=head2 SEE ALSO
+
+L<App::Greple::type>
+
 =cut
 
 package App::Greple::select;
