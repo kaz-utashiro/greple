@@ -7,18 +7,20 @@ select - Greple module to select files
 greple -Mdig -Mselect ... --dig .
 
   FILENAME
-    --suffix         file suffixes
-    --select-name    regex match for file name
-    --select-path    regex match for file path
-    --x-suffix	     exclusive version of --suffix	   
-    --x-select-name  exclusive version of --select-name
-    --x-select-path  exclusive version of --select-path
+    --suffix           file suffixes
+    --select-name      regex match for file name
+    --select-path      regex match for file path
+    --x-suffix	       exclusive version of --suffix	   
+    --x-select-name    exclusive version of --select-name
+    --x-select-path    exclusive version of --select-path
 
   DATA
-    --shebang        included in #! line
-    --select-data    regex match for file data
-    --x-shebang      exclusive version of --shebang	   
-    --x-select-data  exclusive version of --select-data
+    --shebang          included in #! line
+    --select-data      regex match for file data
+    --select-longer=#  contain lines longer than #
+    --x-shebang        exclusive version of --shebang	   
+    --x-select-data    exclusive version of --select-data
+    --x-select-longer  exclusive version of --select-longer
 
 =head1 DESCRIPTION
 
@@ -105,7 +107,8 @@ the next regular expression:
 
 =item B<--select-data>=I<regex>
 
-Specify regular expression and it is compared to the file content data.
+Specify regular expression and it is compared to the file content
+data.  Multi-line modifier is enabled by default.
 
 =item B<--x-shebang>=I<aa,bb,cc>
 
@@ -113,6 +116,12 @@ Specify regular expression and it is compared to the file content data.
 
 These are reverse version of corresponding options.  File is not
 selected when matched.
+
+=item B<--select-longer>=I<number>
+
+=item B<--x-select-longer>=I<number>
+
+Search or ignore files which contain lines longer than I<number>.
 
 =back
 
@@ -212,7 +221,7 @@ sub prologue {
 	my($list, $split, $type, $action, $re) = @$_;
 	do {
 	    map { $select->add($type, $_, $action) }
-	    map { $re ? $re->($_) : qr/$_/ }
+	    map { $re ? $re->($_) : qr/$_/m }
 	    map { $split ? split($split, $_) : $_ }
 	    @$list;
 	};
@@ -250,5 +259,8 @@ builtin   select-data=s @select_data
 builtin x-select-name=s @discard_name
 builtin x-select-path=s @discard_path
 builtin x-select-data=s @discard_data
+
+option   --select-longer   --select-data=^.{$<shift>,}
+option --x-select-longer --x-select-data=^.{$<shift>,}
 
 #  LocalWords:  greple shebang perl regex aka
