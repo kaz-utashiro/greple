@@ -89,7 +89,8 @@ expand is_archive	( -iname *.tar -o -iname *.tar.gz -o -iname *.tbz -o -iname *.
 			)
 expand is_pdf		  -iname *.pdf
 expand is_db		( -name *.db -o -iname *.bdb )
-expand is_minimized	( -name *.min.js -o -name *.min.css )
+expand is_minimized	( -name *.min.js  -o -name *.min.*.js -o \
+			  -name *.min.css -o -name *.min.*.css )
 expand is_others	( -name *.bundle -o -name *.dylib -o -name *.o -o \
 			  -name *.fits )
 
