@@ -77,16 +77,16 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -r, --must pattern   pattern cannot be compromised
     -t, --may  pattern   pattern may be exist
     -v, --not  pattern   pattern not to be matched
-        --re   pattern   regular expression
+    -E, --re   pattern   regular expression
         --fe   pattern   fixed expression
     -f, --file file      file contains search pattern
     --select index       select indexed pattern from -f file
   MATCH
-    -i                   ignore case
+    -i, --ignore-case    ignore case
     --need=[+-]n         required positive match count
     --allow=[+-]n        acceptable negative match count
     --matchcount=n[,m]   required match count for each block
-    --capture-group      match capture groups rather than whole pattern
+    -G, --capture-group  match capture groups rather than whole pattern
   STYLE
     -l                   list filename only
     -c                   print count of matched block only
@@ -203,7 +203,7 @@ newopt
     ' may    |t =s ' => \&opt_pattern ,
     ' not    |v =s ' => \&opt_pattern ,
     ' le     |x =s ' => \&opt_pattern ,
-    ' re        =s ' => \&opt_pattern ,
+    ' re     |E =s ' => \&opt_pattern ,
     ' fe        =s ' => \&opt_pattern ,
     ' file   |f =s ' => \ my @opt_f ,
     ' select    =s ' => \ my $opt_select ,
@@ -215,7 +215,7 @@ newopt
     ' need                   =s ' => \ my @opt_need ,
     ' allow                  =s ' => \ my @opt_allow ,
     ' matchcount         |mc =s ' => \ my $opt_matchcount ,
-    ' capture-group      |cg !  ' => \ my $opt_capture_group ,
+    ' capture-group      |G  !  ' => \ my $opt_capture_group ,
 
     ##
     ## STYLE
@@ -1806,7 +1806,7 @@ This is the summary of start character for C<--le> option:
     ?  Optional pattern
     &  Function call (see next section)
 
-=item C<-x> [B<+?->]B<&>I<function>, C<--le>=[B<+?->]B<&>I<function>
+=item B<-x> [B<+?->]B<&>I<function>, B<--le>=[B<+?->]B<&>I<function>
 
 If the pattern start with ampersand (C<&>), it is treated as a
 function, and the function is called instead of searching pattern.
@@ -1828,7 +1828,7 @@ produce string to be shown in command output.  Callback function is
 called with four arguments (start position, end position, index,
 matched string) and expected to return replacement string.
 
-=item B<--re>=I<pattern>
+=item B<-E> I<pattern>, B<--re>=I<pattern>
 
 Specify regular expression.  No special treatment for space and wide
 characters.
@@ -1889,7 +1889,7 @@ match count 0 to 10, 20 to 30, and 40-or-greater.
 
     greple --matchcount=,10,20,30,40
 
-=item B<--capture-group>, B<--cg>
+=item B<-G>, B<--capture-group>
 
 Normally, B<greple> searches for strings that match the entire
 pattern.  Even if it contains a capturing groups, they do not affect

@@ -18,16 +18,16 @@ Version 9.05
       -r, --must pattern   pattern cannot be compromised
       -t, --may  pattern   pattern may be exist
       -v, --not  pattern   pattern not to be matched
-          --re   pattern   regular expression
+      -E, --re   pattern   regular expression
           --fe   pattern   fixed expression
       -f, --file file      file contains search pattern
       --select index       select indexed pattern from -f file
     MATCH
-      -i                   ignore case
+      -i, --ignore-case    ignore case
       --need=[+-]n         required positive match count
       --allow=[+-]n        acceptable negative match count
       --matchcount=n[,m]   required match count for each block
-      --capture-group      match capture groups rather than whole pattern
+      -G, --capture-group  match capture groups rather than whole pattern
     STYLE
       -l                   list filename only
       -c                   print count of matched block only
@@ -424,7 +424,7 @@ If you don't want these conversion, use `--re` option.
         ?  Optional pattern
         &  Function call (see next section)
 
-- `-x` \[**+?-**\]**&**_function_, `--le`=\[**+?-**\]**&**_function_
+- **-x** \[**+?-**\]**&**_function_, **--le**=\[**+?-**\]**&**_function_
 
     If the pattern start with ampersand (`&`), it is treated as a
     function, and the function is called instead of searching pattern.
@@ -446,7 +446,7 @@ If you don't want these conversion, use `--re` option.
     called with four arguments (start position, end position, index,
     matched string) and expected to return replacement string.
 
-- **--re**=_pattern_
+- **-E** _pattern_, **--re**=_pattern_
 
     Specify regular expression.  No special treatment for space and wide
     characters.
@@ -505,7 +505,7 @@ If you don't want these conversion, use `--re` option.
 
         greple --matchcount=,10,20,30,40
 
-- **--capture-group**, **--cg**
+- **-G**, **--capture-group**
 
     Normally, **greple** searches for strings that match the entire
     pattern.  Even if it contains a capturing groups, they do not affect
