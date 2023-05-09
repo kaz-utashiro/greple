@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.06 2023-05-09T02:42:55Z
+
+    - Introduce --capture-group (-G) option
+    - Make -E alias for --re option
+
 9.05 2023-04-24T09:37:00Z
 
     - Update -Mselect module
