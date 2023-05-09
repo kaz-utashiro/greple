@@ -85,7 +85,10 @@ sub prepare {
 	    if ($pat->is_function) {
 		$pat->function;
 	    } else {
-		Getopt::EX::Func->new(\&match_regions, pattern => $pat->regex);
+		Getopt::EX::Func->new(\&match_regions,
+				      pattern => $pat->regex,
+				      group => $self->{group_match},
+		    );
 	    }
 	};
 	my @p = $func->call(@args, &FILELABEL => $self->{filename});

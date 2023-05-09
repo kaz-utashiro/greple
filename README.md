@@ -27,6 +27,7 @@ Version 9.05
       --need=[+-]n         required positive match count
       --allow=[+-]n        acceptable negative match count
       --matchcount=n[,m]   required match count for each block
+      --capture-group      match capture groups rather than whole pattern
     STYLE
       -l                   list filename only
       -c                   print count of matched block only
@@ -503,6 +504,13 @@ If you don't want these conversion, use `--re` option.
     match count 0 to 10, 20 to 30, and 40-or-greater.
 
         greple --matchcount=,10,20,30,40
+
+- **--capture-group**, **--cg**
+
+    Normally, **greple** searches for strings that match the entire
+    pattern.  Even if it contains a capturing groups, they do not affect
+    the search target.  When this option is given, strings corresponding
+    to individual capture groups are searched, not the entire pattern.
 
 - **-f** _file_, **--file**=_file_
 

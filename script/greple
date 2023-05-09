@@ -86,6 +86,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --need=[+-]n         required positive match count
     --allow=[+-]n        acceptable negative match count
     --matchcount=n[,m]   required match count for each block
+    --capture-group      match capture groups rather than whole pattern
   STYLE
     -l                   list filename only
     -c                   print count of matched block only
@@ -214,6 +215,7 @@ newopt
     ' need                   =s ' => \ my @opt_need ,
     ' allow                  =s ' => \ my @opt_allow ,
     ' matchcount         |mc =s ' => \ my $opt_matchcount ,
+    ' capture-group      |cg !  ' => \ my $opt_capture_group ,
 
     ##
     ## STYLE
@@ -1246,6 +1248,7 @@ sub grep_data {
 	countcheck   => $count_match_sub,
 	allow        => $count_allow,
 	strict       => $opt_strict,
+	group_match  => $opt_capture_group,
 	region_index => $opt_regioncolor,
 	stat         => \%stat,
 	callback     => @opt_callback ? $opt_callback[-1] : undef,
@@ -1885,6 +1888,13 @@ Missing, negative or zero I<max> means infinite.  Next command find
 match count 0 to 10, 20 to 30, and 40-or-greater.
 
     greple --matchcount=,10,20,30,40
+
+=item B<--capture-group>, B<--cg>
+
+Normally, B<greple> searches for strings that match the entire
+pattern.  Even if it contains a capturing groups, they do not affect
+the search target.  When this option is given, strings corresponding
+to individual capture groups are searched, not the entire pattern.
 
 =item B<-f> I<file>, B<--file>=I<file>
 

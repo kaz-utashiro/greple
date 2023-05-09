@@ -94,6 +94,8 @@ sub match_regions {
     my %arg = @_;
     my $pattern = $arg{pattern} // croak "Parameter error";
     my $regex = ref $pattern eq 'Regexp' ? $pattern : qr/$pattern/m;
+    return &match_regions_by_group($regex) if $arg{group};
+
     my @regions;
 
     no warnings 'utf8';
@@ -107,6 +109,24 @@ sub match_regions {
 	##
 	my $pos = pos();
 	push @regions, [ $pos - length(${^MATCH}), $pos ];
+    }
+    @regions;
+}
+
+sub match_regions_by_group {
+    my $regex = shift;
+    my @regions;
+
+    no warnings 'utf8';
+
+    while (/$regex/g) {
+	if (@- == 1) {
+	    push @regions, [ $-[0], $+[0] ];
+	} else {
+	    for my $i (1 .. $#-) {
+		push @regions, [ $-[$i], $+[$i], $i - 1];
+	    }
+	}
     }
     @regions;
 }
