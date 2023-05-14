@@ -121,10 +121,10 @@ sub match_regions_by_group {
 
     while (/$regex/g) {
 	if (@- == 1) {
-	    push @regions, [ $-[0], $+[0] ];
+	    push @regions, [ $-[0], $+[0], 0 ];
 	} else {
 	    for my $i (1 .. $#-) {
-		push @regions, [ $-[$i], $+[$i], $i - 1];
+		push @regions, [ $-[$i], $+[$i], $i];
 	    }
 	}
     }

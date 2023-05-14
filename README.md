@@ -24,10 +24,10 @@ Version 9.06
       --select index       select indexed pattern from -f file
     MATCH
       -i, --ignore-case    ignore case
+      -G, --capture-group  match capture groups rather than whole pattern
       --need=[+-]n         required positive match count
       --allow=[+-]n        acceptable negative match count
       --matchcount=n[,m]   required match count for each block
-      -G, --capture-group  match capture groups rather than whole pattern
     STYLE
       -l                   list filename only
       -c                   print count of matched block only
@@ -453,11 +453,24 @@ If you don't want these conversion, use `--re` option.
 
 - **--fe**=_pattern_
 
-    Specify the fixed string pattern, like fgrep.
+    Specify the fixed string pattern, like [fgrep(1)](http://man.he.net/man1/fgrep).
 
 - **-i**, **--ignore-case**
 
     Ignore case.
+
+- **-G**, **--capture-group**
+
+    Normally, **greple** searches for strings that match the entire
+    pattern.  Even if it contains a capturing groups, they do not affect
+    the search target.  When this option is given, strings corresponding
+    to individual capture groups are searched, not the entire pattern.  If
+    the pattern does not contain any capturing groups, it matches the
+    entire pattern.
+
+    For each match, a corresponding capture group number is assigned as an
+    index (0 for entire match).  This will cause the strings corresponding
+    to each capture group to be displayed in a different color.
 
 - **--need**=_n_
 - **--allow**=_n_
@@ -504,13 +517,6 @@ If you don't want these conversion, use `--re` option.
     match count 0 to 10, 20 to 30, and 40-or-greater.
 
         greple --matchcount=,10,20,30,40
-
-- **-G**, **--capture-group**
-
-    Normally, **greple** searches for strings that match the entire
-    pattern.  Even if it contains a capturing groups, they do not affect
-    the search target.  When this option is given, strings corresponding
-    to individual capture groups are searched, not the entire pattern.
 
 - **-f** _file_, **--file**=_file_
 
