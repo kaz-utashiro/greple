@@ -108,8 +108,10 @@ sub prepare {
 		$self->{stat}->{match_negative} += @p;
 	    }
 	    map { $_->[2] //= $i } @p;
-	    if (my $callback = $self->{callback}) {
-		map { $_->[3] //= $callback } @p;
+	    if (my $ref = $self->{callback}) {
+		if (my $callback = $ref->[ $i % @$ref ]) {
+		    map { $_->[3] //= $callback } @p;
+		}
 	    }
 	}
 	push @result, \@p;

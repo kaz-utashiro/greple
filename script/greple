@@ -1251,7 +1251,7 @@ sub grep_data {
 	group_match  => $opt_capture_group,
 	region_index => $opt_regioncolor,
 	stat         => \%stat,
-	callback     => @opt_callback ? $opt_callback[-1] : undef,
+	callback     => @opt_callback ? \@opt_callback : undef,
 	alert_size   => $opt_alert{size},
 	alert_time   => $opt_alert{time},
 	join_blocks  => $opt_join_blocks,
@@ -2765,6 +2765,9 @@ four labeled parameters: B<start>, B<end>, B<index> and B<match>,
 which corresponds to start and end position in the text, pattern
 index, and the matched string.  Matched string in the text is replaced
 by returned string from the function.
+
+Multiple functions can be specified, and if there are multiple search
+patterns, they are applied in order and cyclically.
 
 =item B<--begin>=I<function>(I<...>)
 

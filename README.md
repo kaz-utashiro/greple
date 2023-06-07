@@ -1311,6 +1311,9 @@ If you don't want these conversion, use `--re` option.
     index, and the matched string.  Matched string in the text is replaced
     by returned string from the function.
 
+    Multiple functions can be specified, and if there are multiple search
+    patterns, they are applied in order and cyclically.
+
 - **--begin**=_function_(_..._)
 - **--begin**=_function_=_..._
 
