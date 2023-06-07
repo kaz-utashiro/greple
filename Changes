@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.07 2023-06-07T12:14:28Z
+
+    - Allows multiple --callback functions.
+      They are applied in order and cyclically.
+
 9.06 2023-05-09T02:42:55Z
 
     - Introduce --capture-group (-G) option
