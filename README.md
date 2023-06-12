@@ -85,14 +85,12 @@ Version 9.07
       --pf=filter          post process filter command
       --noif               disable default input filter
     RUNTIME FUNCTION
-      --print=func         print function
-      --continue           continue after print function
-      --callback=func      callback function for matched string
       --begin=func         call function before search
       --end=func           call function after search
       --prologue=func      call function before command execution
       --epilogue=func      call function after command execution
       --postgrep=func      call function after each grep operation
+      --callback=func      callback function for matched string
     OTHER
       --usage[=expand]     show this message
       --exit=n             command exit status
@@ -1283,37 +1281,6 @@ If you don't want these conversion, use `--re` option.
 
 ## RUNTIME FUNCTIONS
 
-- **--print**=_function_
-- **--print**=_sub{...}_
-
-    Specify user defined function executed before data print.  Text to be
-    printed is replaced by the result of the function.  Arbitrary function
-    can be defined in `.greplerc` file or module.  Matched data is placed
-    in variable `$_`.  Filename is passed by `&FILELABEL` key, as
-    described later.
-
-    It is possible to use multiple `--print` options.  In that case,
-    second function will get the result of the first function.  The
-    command will print the final result of the last function.
-
-- **--continue**
-
-    When `--print` option is given, **greple** will immediately print the
-    result returned from print function and finish the cycle.  Option
-    `--continue` forces to continue normal printing process after print
-    function called.  So please be sure that all data being consistent.
-
-- **--callback**=_function_(_..._)
-
-    Callback function is called before printing every matched pattern with
-    four labeled parameters: **start**, **end**, **index** and **match**,
-    which corresponds to start and end position in the text, pattern
-    index, and the matched string.  Matched string in the text is replaced
-    by returned string from the function.
-
-    Multiple functions can be specified, and if there are multiple search
-    patterns, they are applied in order and cyclically.
-
 - **--begin**=_function_(_..._)
 - **--begin**=_function_=_..._
 
@@ -1361,6 +1328,25 @@ If you don't want these conversion, use `--re` option.
     and after processing.  During the execution, file is not opened and
     therefore, file name is not given to those functions.
 
+- **--postgrep**=_function_(_..._)
+- **--postgrep**=_function_=_..._
+
+    Specify the function called after each search operation.  Funciton is
+    called with `App::Greple::Grep` object which cotains all information
+    about the search.  This interface highly depends on the internal
+    structure, so use with the utmost cation.
+
+- **--callback**=_function_(_..._)
+
+    Callback function is called before printing every matched pattern with
+    four labeled parameters: **start**, **end**, **index** and **match**,
+    which corresponds to start and end position in the text, pattern
+    index, and the matched string.  Matched string in the text is replaced
+    by returned string from the function.
+
+    Multiple functions can be specified, and if there are multiple search
+    patterns, they are applied in order and cyclically.
+
 - **-M**_module_::_function(...)_
 - **-M**_module_::_function=..._
 
@@ -1370,13 +1356,29 @@ If you don't want these conversion, use `--re` option.
     beginning of command execution, before starting file processing,
     `FILELABEL` parameter is not given exceptionally.
 
-- **--postgrep**=_function_(_..._)
-- **--postgrep**=_function_=_..._
+- **--print**=_function_
+- **--print**=_sub{...}_
 
-    Specify the function called after each search operation.  Funciton is
-    called with `App::Greple::Grep` object which cotains all information
-    about the search.  This interface highly depends on the internal
-    structure, so use with the utmost cation.
+    Specify user defined function executed before data print.  Text to be
+    printed is replaced by the result of the function.  Arbitrary function
+    can be defined in `.greplerc` file or module.  Matched data is placed
+    in variable `$_`.  Filename is passed by `&FILELABEL` key, as
+    described later.
+
+    It is possible to use multiple `--print` options.  In that case,
+    second function will get the result of the first function.  The
+    command will print the final result of the last function.
+
+    This option and next **--continue** are no more recommended to use
+    because **--colormap** and **--callback** functions are more simple and
+    powerful.
+
+- **--continue**
+
+    When `--print` option is given, **greple** will immediately print the
+    result returned from print function and finish the cycle.  Option
+    `--continue` forces to continue normal printing process after print
+    function called.  So please be sure that all data being consistent.
 
 For these run-time functions, optional argument list can be set in the
 form of `key` or `key=value`, connected by comma.  These arguments

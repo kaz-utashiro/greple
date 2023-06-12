@@ -144,14 +144,12 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --pf=filter          post process filter command
     --noif               disable default input filter
   RUNTIME FUNCTION
-    --print=func         print function
-    --continue           continue after print function
-    --callback=func      callback function for matched string
     --begin=func         call function before search
     --end=func           call function after search
     --prologue=func      call function before command execution
     --epilogue=func      call function after command execution
     --postgrep=func      call function after each grep operation
+    --callback=func      callback function for matched string
   OTHER
     --usage[=expand]     show this message
     --exit=n             command exit status
@@ -2737,38 +2735,6 @@ entire output from B<greple> command.
 
 =over 7
 
-=item B<--print>=I<function>
-
-=item B<--print>=I<sub{...}>
-
-Specify user defined function executed before data print.  Text to be
-printed is replaced by the result of the function.  Arbitrary function
-can be defined in F<.greplerc> file or module.  Matched data is placed
-in variable C<$_>.  Filename is passed by C<&FILELABEL> key, as
-described later.
-
-It is possible to use multiple C<--print> options.  In that case,
-second function will get the result of the first function.  The
-command will print the final result of the last function.
-
-=item B<--continue>
-
-When C<--print> option is given, B<greple> will immediately print the
-result returned from print function and finish the cycle.  Option
-C<--continue> forces to continue normal printing process after print
-function called.  So please be sure that all data being consistent.
-
-=item B<--callback>=I<function>(I<...>)
-
-Callback function is called before printing every matched pattern with
-four labeled parameters: B<start>, B<end>, B<index> and B<match>,
-which corresponds to start and end position in the text, pattern
-index, and the matched string.  Matched string in the text is replaced
-by returned string from the function.
-
-Multiple functions can be specified, and if there are multiple search
-patterns, they are applied in order and cyclically.
-
 =item B<--begin>=I<function>(I<...>)
 
 =item B<--begin>=I<function>=I<...>
@@ -2790,7 +2756,7 @@ processed.
         my %arg = @_;
         my $name = delete $arg{&FILELABEL} or die;
         $name =~ /\.(?:pm|pl|PL|pod)$/ or /\A#!.*\bperl/
-	    or die "skip $name\n";
+            or die "skip $name\n";
     }
 
     1;
@@ -2821,6 +2787,26 @@ Option C<--prologue> and C<--epilogue> specify functions called before
 and after processing.  During the execution, file is not opened and
 therefore, file name is not given to those functions.
 
+=item B<--postgrep>=I<function>(I<...>)
+
+=item B<--postgrep>=I<function>=I<...>
+
+Specify the function called after each search operation.  Funciton is
+called with C<App::Greple::Grep> object which cotains all information
+about the search.  This interface highly depends on the internal
+structure, so use with the utmost cation.
+
+=item B<--callback>=I<function>(I<...>)
+
+Callback function is called before printing every matched pattern with
+four labeled parameters: B<start>, B<end>, B<index> and B<match>,
+which corresponds to start and end position in the text, pattern
+index, and the matched string.  Matched string in the text is replaced
+by returned string from the function.
+
+Multiple functions can be specified, and if there are multiple search
+patterns, they are applied in order and cyclically.
+
 =item B<-M>I<module>::I<function(...)>
 
 =item B<-M>I<module>::I<function=...>
@@ -2831,14 +2817,30 @@ you don't have to export it.  Because it is called only once at the
 beginning of command execution, before starting file processing,
 C<FILELABEL> parameter is not given exceptionally.
 
-=item B<--postgrep>=I<function>(I<...>)
+=item B<--print>=I<function>
 
-=item B<--postgrep>=I<function>=I<...>
+=item B<--print>=I<sub{...}>
 
-Specify the function called after each search operation.  Funciton is
-called with C<App::Greple::Grep> object which cotains all information
-about the search.  This interface highly depends on the internal
-structure, so use with the utmost cation.
+Specify user defined function executed before data print.  Text to be
+printed is replaced by the result of the function.  Arbitrary function
+can be defined in F<.greplerc> file or module.  Matched data is placed
+in variable C<$_>.  Filename is passed by C<&FILELABEL> key, as
+described later.
+
+It is possible to use multiple C<--print> options.  In that case,
+second function will get the result of the first function.  The
+command will print the final result of the last function.
+
+This option and next B<--continue> are no more recommended to use
+because B<--colormap> and B<--callback> functions are more simple and
+powerful.
+
+=item B<--continue>
+
+When C<--print> option is given, B<greple> will immediately print the
+result returned from print function and finish the cycle.  Option
+C<--continue> forces to continue normal printing process after print
+function called.  So please be sure that all data being consistent.
 
 =back
 
@@ -2873,11 +2875,11 @@ C<$_>.  Ampersand (C<&>) is required to avoid the hash key is
 interpreted as a bare word.
 
     sub function {
-	my %arg = @_;
-	my $filename = delete $arg{&FILELABEL};
-	$arg{key1};             # 1
-	$arg{key2};             # "val2"
-	$_;                     # contents
+        my %arg = @_;
+        my $filename = delete $arg{&FILELABEL};
+        $arg{key1};             # 1
+        $arg{key2};             # "val2"
+        $_;                     # contents
     }
 
 
