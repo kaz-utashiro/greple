@@ -70,10 +70,19 @@ use warnings;
 
 __DATA__
 
+##
+## directories
+##
+
 expand is_repository	( -name .git -o -name .svn -o -name RCS -o -name CVS )
 expand is_environment	( -name .vscode )
 expand is_temporary	( -name .build -o -name _build )
 expand is_hugo_gen	( -path */resources/_gen )
+expand is_artifacts	( -name node_modules )
+
+##
+## files
+##
 
 expand is_dots		  -name .*
 expand is_version	  -name *,v
@@ -97,7 +106,12 @@ expand is_others	( -name *.bundle -o -name *.dylib -o -name *.o -o \
 option --dig -Mfind \
 	$<move> \
 	( \
-		( is_repository -o is_environment -o is_temporary -o is_hugo_gen ) \
+		( is_repository -o \
+		  is_environment -o \
+		  is_temporary -o \
+		  is_hugo_gen -o \
+		  is_artifacts \
+		) \
 		-prune -o \
 		-type f \
 	) \
