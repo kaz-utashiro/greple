@@ -198,10 +198,10 @@ Japanese.  Japanese text can be separated by newline almost any place
 in the text.  So the search pattern may spread out onto multiple
 lines.
 
-As for ascii word list, space character in the pattern matches any
-kind of space including newline.  Next example will search the word
-sequence of `foo`, `bar` and `baz`, even they spread out to
-multiple lines.
+As for the ASCII word list, the space character in the pattern matches
+any type of space, including newlines.  The next example will search
+for the word sequence of `foo`, `bar` and `baz`, even if they are
+spread over lines.
 
     greple -e 'foo bar baz'
 
@@ -281,7 +281,7 @@ but this command is finally translated into following option list.
         ! -iname *.tar ! -iname *.tbz  ! -iname *.tgz ! -iname *.pdf
         -print -- pattern
 
-## INCLUDED MODUES
+## INCLUDED MODULES
 
 This release include some sample modules.  Read document in each
 modules for detail.  You can read the document by `--man` option or
@@ -409,9 +409,9 @@ If you don't want these conversion, use `--re` option.
     start with `-` means **negative** pattern, `?` means **optional**, and
     `+` does **required**.
 
-    Next example print lines which contain `foo` and `yabba`, and none
-    of `bar` and `dabba`, with highlighting `baz` and `doo` if they
-    exist.
+    The next example prints lines which containing `foo` and `yabba`,
+    and none of `bar` and `dabba`, with highlighting `baz` and `doo`
+    if they exist.
 
         greple --le='foo -bar ?baz yabba -dabba ?doo'
 

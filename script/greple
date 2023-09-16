@@ -1559,10 +1559,10 @@ Japanese.  Japanese text can be separated by newline almost any place
 in the text.  So the search pattern may spread out onto multiple
 lines.
 
-As for ascii word list, space character in the pattern matches any
-kind of space including newline.  Next example will search the word
-sequence of C<foo>, C<bar> and C<baz>, even they spread out to
-multiple lines.
+As for the ASCII word list, the space character in the pattern matches
+any type of space, including newlines.  The next example will search
+for the word sequence of C<foo>, C<bar> and C<baz>, even if they are
+spread over lines.
 
     greple -e 'foo bar baz'
 
@@ -1649,7 +1649,7 @@ but this command is finally translated into following option list.
         -print -- pattern
 
 
-=head2 INCLUDED MODUES
+=head2 INCLUDED MODULES
 
 
 This release include some sample modules.  Read document in each
@@ -1791,9 +1791,9 @@ spaces.  Each token is interpreted by the first character.  Token
 start with C<-> means B<negative> pattern, C<?> means B<optional>, and
 C<+> does B<required>.
 
-Next example print lines which contain C<foo> and C<yabba>, and none
-of C<bar> and C<dabba>, with highlighting C<baz> and C<doo> if they
-exist.
+The next example prints lines which containing C<foo> and C<yabba>,
+and none of C<bar> and C<dabba>, with highlighting C<baz> and C<doo>
+if they exist.
 
     greple --le='foo -bar ?baz yabba -dabba ?doo'
 
