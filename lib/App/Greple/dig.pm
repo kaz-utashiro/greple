@@ -91,7 +91,8 @@ expand is_image 	( -iname *.jpg  -o -iname *.jpeg -o \
 			  -iname *.gif  -o -iname *.png  -o \
 			  -iname *.ico  -o \
 			  -iname *.heic -o -iname *.heif -o \
-			  -iname *.svg \
+			  -iname *.svg  -o \
+			  -iname *.tif \
 			)
 expand is_archive	( -iname *.tar -o -iname *.tar.gz -o -iname *.tbz -o -iname *.tgz -o \
 			  -name  *.a   -o -name  *.zip \
