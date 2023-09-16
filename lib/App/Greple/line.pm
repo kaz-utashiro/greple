@@ -97,6 +97,12 @@ In this case, however, it is faster and easier to use regex.
 
     greple --block '(.*\n){1,10}' pattern
 
+=item B<--offload>=I<command>
+
+Set the offload command to retrieve the desired line numbers. The
+numbers in the output, starting at the beginning of the line, are
+treated as line numbers.  This is compatible with B<grep -n> output.
+
 =back
 
 Using this module, it is impossible to give single C<L> in command
@@ -116,41 +122,69 @@ use v5.14;
 use warnings;
 
 use Carp;
-use List::Util qw(min max);
+use List::Util qw(min max reduce);
 use Data::Dumper;
 
 use Exporter qw(import);
-our @EXPORT = qw(&line);
+our @EXPORT = qw(&line &offload);
 
+use List::Util qw(any pairmap);
 use App::Greple::Common;
 use App::Greple::Regions qw(match_borders borders_to_regions);
 
-sub line {
-    my %arg = @_ ;
-    my $file = delete $arg{&FILELABEL} or die;
+sub line_to_region {
     state $target = -1;
     state @lines;
-
     if ($target != \$_) {
 	@lines = ([0, 0], borders_to_regions match_borders qr/^/m);
 	$target = \$_;
     }
-
     use Getopt::EX::Numbers;
     my $numbers = Getopt::EX::Numbers->new(min => 1, max => $#lines);
-
     my @result = do {
 	map  { [ $lines[$_->[0]]->[0], $lines[$_->[1]]->[1] ] }
 	sort { $a->[0] <=> $b->[0] }
 	map  { $numbers->parse($_)->range }
-	keys %arg;
+	map  { split /,+/ }
+	@_;
     };
     @result;
+}
+
+sub line {
+    my @lines = pairmap { $a ne &FILELABEL ? $a : () } @_;
+    line_to_region(@lines);
+}
+
+sub offload {
+    our $offload_command;
+    my $result = qx($offload_command || die);
+    my @lines = do {
+	map {
+	    my($a, $b) = @$_;
+	    $a == $b ? "$a" : "$a:$b"
+	}
+	map { @$_ }
+	reduce {
+	    if (@$a > 0 and $a->[-1][1] + 1 == $b) {
+		$a->[-1][1] = $b;
+	    } else {
+		push @$a, [ $b, $b ];
+	    }
+	    $a;
+	}
+	[], $result =~ /^\d+/mg;
+    };
+    line_to_region(@lines);
 }
 
 1;
 
 __DATA__
+
+builtin offload-command=s $offload_command
+
+option --offload --le &offload --offload-command
 
 option L &line=$<shift>
 help   L Region spec by line number
