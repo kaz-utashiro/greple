@@ -2,6 +2,14 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.08 2023-09-16T04:33:12Z
+
+    - Update -Mline module
+      * implement --offload option
+    - Update -Mdig module
+      * skip node_modules
+      * skip "tif" file
+
 9.07 2023-06-07T12:14:28Z
 
     - Allows multiple --callback functions.
