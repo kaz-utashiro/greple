@@ -1017,7 +1017,7 @@ my($progress_show, $progress_reset) = do {
     my $n;
     my($s, $e) = ! $need_color ? ('', '') :
 	( ansi_code $colormap{PROGRESS}, ansi_code 'Z');
-    my $print = sub { printflush STDERR DSC, $s, @_, $e, CR, DRC };
+    my $print = sub { STDERR->printflush(DSC, $s, @_, $e, CR, DRC) };
     my $start = do {
 	if ($opt_d{n} and $opt_d{f}) {
 	    sub { $print->(++$n, " ", $current_file, ED) }
@@ -1026,7 +1026,7 @@ my($progress_show, $progress_reset) = do {
 	    sub { $print->(++$n) }
 	}
 	elsif ($opt_d{f}) {
-	    sub { printflush STDERR $current_file, ":\n" }
+	    sub { STDERR->printflush($current_file, ":\n") }
 	}
 	else {
 	    undef;
@@ -1034,7 +1034,7 @@ my($progress_show, $progress_reset) = do {
     };
     my $end = do {
 	if ($opt_d{n}) {
-	    sub { printflush STDERR ED if $n }
+	    sub { STDERR->printflush(ED) if $n }
 	} else {
 	    undef;
 	}
