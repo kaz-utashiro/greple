@@ -103,6 +103,10 @@ Set the offload command to retrieve the desired line numbers. The
 numbers in the output, starting at the beginning of the line, are
 treated as line numbers.  This is compatible with B<grep -n> output.
 
+Next command print 10 to 20 lines.
+
+    greple -Mline --offload 'seq 10 20'
+
 =back
 
 Using this module, it is impossible to give single C<L> in command
@@ -156,26 +160,28 @@ sub line {
     line_to_region(@lines);
 }
 
+sub line_to_range {
+    map { @$_ } reduce {
+	if (@$a > 0 and $a->[-1][1] + 1 == $b) {
+	    $a->[-1][1] = $b;
+	} else {
+	    push @$a, [ $b, $b ];
+	}
+	$a;
+    } [], @_;
+}
+
+sub range_to_spec {
+    map {
+	my($a, $b) = @$_;
+	$a == $b ? "$a" : "$a:$b"
+    } @_;
+}
+
 sub offload {
     our $offload_command;
     my $result = qx($offload_command || die);
-    my @lines = do {
-	map {
-	    my($a, $b) = @$_;
-	    $a == $b ? "$a" : "$a:$b"
-	}
-	map { @$_ }
-	reduce {
-	    if (@$a > 0 and $a->[-1][1] + 1 == $b) {
-		$a->[-1][1] = $b;
-	    } else {
-		push @$a, [ $b, $b ];
-	    }
-	    $a;
-	}
-	[], $result =~ /^\d+/mg;
-    };
-    line_to_region(@lines);
+    line_to_region(range_to_spec(line_to_range($result =~ /^\d+/mg)));
 }
 
 1;
