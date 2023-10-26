@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.09 2023-10-26T09:32:29Z
+
+    - fix bug of "--not" stop to use the first arg as a pattern
+      * this bug was introduced by "8.5202 2021-12-09T02:09:44Z"
+    - make "--may" optional pattern same as "--not"
+
 9.08 2023-09-16T04:33:12Z
 
     - Update -Mline module
