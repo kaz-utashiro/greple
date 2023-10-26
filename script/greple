@@ -565,11 +565,8 @@ if (@opt_f) {
 			    $opt_f);
     }
 } else {
-    my %optional = (not => 1, may => 1);
-    my @non_optional = grep { not $optional{$_->[0]} } @opt_pattern;
-    if (@non_optional == 0) {
-	my $bare = shift @ARGV // &usage;
-	unshift @opt_pattern, [ le => $bare ];
+    unless (grep { $_->[0] !~ /^(not|may)/ } @opt_pattern) {
+	unshift @opt_pattern, [ le => shift @ARGV // &usage ];
     }
 }
 
