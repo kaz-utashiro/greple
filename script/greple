@@ -565,9 +565,11 @@ if (@opt_f) {
 			    $opt_f);
     }
 } else {
-    if (@opt_pattern == 0) {
-	&usage if @ARGV == 0;
-	@opt_pattern = [ le => shift @ARGV ];
+    my %optional = (not => 1, may => 1);
+    my @non_optional = grep { not $optional{$_->[0]} } @opt_pattern;
+    if (@non_optional == 0) {
+	my $bare = shift @ARGV // &usage;
+	unshift @opt_pattern, [ le => $bare ];
     }
 }
 
@@ -1706,9 +1708,10 @@ L<https://github.com/kaz-utashiro/>.
 =head2 PATTERNS
 
 
-If no specific option is given, B<greple> takes the first argument as
-a search pattern specified by C<--le> option.  All of these patterns
-can be specified multiple times.
+If no positive pattern option is given (i.e. other than C<--not> and
+C<--may>), B<greple> takes the first argument as a search pattern
+specified by C<--le> option.  All of these patterns can be specified
+multiple times.
 
 Command itself is written in Perl, and any kind of Perl style regular
 expression can be used in patterns.  See L<perlre(1)> for detail.
@@ -1738,6 +1741,13 @@ Specify the optional (tentative) match pattern.  Next command print
 lines contains C<foo> and C<bar>, and highlight C<baz> if exists.
 
     greple -e foo -e bar -t baz
+
+Since it does not affect the bare pattern argument, you can add the
+highlighting word to the end of the command argument as follows.
+
+    greple foo file
+    greple foo file -t bar
+    greple foo file -t bar -t baz
 
 =item B<-r> I<pattern>, B<--must>=I<pattern>
 
@@ -1780,7 +1790,7 @@ As for Asian wide characters, pattern is cooked as zero or more white
 spaces can be allowed between any characters.  So Japanese string
 pattern C<日本語> will be converted to C<< 日\s*本\s*語 >>.
 
-If you don't want these conversion, use C<--re> option.
+If you don't want these conversion, use C<-E> (or C<--re>) option.
 
 =over 4
 

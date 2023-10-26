@@ -330,9 +330,10 @@ Other modules are available at CPAN, or git repository
 
 ## PATTERNS
 
-If no specific option is given, **greple** takes the first argument as
-a search pattern specified by `--le` option.  All of these patterns
-can be specified multiple times.
+If no positive pattern option is given (i.e. other than `--not` and
+`--may`), **greple** takes the first argument as a search pattern
+specified by `--le` option.  All of these patterns can be specified
+multiple times.
 
 Command itself is written in Perl, and any kind of Perl style regular
 expression can be used in patterns.  See [perlre(1)](http://man.he.net/man1/perlre) for detail.
@@ -360,6 +361,13 @@ For example, if you want to search repeated characters, use
     lines contains `foo` and `bar`, and highlight `baz` if exists.
 
         greple -e foo -e bar -t baz
+
+    Since it does not affect the bare pattern argument, you can add the
+    highlighting word to the end of the command argument as follows.
+
+        greple foo file
+        greple foo file -t bar
+        greple foo file -t bar -t baz
 
 - **-r** _pattern_, **--must**=_pattern_
 
@@ -400,7 +408,7 @@ As for Asian wide characters, pattern is cooked as zero or more white
 spaces can be allowed between any characters.  So Japanese string
 pattern `日本語` will be converted to `日\s*本\s*語`.
 
-If you don't want these conversion, use `--re` option.
+If you don't want these conversion, use `-E` (or `--re`) option.
 
 - **-x** _pattern_, **--le**=_pattern_
 

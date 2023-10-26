@@ -40,6 +40,17 @@ like(run('--and brown --and fox t/SAMPLE.txt')->stdout,
 like(run('--and brown --and dog t/SAMPLE.txt')->stdout,
      line(0), "--and (not match)");
 
+# --not / -v
+
+like(run('-e "fox|dog" t/SAMPLE.txt')->stdout,
+     line(2), "-e brown|fox");
+
+like(run('-e "fox|dog" -v lazy t/SAMPLE.txt')->stdout,
+     line(1), "-e brown|fox -v lazy");
+
+like(run('"fox|dog" -v lazy t/SAMPLE.txt')->stdout,
+     line(1), "brown|fox -v lazy");
+
 # --must
 
 like(run('-o --must brown --and fox t/SAMPLE.txt')->stdout,
@@ -67,6 +78,9 @@ like(run('-o --le "brown ?fox" t/SAMPLE.txt')->stdout,
 
 like(run('-o --le "brown ?dog" t/SAMPLE.txt')->stdout,
      line(1), "brown ?dog");
+
+like(run('brown --may fox t/SAMPLE.txt')->stdout,
+     line(1), "bare pattern + --may");
 
 # -o / --all
 
