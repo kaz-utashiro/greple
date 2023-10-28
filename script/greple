@@ -809,7 +809,7 @@ my $uniq_color = UniqIndex->new(
 sub dump_uniqcolor {
     my $list  = $uniq_color->list;
     my $count = $uniq_color->count;
-    for my $i (0 .. $#{ $list }) {
+    for my $i (keys @$list) {
 	warn sprintf("%3d (%3d) %s\n",
 		     $i, $count->[$i],
 		     index_color($i, $list->[$i]));
@@ -1315,7 +1315,7 @@ sub output {
     my $line = 1;
     my $lastpos = 0;
     my @results = $grep->result;
-    for my $rix (0 .. $#results) {
+    for my $rix (keys @results) {
 	my $is_top    = $rix == 0;
 	my $is_bottom = $rix == $#results;
 
@@ -1364,7 +1364,7 @@ sub output {
 	my @slice = unpack($template, $block);
 
 	my $mark = "\001";
-	for my $i (0 .. $#result) {
+	for my $i (keys @result) {
 	    my($start, $end, $pi, $callback) = @{$result[$i]};
 	    local *b = \$slice[$i * 2 + 1];
 

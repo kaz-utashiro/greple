@@ -79,8 +79,7 @@ sub prepare {
     my @result;
     my $positive_count = 0;
     my @patlist = $pat_holder->patterns;
-    for my $i (0 .. $#patlist) {
-	my $pat = $patlist[$i];
+    while (my($i, $pat) = each @patlist) {
 	my($func, @args) = do {
 	    if ($pat->is_function) {
 		$pat->function;
@@ -128,12 +127,10 @@ sub prepare {
     ##
     if (my @reg_union = $self->{regions}->union) {
 	my @tmp = map { [] } @result;
-	for my $regi (0 .. $#reg_union) {
-	    my $reg = $reg_union[$regi];
+	while (my($regi, $reg) = each @reg_union) {
 	    my @select = get_regions($self->{filename}, \$_, $reg->spec);
 	    @select or next if $reg->is_inside;
-	    for my $resi (0 .. $#result) {
-		my $r = $result[$resi];
+	    while (my($resi, $r) = each @result) {
 		my @l = select_regions({ strict => $self->{strict} },
 				       $r, \@select, $reg->flag);
 		if ($self->{region_index} // @result == 1) {
@@ -186,17 +183,16 @@ sub prepare {
     ## build match table
     ##
     my @match_table = map { [ 0, 0, [], 0, 0, [], 0, 0, [] ] } @$bp;
-    for my $i (0 .. $#result) {
-	my $base = $match_base[category($patlist[$i])];
-	my @b = classify_regions({ strict => $self->{strict} },
-				 $result[$i], $bp);
-	for my $bi (0 .. $#b) {
-	    my $te = $match_table[$bi];
-	    if (@{$b[$bi]}) {
-		${$te}[$base + INDX_POSI]++;
-		push @{$te->[$base + INDX_LIST]}, @{$b[$bi]};
+    while (my($ri, $r) = each @result) {
+	my $base = $match_base[category($patlist[$ri])];
+	my @b = classify_regions({ strict => $self->{strict} }, $r, $bp);
+	while (my($bi, $b) = each @b) {
+	    my $t = $match_table[$bi];
+	    if (@$b) {
+		${$t}[$base + INDX_POSI]++;
+		push @{$t->[$base + INDX_LIST]}, @$b;
 	    } else {
-		${$te}[$base + INDX_NEGA]++;
+		${$t}[$base + INDX_NEGA]++;
 	    }
 	}
     }
@@ -220,7 +216,7 @@ sub compose {
 	$mp->[$_][MUST_NEGA] <= abs $self->{need} &&
 	$mp->[$_][POSI_POSI] >= $self->{need} &&
 	$mp->[$_][NEGA_POSI] <= $self->{allow},
-	0 .. $#{$bp})
+	keys @$bp)
 	or return $self;
 
     ##
@@ -243,7 +239,7 @@ sub compose {
 	    map { $mark[$_] = 1 if $_ >= 0 }
 	    $i - $self->{before} .. $i + $self->{after};
 	}
-	@effective_index = grep $mark[$_], 0 .. $#{$bp};
+	@effective_index = grep $mark[$_], keys @$bp;
     }
 
     ##
