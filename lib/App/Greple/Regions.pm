@@ -250,15 +250,12 @@ sub merge_regions {
     @out;
 }
 
-use List::Util qw(pairmap);
+use List::Util qw(pairs);
 
 sub reverse_regions {
     my $option = ref $_[0] eq 'HASH' ? shift : {};
     my($from, $max) = @_;
-    my @reverse = do {
-	pairmap { [ $a, $b ] }
-	0, map( { $_->[0] => $_->[1] } @$from ), $max
-    };
+    my @reverse = pairs 0, map(@{$_}[0,1], @$from), $max // length;
     return @reverse if $option->{leave_empty};
     grep { $_->[0] != $_->[1] } @reverse
 }
