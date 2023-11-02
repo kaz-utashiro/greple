@@ -67,8 +67,8 @@ sub setup {
     my @empty   = match_regions(pattern => $empty_re);
     my @doc     = merge_regions(@pod, @comment);
     my @noncode = merge_regions(@doc, @data, @empty);
-    my @code    = reverse_regions(\@noncode, length);
-    my @nondoc  = reverse_regions(\@doc, length);
+    my @code    = reverse_regions(\@noncode);
+    my @nondoc  = reverse_regions(\@doc);
     %part = (
 	pod     => \@pod,
 	comment => \@comment,
@@ -96,12 +96,16 @@ sub part {
 
 __DATA__
 
-defopt :code    &part(code)
-defopt :comment &part(comment)
 defopt :pod     &part(pod)
-defopt :data    &part(data)
+defopt :comment &part(comment)
 defopt :doc     &part(doc)
+defopt :code    &part(code)
+defopt :data    &part(data)
+defopt :nondoc  &part(nondoc)
+defopt :noncode &part(noncode)
+defopt :empty   &part(empty)
 
+option ::part    &part($<shift>)
 option --code    --inside :code
 option --comment --inside :comment
 option --pod     --inside :pod
