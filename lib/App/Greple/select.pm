@@ -237,10 +237,10 @@ sub select {
     my $name = delete $arg{&FILELABEL} or die;
     if ($select->check($name, *_)) {
 	say $name if $opt{yes};
-	$opt{die} and die "SKIP $name";
+	$opt{die} and die "SKIP $name\n";
     } else {
 	say $name if $opt{no};
-	die "SKIP $name";
+	die "SKIP $name\n";
     }
 }
 
