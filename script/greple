@@ -12,7 +12,7 @@ use File::stat;
 use IO::Handle;
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
-use List::Util qw(min max first sum uniq shuffle notall pairs);
+use List::Util qw(min max first sum uniq shuffle notall pairs pairmap);
 use Cwd qw(getcwd abs_path);
 use Carp;
 
@@ -170,15 +170,26 @@ my $rcloader = Getopt::EX::Loader
     ->new(BASECLASS => \@baseclass);
 
 my @optargs;
+my %opt;
 
 sub newopt {
     my @args = @_;
-    for (@args) {
-	next if ref;
-	s/\s+//g;
-	s/^(?=\w+-)([-\w]+)/$1 =~ tr[-][_]r . "|$1"/e; # "a-b" -> "a_b|a-b"
-    }
+    pairmap {
+	$a =~ s/\s+//g;
+	$a =~ s/^(?=\w+-)([-\w]+)/$1 =~ tr[-][_]r . "|$1"/e; # "a-b" -> "a_b|a-b"
+	$a =~ /^(\w+)/ and $opt{$1} = $b;
+    } @args;
     push @optargs, @args;
+}
+
+sub opt :lvalue {
+    my $name = shift;
+    my $var = $opt{$name} or die "$name: invalid option name\n";
+    if (ref $var eq 'SCALAR') {
+	return $$var;
+    } else {
+	return $var;
+    }
 }
 
 my @opt_pattern;
@@ -348,18 +359,18 @@ my %opt_warn = (read => 0, skip => 1, retry => 0, begin => 0);
 newopt
 
     'separate' => sub {
-	$opt_filestyle = $opt_linestyle = $_[0];
+	opt('filestyle') = opt('linestyle') = $_[0];
     },
 
     'nocolor | no-color' => sub {
-	$opt_color = 'never';
+	opt('color') = 'never';
     },
     '256!' => sub {
-	$opt_ansicolor = $_[1] ? '256' : '16';
+	opt('ansicolor') = $_[1] ? '256' : '16';
     },
     'random!' => sub {
-	if ($_[1]) { $opt_colorindex .= 'R' }
-	else       { $opt_colorindex =~ s/R//gi }
+	if ($_[1]) { opt('colorindex') .= 'R' }
+	else       { opt('colorindex') =~ s/R//gi }
     },
 
     'warn|w:1%' => sub {
@@ -379,22 +390,13 @@ newopt
 
 ;
 
-my %optargs;
 sub setopt {
-    unless (%optargs) {
-	for (pairs @optargs) {
-	    my($spec, $ref) = @$_;
-	    while ($spec =~ /\G(\w+)\|?/g) {
-		$optargs{$1} = $ref;
-	    }
-	}
-    }
-    my $opt = ref $_[0] eq 'HASH' ? shift : {};
+    my $o = ref $_[0] eq 'HASH' ? shift : {};
     my $name = shift;
-    if (exists $optargs{$name}) {
-	my $ref = $optargs{$name};
+    if (exists $opt{$name}) {
+	my $ref = $opt{$name};
 	if (ref $ref eq 'ARRAY') {
-	    if ($opt->{append}) {
+	    if ($o->{append}) {
 		push @$ref, @_;
 	    } else {
 		@$ref = @_;
