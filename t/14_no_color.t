@@ -13,7 +13,7 @@ my $nocolor = run(q(イーハトーヴォ t/JA.txt --nocolor))->stdout;
 my $sub_cm  = run(q(イーハトーヴォ t/JA.txt --cm 'sub{"[$_]"}'))->stdout;
 
 SKIP: {
-    skip 'STDOUT is not a tty.' unless -t STDOUT;
+    skip 'STDOUT is not a tty.', 1 unless -t STDOUT;
     is(run(q(イーハトーヴォ t/JA.txt))->stdout,
        $color,
        "default (tty)");
@@ -29,7 +29,7 @@ is(run(q(イーハトーヴォ t/JA.txt --cm 'sub{"[$_]"}'))->stdout,
 $ENV{GETOPTEX_NO_NO_COLOR} = 1;
 
 SKIP: {
-    skip 'STDOUT is not a tty.' unless -t STDOUT;
+    skip 'STDOUT is not a tty.', 1 unless -t STDOUT;
     is(run(q(イーハトーヴォ t/JA.txt))->stdout,
        $color,
        "NO_COLOR with NO_NO_COLOR (tty)");
