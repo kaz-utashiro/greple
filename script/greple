@@ -342,8 +342,8 @@ newopt
     ' error                  =s ' => \(my $opt_error = 'skip') ,
     ' alert                  =i ' => { size => 512 * 1024, time => 2 } ,
     ' debug              |d  =s ' => \ my @opt_d ,
-    ' persist                !  ' => sub {
-	opt('error') = $_[1] ? 'retry' : 'skip';
+    ' persist                   ' => sub {
+	opt('error') = 'retry';
     },
     'warn|w:1%' => sub {
 	map { $opt_warn{$_} = $_[2] }

@@ -12,7 +12,7 @@ like(run('-e "thorn" t/Checker.pm')->stdout,
      qr/^SKIP/m, "default");
 
 like(run('-e "thorn" --error=skip t/Checker.pm')->stdout,
-     qr/^SKIP/m, "--error-skip");
+     qr/^SKIP/m, "--error=skip");
 
 like(run('-e "thorn" -wall t/Checker.pm')->stdout,
      qr/^SKIP/m, "-wall");
