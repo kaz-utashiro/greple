@@ -187,6 +187,8 @@ sub opt :lvalue {
     my $var = $optargs{$name} or die "$name: invalid option name\n";
     if (ref $var eq 'SCALAR') {
 	return $$var;
+    } elsif (ref $var eq 'HASH' and @_ == 1) {
+	return $var->{+shift};
     } else {
 	return $var;
     }
@@ -202,7 +204,8 @@ my @opt_colormap;
 sub opt_colormap { push @opt_colormap, $_[1] }
 sub opt_colorsub { push @opt_colormap, "sub{ $_[1] }" }
 
-my %opt_warn   = (read => 0, skip => 1, retry => 0, begin => 0);
+my %opt_warn  = (read => 0, skip => 1, retry => 0, begin => 0);
+my %opt_alert = (size => 512 * 1024, time => 2);
 
 newopt
 
@@ -340,7 +343,7 @@ newopt
     ' show | less               ' => \ my $opt_show ,
     ' path                      ' => \ my $opt_path ,
     ' error                  =s ' => \(my $opt_error = 'skip') ,
-    ' alert                  =i ' => { size => 512 * 1024, time => 2 } ,
+    ' alert                  =i ' => \    %opt_alert ,
     ' debug              |d  =s ' => \ my @opt_d ,
     ' persist                   ' => sub {
 	opt('error') = 'retry';
@@ -1235,10 +1238,10 @@ sub grep_data {
 	region_index => $opt_regioncolor,
 	stat         => \%stat,
 	callback     => @opt_callback ? \@opt_callback : undef,
-	alert_size   => opt('alert')->{size},
-	alert_time   => opt('alert')->{time},
+	alert_size   => $opt_alert{size},
+	alert_time   => $opt_alert{time},
 	join_blocks  => $opt_join_blocks,
-	)->run;
+    )->run;
     my $matched = $grep->matched;
 
     ## --postgrep
