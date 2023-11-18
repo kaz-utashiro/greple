@@ -742,16 +742,14 @@ if ($opt_ansicolor eq '24bit') {
     $Getopt::EX::Colormap::RGB24 = 1;
 }
 
-if (@opt_face) {
-    for my $opt (@opt_face) {
-	while ($opt =~ /(?:(?<rm>-)|\+)? (?<s>[^-+]+)/xg) {
-	    for my $c (@colors) {
-		if ($+{rm}) {
-		    $c =~ s/[\Q$+{s}\E]//g;
-		} else {
-		    my $spec = $+{s} =~ s/[\Q$c\E]//gr;
-		    $c .= '^' . ${spec} if $spec;
-		}
+for my $opt (@opt_face) {
+    while ($opt =~ /(?:(?<rm>-)|\+)? (?<s>[^-+]+)/xg) {
+	for my $c (@colors) {
+	    if ($+{rm}) {
+		$c =~ s/[\Q$+{s}\E]//g;
+	    } else {
+		my $spec = $+{s} =~ s/[\Q$c\E]//gr;
+		$c .= '^' . ${spec} if $spec;
 	    }
 	}
     }
