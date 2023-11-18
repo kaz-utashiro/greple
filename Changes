@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.0901 2023-11-18T05:41:58Z
+
+    - update all codes using "keys @array" syntax
+    - update option handling code
+    - skip test on v5.14, because of :lvalue function error
+    - no functional change
+
 9.09 2023-10-26T09:32:29Z
 
     - fix bug of "--not" stop to use the first arg as a pattern
