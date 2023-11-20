@@ -65,6 +65,9 @@ like(run('-o --le "+brown fox" t/SAMPLE.txt')->stdout,
 like(run('-o --le "+brown dog" t/SAMPLE.txt')->stdout,
      line(1), "+brown dog (not match)");
 
+like(run('--le "+quick brown dog" --need 2 t/SAMPLE.txt')->stdout,
+     line(1), "\"+quick brown dog\" --need 2 (MUST and --need)");
+
 # --may
 
 like(run('-o --and brown --may fox t/SAMPLE.txt')->stdout,

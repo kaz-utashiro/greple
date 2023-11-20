@@ -212,8 +212,9 @@ sub compose {
     ##
     ## now it is quite easy to get effective blocks
     ##
+    my $compromize = $self->{need} < 0 ? abs($self->{need}) : 0;
     my @effective_index = grep(
-	$mp->[$_][MUST_NEGA] <= abs $self->{need} &&
+	$mp->[$_][MUST_NEGA] <= $compromize &&
 	$mp->[$_][POSI_POSI] >= $self->{need} &&
 	$mp->[$_][NEGA_POSI] <= $self->{allow},
 	keys @$bp)
