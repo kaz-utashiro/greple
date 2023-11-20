@@ -34,10 +34,6 @@ For dark terminal.
 
 Solarized colors.  B<--solarized> is same as B<--solarized-fg>.
 
-=item B<--git-color-blame>
-
-Colorize L<git-blame(1)> command output.
-
 =back
 
 =head1 SEE ALSO
@@ -173,12 +169,3 @@ option --solarized-face0 --face +{base0}
 option --solarized-face1 --face +{base1}
 option --solarized-face2 --face +{base2}
 option --solarized-face3 --face +{base3}
-
-######################################################################
-# GIT
-######################################################################
-
-option --git-color-blame \
-	--re '^[0-9a-f^][0-9a-f]{7,39}\b.+' \
-	--uniqcolor --uniqsub 'sub{s/\s.*//r}' \
-	--all --face +E-D
