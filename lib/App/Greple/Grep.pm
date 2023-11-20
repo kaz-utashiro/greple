@@ -340,11 +340,10 @@ BEGIN {
     $Data::Dumper::Terse = 1;
 }
 sub show_match_table {
-    my $i = 0;
-    for my $t (@{+shift}) {
-	my $m = Dumper($t);
-	$m =~ s/\s+(?!$)/ /gs;
-	printf STDERR "%d %s", $i++, $m;
+    my $table = shift;
+    while (my($i, $e) = each @$table) {
+	printf STDERR
+	    "%4d %s", $i++, Dumper($e) =~ s/\s+(?!$)/ /gsr;
     }
 }
 
