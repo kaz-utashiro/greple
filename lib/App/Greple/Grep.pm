@@ -336,11 +336,9 @@ sub blocks {
     @{ $obj->{BLOCKS} };
 }
 
-BEGIN {
-    $Data::Dumper::Terse = 1;
-}
 sub show_match_table {
     my $table = shift;
+    local $Data::Dumper::Terse = 1;
     while (my($i, $e) = each @$table) {
 	printf STDERR
 	    "%4d %s", $i++, Dumper($e) =~ s/\s+(?!$)/ /gsr;
