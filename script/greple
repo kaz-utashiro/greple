@@ -173,13 +173,13 @@ my @optargs;
 my %optargs;
 
 sub newopt {
-    my @args = @_;
-    pairmap {
-	$a =~ s/\s+//g;
-	$a =~ s/^(?=\w+-)([-\w]+)/$1 =~ tr[-][_]r . "|$1"/e; # "a-b" -> "a_b|a-b"
-	$a =~ /^(\w+)/ and $optargs{$1} = $b if ref $b ne 'CODE';
-    } @args;
-    push @optargs, @args;
+    push @optargs, pairmap {
+	local $_ = $a;
+	s/\s+//g;
+	s/^(?=\w+-)([-\w]+)/$1 =~ tr[-][_]r . "|$1"/e; # "a-b" -> "a_b|a-b"
+	/^(\w+)/ and $optargs{$1} = $b if ref $b ne 'CODE';
+	$_ => $b;
+    } @_;
 }
 
 sub opt :lvalue {
