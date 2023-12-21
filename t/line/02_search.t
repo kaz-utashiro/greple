@@ -45,8 +45,10 @@ like(run('--norc -Mline -n -L ::2 t/SAMPLE.txt')->stdout,
 like(run('--norc -Mline -n -L 2::2 t/SAMPLE.txt')->stdout,
      lines(map $_ * 2, 1..14), "-L 2::2");
 
-
 like(run('--norc -Mline -n --inside L=2:4 a t/SAMPLE.txt')->stdout,
      lines(3), "--inside L=2:4");
+
+like(run('--norc -Mline 2::2 -n t/SAMPLE.txt')->stdout,
+     lines(map $_ * 2, 1..14), "-Mline 2::2");
 
 done_testing;

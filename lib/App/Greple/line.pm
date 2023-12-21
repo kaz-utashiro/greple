@@ -79,6 +79,14 @@ command print every 10 lines in different colors.
 
     greple -Mline -L :::10 --ci=A /etc/services
 
+=item B<-Mline> I<line numbers>
+
+If a line number argument immediately follows B<-Mline> module option,
+it is recognized as a line number without the C<-L> option. Thus, the
+above example can also be specified as follows:
+
+    greple -Mline ::10:3
+
 =item B<L>=I<line numbers>
 
 This notation just define function spec, which can be used in
@@ -136,6 +144,21 @@ use List::Util qw(any pairmap);
 use App::Greple::Common;
 use App::Greple::Regions qw(match_borders borders_to_regions);
 
+my %param = (
+    auto => 1,
+);
+
+sub finalize {
+    my($app, $argv) = @_;
+    $param{auto} or return;
+    for (my $i = 0; $i < @$argv; $i++) {
+	local $_ = $argv->[$i];
+	(/^[\d:,]+$/ and ! -f $_) or last;
+	splice(@$argv, $i, 1, '--le', sprintf("&line(%s)", $_));
+	$i++;
+    }
+}
+
 sub line_to_region {
     state $target = -1;
     state @lines;
@@ -189,6 +212,8 @@ sub offload {
 __DATA__
 
 builtin offload-command=s $offload_command
+
+option default --cm N
 
 option --offload --le &offload --offload-command
 
