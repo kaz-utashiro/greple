@@ -1,6 +1,7 @@
 requires 'perl', 'v5.14';
 
-requires 'Getopt::EX', '2.1.2';
+requires 'Getopt::EX', '2.1.6';
+requires 'Term::ANSIColor::Concise', '2.05';
 requires 'List::Util', '1.45';
 requires 'Hash::Util';
 requires 'List::BinarySearch';
