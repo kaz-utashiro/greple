@@ -990,7 +990,8 @@ my $slurp = do {
     }
 };
 
-use Getopt::EX::Colormap qw(ansi_code);
+use Term::ANSIColor::Concise qw(ansi_code);
+
 use constant {
     EL  => ansi_code('{EL}'),    # Erase Line
     ED  => ansi_code('{ED}'),    # Erase Display
@@ -1002,7 +1003,6 @@ use constant {
 };
 
 my($progress_show, $progress_reset) = do {
-    use Getopt::EX::Colormap qw(ansi_code);
     my $n;
     my($s, $e) = ! $need_color ? ('', '') :
 	( ansi_code $colormap{PROGRESS}, ansi_code 'Z');
