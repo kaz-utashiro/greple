@@ -600,7 +600,8 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 - **--all**
 
     Print entire file.  This option does not affect to seach behavior or
-    block treatment.  Just print all contents.
+    block treatment.  Just print all contents.  Can be negated by the
+    **--no-all** option
 
 - **-m** _n_\[,_m_\], **--max-count**=_n_\[,_m_\]
 

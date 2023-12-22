@@ -241,7 +241,7 @@ newopt
     ' filename           |H     ' => \ my $opt_H ,
     ' no-filename        |h     ' => \ my $opt_h ,
     ' only-matching      |o  !  ' => \ my $opt_o ,
-    ' all                       ' => \ my $opt_all ,
+    ' all                    !  ' => \ my $opt_all ,
     ' max-count          |m  =s ' => \ my $opt_m ,
     ' after-context      |A  :2 ' => \(my $opt_A = 0) ,
     ' before-context     |B  :2 ' => \(my $opt_B = 0) ,
@@ -1979,7 +1979,8 @@ you don't need extra newline.
 =item B<--all>
 
 Print entire file.  This option does not affect to seach behavior or
-block treatment.  Just print all contents.
+block treatment.  Just print all contents.  Can be negated by the
+B<--no-all> option
 
 =item B<-m> I<n>[,I<m>], B<--max-count>=I<n>[,I<m>]
 
