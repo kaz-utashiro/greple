@@ -2,6 +2,13 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.10 2023-12-22T02:08:08Z
+
+    - remove --git-color-blame from -Mcolors
+    - use Getopt::EX@2.1.6 to deal with the latest Getopt::Long
+    - "-Mline" allows line numbers to be specified immediately after
+    - make --all option can be cancelled
+
 9.0902 2023-11-20T10:23:55Z
 
     - fix bug of --must pattern used with --need option
