@@ -2792,7 +2792,7 @@ therefore, file name is not given to those functions.
 Specify the function called after each search operation.  Funciton is
 called with C<App::Greple::Grep> object which cotains all information
 about the search.  This interface highly depends on the internal
-structure, so use with the utmost cation.
+structure, so use with the utmost caution.
 
 =item B<--callback>=I<function>(I<...>)
 

@@ -1343,7 +1343,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     Specify the function called after each search operation.  Funciton is
     called with `App::Greple::Grep` object which cotains all information
     about the search.  This interface highly depends on the internal
-    structure, so use with the utmost cation.
+    structure, so use with the utmost caution.
 
 - **--callback**=_function_(_..._)
 
