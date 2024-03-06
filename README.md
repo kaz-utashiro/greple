@@ -98,7 +98,6 @@ Version 9.10
       --man                display command or module manual page
       --show               display module file
       --path               show module file path
-      --persist            same as --error=retry
       --error=action       action after read error
       --warn=type          run time error control
       --alert [name=#]     set alert parameter (size/time)
@@ -1464,15 +1463,9 @@ interpreted as a bare word.
     placed before any other options including `-M` module options.
     Setting `GREPLE_NORC` environment have same effect.
 
-- **--conceal** _type_=_val_
-
-    Use following `--warn` option in reverse context.  This option
-    remains for backward compatibility and will be deprecated in the near
-    future.
-
 - **--persist**
 
-    Same as `--error=retry`.  It may be deprecated in the future.
+    Use `--error=retry`.  Will be deprecated in the future.
 
 - **--error**=_action_
 
@@ -1504,7 +1497,7 @@ interpreted as a bare word.
         Ignore error and continue to read anyway.
 
     You may occasionally want to find text in binary data.  Next command
-    will work like [string(1)](http://man.he.net/man1/string) command.
+    will work like [strings(1)](http://man.he.net/man1/strings) command.
 
         greple -o --re '(?a)\w{4,}' --error=retry --uc /bin/*
 
@@ -1811,7 +1804,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 1991-2023 Kazumasa Utashiro
+Copyright 1991-2024 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

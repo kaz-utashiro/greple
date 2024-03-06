@@ -157,7 +157,6 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --man                display command or module manual page
     --show               display module file
     --path               show module file path
-    --persist            same as --error=retry
     --error=action       action after read error
     --warn=type          run time error control
     --alert [name=#]     set alert parameter (size/time)
@@ -347,16 +346,11 @@ newopt
     ' alert                  =i ' => \    %opt_alert ,
     ' debug              |d  =s ' => \ my @opt_d ,
     ' persist                   ' => sub {
+	warn "Option --persist will be deprecated. Use --error=retry.\n";
 	opt('error') = 'retry';
     },
     'warn|w:1%' => sub {
 	map { $opt_warn{$_} = $_[2] }
-	map { $_ eq 'all' ? keys %opt_warn : $_ }
-	$_[1] =~ /\w+/g;
-    },
-    'conceal:1%' => sub {
-	warn "Option --conceal will be deprecated.  Use --warn.\n";
-	map { $opt_warn{$_} = $_[2] ? 0 : 1 }
 	map { $_ eq 'all' ? keys %opt_warn : $_ }
 	$_[1] =~ /\w+/g;
     },
@@ -2942,15 +2936,9 @@ information can be display by giving appropriate flag to -d option.
 
 =end comment
 
-=item B<--conceal> I<type>=I<val>
-
-Use following C<--warn> option in reverse context.  This option
-remains for backward compatibility and will be deprecated in the near
-future.
-
 =item B<--persist>
 
-Same as C<--error=retry>.  It may be deprecated in the future.
+Use C<--error=retry>.  Will be deprecated in the future.
 
 =item B<--error>=I<action>
 
@@ -2986,7 +2974,7 @@ Ignore error and continue to read anyway.
 =back
 
 You may occasionally want to find text in binary data.  Next command
-will work like L<string(1)> command.
+will work like L<strings(1)> command.
 
     greple -o --re '(?a)\w{4,}' --error=retry --uc /bin/*
 
@@ -3313,7 +3301,7 @@ Kazumasa Utashiro
 
 =head1 LICENSE
 
-Copyright 1991-2023 Kazumasa Utashiro
+Copyright 1991-2024 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
