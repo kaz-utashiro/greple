@@ -20,8 +20,11 @@ like(run('-e "thorn" -wall t/Checker.pm')->stdout,
 is(run('-e "thorn" --warn all=0 t/Checker.pm')->stdout,
      '', "empty");
 
+SKIP: {
+    skip "skip perl5.14", 1 if $] < 5.015;
 like(run('-e "thorn" --persist t/Checker.pm')->stdout,
      qr/thorn/, "--persist");
+}
 
 like(run('-e "thorn" --error=retry t/Checker.pm')->stdout,
      qr/thorn/, "--error=retry");
