@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.11 2024-03-06T08:39:18Z
+
+    - deprecate --conceal option
+    - skip some test on perl v5.14 because :lvalue sub does not work somehow
+
 9.10 2023-12-22T02:08:08Z
 
     - remove --git-color-blame from -Mcolors
