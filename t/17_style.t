@@ -30,10 +30,11 @@ like(run('-e fox -H --filestyle=separate t/SAMPLE.txt')->stdout,
 like(run('-e fox -nH t/SAMPLE.txt')->stdout,
     qr/\A$sample\:2:The/, "-nH");
 
-SKIP: {
-    skip "skip perl5.14", 1 if $] < 5.015;
-like(run('-e fox -nH --separate t/SAMPLE.txt')->stdout,
-    qr/\A$sample\:2:$/m, "-nH --seprate");
+TODO: {
+    local $TODO = ":lvalue sub does not work on perl 5.14"
+	if $] < 5.015;
+    like(run('-e fox -nH --separate t/SAMPLE.txt')->stdout,
+	qr/\A$sample\:2:$/m, "-nH --seprate");
 }
 
 done_testing;
