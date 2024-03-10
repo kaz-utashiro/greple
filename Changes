@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.1101 2024-03-10T06:13:21Z
+
+    - include total length in stat information
+
 9.11 2024-03-06T08:39:18Z
 
     - deprecate --conceal option
