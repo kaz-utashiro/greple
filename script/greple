@@ -13,6 +13,7 @@ use IO::Handle;
 use Pod::Usage;
 use Text::ParseWords qw(shellwords);
 use List::Util qw(min max first sum uniq shuffle notall pairs pairmap);
+use Hash::Util qw(lock_keys);
 use Cwd qw(getcwd abs_path);
 use Carp;
 
@@ -850,7 +851,9 @@ if ($opt_C) {
     $opt_B ||= $opt_C;
 }
 my %stat = (
-    files => 0,
+    file_searched => 0,
+    file_tried => 0,
+    length => 0,
     match_effective => 0,
     match_positive => 0,
     match_negative => 0,
@@ -859,6 +862,7 @@ my %stat = (
     time_start => [],
     time_end => [],
     );
+lock_keys %stat;
 
 ##
 ## Setup functions
@@ -1082,6 +1086,7 @@ sub grep_files {
   FILE:
     while (defined($current_file = open_nextfile())) {
 	my $content = $slurp->();
+	$stat{file_tried}++;
 	if (not defined $content) {
 	    if ($opt_error eq 'fatal') {
 		die "ABORT on $current_file\n";
@@ -1111,7 +1116,8 @@ sub grep_files {
 	my $matched = grep_data(\$content);
 
 	$stat{match_effective} += $matched;
-	$stat{files}++;
+	$stat{file_searched}++;
+	$stat{length} += length $content;
     } continue {
 	close STDIN; # wait;	# wait for 4.019 or earlier?
 	# recover STDIN for opening '-' and some weird command which needs
