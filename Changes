@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.12 2024-03-26T15:45:27Z
+
+    - update --face option to reset current colormaps
+
 9.1101 2024-03-10T06:13:21Z
 
     - include total length in stat information
