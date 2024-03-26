@@ -1027,20 +1027,24 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
         git blame ... | greple .+ --uc --us='sub{s/\s.*//r}' --face=E-D
 
-- **--face**=\[-+\]_effect_
+- **--face**=\[+-=\]_effect_
 
-    Set or unset specified _effect_ for all indexed color specs.  Use
-    `+` (optional) to set, and `-` to unset.  Effect is a single
-    character expressing S (Stand-out), U (Underline), D (Double-struck),
-    F (Flash) and such.
+    Append, remove or set specified _effect_ for all indexed color specs.
+    Use `+` (optional) to append, `-` to remove, and `=` to set.
+    Effect is a single character expressing `S` (Stand-out), `U`
+    (Underline), `D` (Double-struck), `F` (Flash) and such.
 
-    Next example remove D (double-struck) effect.
+    Next example removes D (double-struck) effect.
 
         greple --face -D
 
-    Multiple effects can be set/unset at once.
+    Multiple effects can be added/removed at once.
 
         greple --face SF-D
+
+    Next example clears all existing color specs.
+
+        greple --face =
 
 ## BLOCKS
 

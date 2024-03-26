@@ -742,12 +742,15 @@ if ($opt_ansicolor eq '24bit') {
 }
 
 for my $opt (@opt_face) {
-    while ($opt =~ /(?:(?<rm>-)|\+)? (?<s>[^-+]+)/xg) {
+    while ($opt =~ /(?<mk>[-+=]) (?<s>[^-+=]*) | (?<s>[^-+=]+) /xg) {
+	my($mk, $s) = ($+{mk} // '', $+{s});
 	for my $c (@colors) {
-	    if ($+{rm}) {
-		$c =~ s/[\Q$+{s}\E]//g;
+	    if ($mk eq '-') {
+		$c =~ s/[\Q$+{s}\E]//g if $s ne '';
+	    } elsif ($mk eq '=') {
+		$c = $s;
 	    } else {
-		my $spec = $+{s} =~ s/[\Q$c\E]//gr;
+		my $spec = $s =~ s/[\Q$c\E]//gr;
 		$c .= '^' . ${spec} if $spec;
 	    }
 	}
@@ -2433,20 +2436,24 @@ color for each entire line by their commit ids.
 
     git blame ... | greple .+ --uc --us='sub{s/\s.*//r}' --face=E-D
 
-=item B<--face>=[-+]I<effect>
+=item B<--face>=[+-=]I<effect>
 
-Set or unset specified I<effect> for all indexed color specs.  Use
-C<+> (optional) to set, and C<-> to unset.  Effect is a single
-character expressing S (Stand-out), U (Underline), D (Double-struck),
-F (Flash) and such.
+Append, remove or set specified I<effect> for all indexed color specs.
+Use C<+> (optional) to append, C<-> to remove, and C<=> to set.
+Effect is a single character expressing C<S> (Stand-out), C<U>
+(Underline), C<D> (Double-struck), C<F> (Flash) and such.
 
-Next example remove D (double-struck) effect.
+Next example removes D (double-struck) effect.
 
     greple --face -D
 
-Multiple effects can be set/unset at once.
+Multiple effects can be added/removed at once.
 
     greple --face SF-D
+
+Next example clears all existing color specs.
+
+    greple --face =
 
 =back
 
