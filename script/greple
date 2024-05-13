@@ -1716,6 +1716,10 @@ For example, if you want to search repeated characters, use
 S<< C<(\w)\g{-1}> >> or S<< C<(?E<lt>cE<gt>\w)\g{c}> >> rather than
 S<< C<(\w)\1> >>.
 
+Extended Bracketed Character Classes (C<(?[...])>) can be used without
+warnings.  See L<perlrecharclass/"Extended Bracketed Character
+Classes">.
+
 =over 7
 
 =item B<-e> I<pattern>, B<--and>=I<pattern>

@@ -2,6 +2,7 @@ package App::Greple::Pattern;
 
 use v5.14;
 use warnings;
+no  warnings "experimental::regex_sets";
 use Data::Dumper;
 
 use Exporter 'import';

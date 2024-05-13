@@ -2,6 +2,7 @@ package App::Greple::Regions;
 
 use v5.14;
 use warnings;
+no  warnings "experimental::regex_sets";
 use Carp;
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;

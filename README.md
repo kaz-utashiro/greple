@@ -347,6 +347,10 @@ For example, if you want to search repeated characters, use
 `(\w)\g{-1}` or `(?<c>\w)\g{c}` rather than
 `(\w)\1`.
 
+Extended Bracketed Character Classes (`(?[...])`) can be used without
+warnings.  See ["Extended Bracketed Character
+Classes" in perlrecharclass](https://metacpan.org/pod/perlrecharclass#Extended-Bracketed-Character-Classes).
+
 - **-e** _pattern_, **--and**=_pattern_
 
     Specify the positive match pattern.  Next command print lines contains
