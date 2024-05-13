@@ -1745,7 +1745,7 @@ can be implemented both in function and macro.
     use App::Greple::Regions;
     
     my $pod_re = qr{^=\w+(?s:.*?)(?:\Z|^=cut\s*\n)}m;
-    my $comment_re = qr{^(?:[ \t]*#.*\n)+}m;
+    my $comment_re = qr{^(?:\h*#.*\n)+}m;
     
     sub pod {
         match_regions(pattern => $pod_re);

@@ -48,10 +48,10 @@ our @EXPORT_OK   = qw();
 
 my %part;
 
-my $pod_re     = qr{^=\w+(?s:.*?)(?:\z|^=cut[ \t]*\n)}m;
-my $comment_re = qr{^(?:[ \t]*#.*\n)+}m;
+my $pod_re     = qr{^=\w+(?s:.*?)(?:\z|^=cut\h*\n)}m;
+my $comment_re = qr{^(?:\h*#.*\n)+}m;
 my $data_re    = qr{^__DATA__\n(?s:.*)}m;
-my $empty_re   = qr{^(?:[ \t]*\n)+}m;
+my $empty_re   = qr{^(?:\h*\n)+}m;
 
 sub setup {
     state $target = -1;
