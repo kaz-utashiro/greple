@@ -107,8 +107,8 @@ sub prepare {
 		$self->{stat}->{match_negative} += @p;
 	    }
 	    map { $_->[2] //= $i } @p;
-	    if (my $ref = $self->{callback}) {
-		if (my $callback = $ref->[ $i % @$ref ]) {
+	    if (my $n = @{$self->{callback}}) {
+		if (my $callback = $self->{callback}->[ $i % $n ]) {
 		    map { $_->[3] //= $callback } @p;
 		}
 	    }
@@ -393,6 +393,17 @@ sub blocker {
 
 
 package App::Greple::Text;
+
+use strict;
+use warnings;
+
+use overload 
+    '""' => \&stringify;
+
+sub stringify {
+    my $obj = shift;
+    ${ $obj->{text} };
+}
 
 sub new {
     my $class = shift;
