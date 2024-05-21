@@ -1,4 +1,4 @@
-requires 'perl', 'v5.14';
+requires 'perl', 'v5.18.4';
 
 requires 'Getopt::EX', '2.1.6';
 requires 'Term::ANSIColor::Concise', '2.05';
