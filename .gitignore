@@ -1,6 +1,8 @@
 RCS
 tmp
 
+/.vscode/
+
 /.build/
 /_build/
 /Build

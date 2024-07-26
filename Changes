@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.14 2024-07-26T08:36:30Z
+
+    - option -G assignes group index only when --ci=G is given
+
 9.1301 2024-05-22T01:40:59Z
 
     - requires perl v5.18.2
