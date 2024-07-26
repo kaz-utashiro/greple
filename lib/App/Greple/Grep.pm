@@ -87,6 +87,7 @@ sub prepare {
 		Getopt::EX::Func->new(\&match_regions,
 				      pattern => $pat->regex,
 				      group => $self->{group_match},
+				      index => $self->{group_index},
 		    );
 	    }
 	};

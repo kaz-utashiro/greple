@@ -1239,6 +1239,7 @@ sub grep_data {
 	allow        =>  $count_allow,
 	strict       =>  $opt_strict,
 	group_match  =>  $opt_capture_group,
+	group_index  =>  $opt_colorindex =~ /G/i ? 1 : 0,
 	region_index =>  $opt_regioncolor,
 	stat         => \%stat,
 	callback     => \@opt_callback,
@@ -1852,9 +1853,10 @@ to individual capture groups are searched, not the entire pattern.  If
 the pattern does not contain any capturing groups, it matches the
 entire pattern.
 
-For each match, a corresponding capture group number is assigned as an
-index (0 for entire match).  This will cause the strings corresponding
-to each capture group to be displayed in a different color.
+If C<G> is specified in the B<--colorindex> option, a corresponding
+capture group number is assigned as an index (0 for entire match).
+This will cause the strings corresponding to each capture group to be
+displayed in a different color.
 
 =item B<--need>=I<n>
 
@@ -2377,6 +2379,11 @@ Shuffle indexed color.
 =item R (Random)
 
 Use random color index every time.
+
+=item G (Group)
+
+Valid only when used with the B<--capture-group> (or B<-G>)
+option. Assigns an index number corresponding to each captuer group.
 
 =item N (Normal)
 

@@ -477,9 +477,10 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     the pattern does not contain any capturing groups, it matches the
     entire pattern.
 
-    For each match, a corresponding capture group number is assigned as an
-    index (0 for entire match).  This will cause the strings corresponding
-    to each capture group to be displayed in a different color.
+    If `G` is specified in the **--colorindex** option, a corresponding
+    capture group number is assigned as an index (0 for entire match).
+    This will cause the strings corresponding to each capture group to be
+    displayed in a different color.
 
 - **--need**=_n_
 - **--allow**=_n_
@@ -970,6 +971,11 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     - R (Random)
 
         Use random color index every time.
+
+    - G (Group)
+
+        Valid only when used with the **--capture-group** (or **-G**)
+        option. Assigns an index number corresponding to each captuer group.
 
     - N (Normal)
 
