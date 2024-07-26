@@ -57,7 +57,7 @@ Version 9.14
       --colormap=color     R, G, B, C, M, Y etc.
       --colorsub=...       shortcut for --colormap="sub{...}"
       --colorful           use default multiple colors
-      --colorindex=flags   color index method: Ascend/Descend/Block/Random
+      --colorindex=flags   color index method: Ascend/Descend/Block/Random/Group
       --ansicolor=s        ANSI color 16, 256 or 24bit
       --[no]256            same as --ansicolor 256 or 16
       --regioncolor        use different color for inside/outside regions
