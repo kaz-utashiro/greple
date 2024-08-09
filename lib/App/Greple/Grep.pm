@@ -249,12 +249,16 @@ sub compose {
     ##
     my @list = ();
     for my $bi (@effective_index) {
-	## now don't connect side-by-side pattern
-	my @matched = merge_regions({nojoin => $self->{only} || 1,
-				     destructive => 1},
-				    @{$mp->[$bi][MUST_LIST]},
-				    @{$mp->[$bi][POSI_LIST]},
-				    @{$mp->[$bi][NEGA_LIST]});
+	my @matched = do {
+	    if ($self->{stretch}) {
+		$bp->[$bi];
+	    } else {
+		merge_regions({ nojoin => 1, destructive => 1 },
+			      @{$mp->[$bi][MUST_LIST]},
+			      @{$mp->[$bi][POSI_LIST]},
+			      @{$mp->[$bi][NEGA_LIST]});
+	    }
+	};
 	$self->{MATCHED} += @matched;
 	if ($self->{only}) {
 	    push @list, map({ [ $_, $_ ] } @matched);

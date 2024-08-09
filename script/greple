@@ -85,6 +85,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
   MATCH
     -i, --ignore-case    ignore case
     -G, --capture-group  match capture groups rather than whole pattern
+    -S, --stretch        stretch matched area to the enclosing block
     --need=[+-]n         required positive match count
     --allow=[+-]n        acceptable negative match count
     --matchcount=n[,m]   required match count for each block
@@ -231,6 +232,7 @@ newopt
     ' allow                  =s ' => \ my @opt_allow ,
     ' matchcount         |mc =s ' => \ my $opt_matchcount ,
     ' capture-group      |G  !  ' => \ my $opt_capture_group ,
+    ' stretch            |S  !  ' => \ my $opt_stretch ,
 
     ##
     ## STYLE
@@ -1233,6 +1235,7 @@ sub grep_data {
 	only         =>  $opt_o,
 	all          =>  $opt_all,
 	block        => \@opt_block,
+	stretch      =>  $opt_stretch,
 	must         =>  $count_must,
 	need         =>  $count_need,
 	countcheck   =>  $count_match_sub,
@@ -1857,6 +1860,16 @@ If C<G> is specified in the B<--colorindex> option, a corresponding
 capture group number is assigned as an index (0 for entire match).
 This will cause the strings corresponding to each capture group to be
 displayed in a different color.
+
+=item B<-S>, B<--stretch>
+
+Forget the information about the individual match strings and act as if 
+the block containing them matched.
+
+The following command will match an entire line containing all of
+C<foo>, C<bar>, and C<baz> in any order.
+
+    greple --stretch 'foo bar baz'
 
 =item B<--need>=I<n>
 

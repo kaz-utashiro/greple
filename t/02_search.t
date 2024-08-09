@@ -105,4 +105,12 @@ like(run('--and fox --and dog --border "\A" -o t/SAMPLE.txt')->stdout,
 like(run('--file t/SEARCH.txt t/SAMPLE.txt')->stdout,
      line(2), "--file t/SEARCH.txt");
 
+# --stretch
+
+like(run('-o --and brown --and fox t/SAMPLE.txt')->stdout,
+     line(2), "brown and fox with -o");
+
+like(run('-So --and brown --and fox t/SAMPLE.txt')->stdout,
+     line(1), "brown and fox with -So");
+
 done_testing;

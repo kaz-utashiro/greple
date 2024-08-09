@@ -25,6 +25,7 @@ Version 9.14
     MATCH
       -i, --ignore-case    ignore case
       -G, --capture-group  match capture groups rather than whole pattern
+      -S, --stretch        stretch matched area to the enclosing block
       --need=[+-]n         required positive match count
       --allow=[+-]n        acceptable negative match count
       --matchcount=n[,m]   required match count for each block
@@ -481,6 +482,16 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     capture group number is assigned as an index (0 for entire match).
     This will cause the strings corresponding to each capture group to be
     displayed in a different color.
+
+- **-S**, **--stretch**
+
+    Forget the information about the individual match strings and act as if 
+    the block containing them matched.
+
+    The following command will match an entire line containing all of
+    `foo`, `bar`, and `baz` in any order.
+
+        greple --stretch 'foo bar baz'
 
 - **--need**=_n_
 - **--allow**=_n_
