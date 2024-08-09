@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.15 2024-08-09T15:34:34Z
+
+    - introduce --stretch option
+
 9.14 2024-07-26T08:36:30Z
 
     - option -G assignes group index only when --ci=G is given
