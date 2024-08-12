@@ -51,4 +51,7 @@ like(run('--norc -Mline -n --inside L=2:4 a t/SAMPLE.txt')->stdout,
 like(run('--norc -Mline 2::2 -n t/SAMPLE.txt')->stdout,
      lines(map $_ * 2, 1..14), "-Mline 2::2");
 
+like(run('--norc -Mline --offload "seq 2 4" -n t/SAMPLE.txt')->stdout,
+     lines(2..4), '-Mline --offload "seq 2 4"');
+
 done_testing;
