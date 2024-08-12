@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.1501 2024-08-12T11:41:05Z
+
+    - improve --stretch option to preserve index and callback params
+
 9.15 2024-08-09T15:34:34Z
 
     - introduce --stretch option
