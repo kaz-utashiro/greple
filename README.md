@@ -553,11 +553,13 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
     Blank line and the line starting with sharp (#) character is ignored.
     Two slashes (//) and following string are taken as a comment and
-    removed with preceding spaces.
+    removed with preceding spaces.  If the character at the end of the
+    line is a backslash, the backslash is removed and concatenated with
+    the next line.
 
     In more detail, each of these patterns are evaluated under `(?^m)`
     flags.  This is a situation where only the `m` (Multiline) flag is
-    enabled in the default environment. So if you enable some flags in a
+    enabled in the default environment.  So if you enable some flags in a
     pattern, they are only valid within itself.
 
     If multiple files are specified, a separate group pattern is generated

@@ -1,0 +1,3 @@
+(?x) lazy # comment \
+     \s+  # comment \
+     dog  # comment

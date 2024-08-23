@@ -108,6 +108,9 @@ like(run('--file t/SEARCH.txt t/SAMPLE.txt')->stdout,
 like(run('--file t/SEARCH_x.txt t/SAMPLE.txt')->stdout,
      line(3), "--file t/SEARCH_x.txt");
 
+like(run('--file t/SEARCH_m.txt t/SAMPLE.txt')->stdout,
+     line(1), "--file t/SEARCH_m.txt");
+
 # --stretch
 
 like(run('-o --and brown --and fox t/SAMPLE.txt')->stdout,
