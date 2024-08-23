@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.1502 2024-08-23T06:07:21Z
+
+    - fix --file option not to allow include (?x) and # style comment
+
 9.1501 2024-08-12T11:41:05Z
 
     - improve --stretch option to preserve index and callback params
