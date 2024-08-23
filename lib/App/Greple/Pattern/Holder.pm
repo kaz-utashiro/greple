@@ -45,7 +45,7 @@ sub append {
 		($_, flag => $arg->{flag} & ~FLAG_IGNORECASE)
 		->cooked;
 	} @_;
-	my $p = "(?x)\n" . join(" |\n", map "(?^m:$_)", @p);
+	my $p = "(?x)\n  " . join("\n| ", map qr/$_/m, @p);
 	$arg->{flag} |= FLAG_REGEX;
 	$arg->{flag} &= ~FLAG_COOK;
 	push @$obj, App::Greple::Pattern->new($p, flag => $arg->{flag});

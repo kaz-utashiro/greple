@@ -1,0 +1,3 @@
+brown fox
+(?x) lazy \s+ dog  # x modifier with comment
+(?x) 12345 67890
