@@ -142,7 +142,7 @@ sub classify_regions {
     my @list = @{+shift};
     my @by = @{+shift};
     my @table;
-    for (my $i = 0; $i < @by; $i++) {
+    for my $i (keys @by) {
 	my($from, $to) = @{$by[$i]};
 	while (@list and $list[0][1] < $from) {
 	    shift @list;
@@ -162,7 +162,7 @@ sub classify_regions_strict {
     my @list = @{+shift};
     my @by = @{+shift};
     my @table;
-    for (my $i = 0; $i < @by; $i++) {
+    for my $i (keys @by) {
 	my($from, $to) = @{$by[$i]};
 	while (@list and $list[0][0] < $from) {
 	    shift @list;
@@ -198,22 +198,22 @@ sub filter_regions {
     my($inside, $overlap, $outside) = (shift//[], shift//[], shift//[]);
     my($inside_match, $overlap_match) = ([], []);
 
-    for (my $i = 0; $i < @filter; $i++) {
-	my($from, $to) = @{$filter[$i]};
+    while (my($i, $range) = each @filter) {
+	my($from, $to) = @$range;
 	while (@input and $input[0][0] < $from and $input[0][1] <= $from) {
 	    push @$outside, shift @input;
 	}
 	while (@input and $input[0][0] < $from) {
 	    push @$overlap, shift @input;
-	    $overlap_match->[$#{$overlap}] = $filter[$i];
+	    push @$overlap_match, $range;
 	}
 	while (@input and $input[0][0] < $to and $input[0][1] <= $to) {
 	    push @$inside, shift @input;
-	    $inside_match->[$#{$inside}] = $filter[$i];
+	    push @$inside_match, $range;
 	}
 	while (@input and $input[0][0] < $to) {
 	    push @$overlap, shift @input;
-	    $overlap_match->[$#{$overlap}] = $filter[$i];
+	    push @$overlap_match, $range;
 	}
     }
     push @$outside, splice @input;
