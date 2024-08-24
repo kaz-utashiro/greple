@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.1504 2024-08-24T15:53:08Z
+
+    - change "-f file[index]" format to "-f file@index"
+
 9.1503 2024-08-23T16:10:00Z
 
     - now backslash can be used to continue line in -f pattern file
