@@ -539,7 +539,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
         greple --matchcount=,10,20,30,40
 
-- **-f** _file_, **--file**=_file_
+- **-f** _file_\[@_index_\], **--file**=_file_\[@_index_\]
 
     Specifies the file containing the search pattern. If there are
     multiple lines in the file, each pattern is combined by an OR context.
@@ -549,7 +549,12 @@ If you don't want these conversion, use `-E` (or `--re`) option.
         B
         C
 
-    makes the pattern as `A|B|C`.
+    makes the pattern as `A|B|C`, or more precisely
+    `(?^m:A)(?^m:B)(?^m:C)`.
+
+    Each of these patterns are evaluated independently only with `m`
+    modifier.  So if you enable some flags in a pattern, they are only
+    valid within itself.
 
     Blank line and the line starting with sharp (#) character is ignored.
     Two slashes (//) and following string are taken as a comment and
@@ -557,23 +562,28 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     line is a backslash, the backslash is removed and concatenated with
     the next line.
 
-    In more detail, each of these patterns are evaluated under `(?^m)`
-    flags.  This is a situation where only the `m` (Multiline) flag is
-    enabled in the default environment.  So if you enable some flags in a
-    pattern, they are only valid within itself.
+    Complex pattern can be written on multiple lines as follows.
+
+        (?xxn) \
+        ( (?<b>\[) | \@ )   # start with "[" or @             \
+        (?<n> [ \d : , ]+)  # sequence of digit, ":", or ","  \
+        (?(<b>) \] | )      # closing "]" if start with "["   \
+        $                   # EOL
 
     If multiple files are specified, a separate group pattern is generated
     for each file.
 
-    If the file name is followed by `[index]` or `@index` string, it is
-    treated as specified by `--select` option.  Next commands are all
-    equivalent.
-
-        greple -f pattern_file[2,7:9]
+    If the file name is followed by `@index` string, it is treated as
+    specified by `--select` option.  Next commands are all equivalent.
 
         greple -f pattern_file@2,7:9
 
         greple -f pattern_file --select 2,7:9
+
+    Next `[index]` style is obsolete and will be deprecated in the
+    future.
+
+        greple -f pattern_file[2,7:9]
 
     See [App::Greple::subst](https://metacpan.org/pod/App%3A%3AGreple%3A%3Asubst) module.
 

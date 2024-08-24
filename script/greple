@@ -1919,7 +1919,7 @@ match count 0 to 10, 20 to 30, and 40-or-greater.
 
     greple --matchcount=,10,20,30,40
 
-=item B<-f> I<file>, B<--file>=I<file>
+=item B<-f> I<file>[@I<index>], B<--file>=I<file>[@I<index>]
 
 Specifies the file containing the search pattern. If there are
 multiple lines in the file, each pattern is combined by an OR context.
@@ -1929,7 +1929,12 @@ So the file:
     B
     C
 
-makes the pattern as C<A|B|C>.
+makes the pattern as C<A|B|C>, or more precisely
+C<(?^m:A)(?^m:B)(?^m:C)>.
+
+Each of these patterns are evaluated independently only with C<m>
+modifier.  So if you enable some flags in a pattern, they are only
+valid within itself.
 
 Blank line and the line starting with sharp (#) character is ignored.
 Two slashes (//) and following string are taken as a comment and
@@ -1937,23 +1942,28 @@ removed with preceding spaces.  If the character at the end of the
 line is a backslash, the backslash is removed and concatenated with
 the next line.
 
-In more detail, each of these patterns are evaluated under C<(?^m)>
-flags.  This is a situation where only the C<m> (Multiline) flag is
-enabled in the default environment.  So if you enable some flags in a
-pattern, they are only valid within itself.
+Complex pattern can be written on multiple lines as follows.
+
+    (?xxn) \
+    ( (?<b>\[) | \@ )   # start with "[" or @             \
+    (?<n> [ \d : , ]+)  # sequence of digit, ":", or ","  \
+    (?(<b>) \] | )      # closing "]" if start with "["   \
+    $                   # EOL
 
 If multiple files are specified, a separate group pattern is generated
 for each file.
 
-If the file name is followed by C<[index]> or C<@index> string, it is
-treated as specified by C<--select> option.  Next commands are all
-equivalent.
-
-    greple -f pattern_file[2,7:9]
+If the file name is followed by C<@index> string, it is treated as
+specified by C<--select> option.  Next commands are all equivalent.
 
     greple -f pattern_file@2,7:9
 
     greple -f pattern_file --select 2,7:9
+
+Next C<[index]> style is obsolete and will be deprecated in the
+future.
+
+    greple -f pattern_file[2,7:9]
 
 See L<App::Greple::subst> module.
 
