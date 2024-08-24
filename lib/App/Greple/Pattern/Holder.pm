@@ -120,7 +120,10 @@ sub load_file {
     my $flag = ( $arg->{flag} // 0 ) | FLAG_REGEX | FLAG_OR;
 
     for my $file (@_) {
-	my $select = (!-f $file and $file =~ s/\[([\d:,]+)\]$//) ? $1 : undef;
+	my $select;
+	if (!-f $file and $file =~ s/(?:(?<b>\[)|@) (?<n>[\d:,]+) (?(<b>)\]|) $//x) {
+	    $select = $+{n};
+	}
 	open my $fh, '<:encoding(utf8)', $file or die "$file: $!\n";
 	my @p = map s/\\(?=\n)//gr, split /(?<!\\)\n/, do { local $/; <$fh> };
 	if ($select //= $arg->{select}) {

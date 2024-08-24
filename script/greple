@@ -1945,10 +1945,13 @@ pattern, they are only valid within itself.
 If multiple files are specified, a separate group pattern is generated
 for each file.
 
-If the file name is followed by C<[index]> string, it is treated as
-specified by C<--select> option.  Next two commands are equivalent.
+If the file name is followed by C<[index]> or C<@index> string, it is
+treated as specified by C<--select> option.  Next commands are all
+equivalent.
 
-    greple -f pattern_file'[2,7:9]'
+    greple -f pattern_file[2,7:9]
+
+    greple -f pattern_file@2,7:9
 
     greple -f pattern_file --select 2,7:9
 

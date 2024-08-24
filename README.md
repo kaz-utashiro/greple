@@ -565,10 +565,13 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     If multiple files are specified, a separate group pattern is generated
     for each file.
 
-    If the file name is followed by `[index]` string, it is treated as
-    specified by `--select` option.  Next two commands are equivalent.
+    If the file name is followed by `[index]` or `@index` string, it is
+    treated as specified by `--select` option.  Next commands are all
+    equivalent.
 
-        greple -f pattern_file'[2,7:9]'
+        greple -f pattern_file[2,7:9]
+
+        greple -f pattern_file@2,7:9
 
         greple -f pattern_file --select 2,7:9
 
