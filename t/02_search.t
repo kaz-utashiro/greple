@@ -119,4 +119,15 @@ like(run('-o --and brown --and fox t/SAMPLE.txt')->stdout,
 like(run('-So --and brown --and fox t/SAMPLE.txt')->stdout,
      line(1), "brown and fox with -So");
 
+# -G
+
+like(run('-G "(quick).*(fox)" t/SAMPLE.txt')->stdout,
+     line(1), "-G");
+
+like(run('-Go "(quick).*(fox)" t/SAMPLE.txt')->stdout,
+     line(2), "-Go");
+
+like(run('-Go "(?:quick|(fast)).*(?:fox|(weasel))" t/SAMPLE.txt')->stdout,
+     line(1), "-Go with unmatched group");
+
 done_testing;

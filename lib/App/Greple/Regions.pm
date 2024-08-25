@@ -126,6 +126,7 @@ sub match_regions_by_group {
 	    push @{$regions[-1]}, 0 if $index
 	} else {
 	    for my $i (1 .. $#-) {
+		$-[$i] // next;
 		push @regions, [ $-[$i], $+[$i] ];
 		push @{$regions[-1]}, $i if $index
 	    }
