@@ -1871,6 +1871,10 @@ C<foo>, C<bar>, and C<baz> in any order.
 
     greple --stretch 'foo bar baz'
 
+For all matches, the index is set to 0.  If multiple callback
+functions are specified, the first match in the block will be
+effective.
+
 =item B<--need>=I<n>
 
 =item B<--allow>=I<n>

@@ -256,7 +256,7 @@ sub compose {
 	if ($self->{stretch}) {
 	    my $b = $bp->[$bi];
 	    my $m = $matched[0];
-	    @matched = [ $b->[0], $b->[1], $m->[2], $m->[3] ];
+	    @matched = [ $b->[0], $b->[1], 0, $m->[3] ];
 	}
 	$self->{MATCHED} += @matched;
 	if ($self->{only}) {

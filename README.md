@@ -493,6 +493,10 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
         greple --stretch 'foo bar baz'
 
+    For all matches, the index is set to 0.  If multiple callback
+    functions are specified, the first match in the block will be
+    effective.
+
 - **--need**=_n_
 - **--allow**=_n_
 
