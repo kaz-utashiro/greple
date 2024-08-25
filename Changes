@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.1505 2024-08-25T11:43:22Z
+
+    - ignore unmatched group with -G option
+    - option -S sets all indexes to 0
+
 9.1504 2024-08-24T15:53:08Z
 
     - change "-f file[index]" format to "-f file@index"
