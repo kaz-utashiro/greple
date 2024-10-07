@@ -869,6 +869,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
         ;    No effect
         /    Toggle foreground/background
         ^    Reset to foreground
+        @    Reset index list
 
     If the spec includes `/`, left side is considered as foreground color
     and right side as background.  If multiple colors are given in same
@@ -878,6 +879,10 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     Effect characters are case insensitive, and can be found anywhere and
     in any order in color spec string.  Character `;` does nothing and
     can be used just for readability, like `SD;K/544`.
+
+    If the special reset symbol `@` is encountered, the index list is
+    reset to empty at that point.  The reset symbol must be used alone and
+    may not be combined with other characters.
 
     Example:
 

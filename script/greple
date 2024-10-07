@@ -2276,6 +2276,7 @@ with other special effects:
     ;    No effect
     /    Toggle foreground/background
     ^    Reset to foreground
+    @    Reset index list
 
 If the spec includes C</>, left side is considered as foreground color
 and right side as background.  If multiple colors are given in same
@@ -2285,6 +2286,10 @@ a result, the last one takes effect.
 Effect characters are case insensitive, and can be found anywhere and
 in any order in color spec string.  Character C<;> does nothing and
 can be used just for readability, like C<SD;K/544>.
+
+If the special reset symbol C<@> is encountered, the index list is
+reset to empty at that point.  The reset symbol must be used alone and
+may not be combined with other characters.
 
 Example:
 

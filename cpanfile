@@ -1,6 +1,6 @@
 requires 'perl', 'v5.18.2';
 
-requires 'Getopt::EX', '2.1.6';
+requires 'Getopt::EX', '2.2.1';
 requires 'Term::ANSIColor::Concise', '2.05';
 requires 'List::Util', '1.45';
 requires 'Hash::Util';
