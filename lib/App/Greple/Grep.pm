@@ -256,7 +256,8 @@ sub compose {
 	if ($self->{stretch}) {
 	    my $b = $bp->[$bi];
 	    my $m = $matched[0];
-	    @matched = [ $b->[0], $b->[1], 0, $m->[3] ];
+	    my $i = min map { $_->[2] // 0 } @matched;
+	    @matched = [ $b->[0], $b->[1], $i, $m->[3] ];
 	}
 	$self->{MATCHED} += @matched;
 	if ($self->{only}) {
