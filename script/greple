@@ -1936,7 +1936,7 @@ So the file:
     C
 
 makes the pattern as C<A|B|C>, or more precisely
-C<(?^m:A)(?^m:B)(?^m:C)>.
+C<(?^m:A)|(?^m:B)|(?^m:C)>.
 
 Each of these patterns are evaluated independently only with C<m>
 modifier.  So if you enable some flags in a pattern, they are only

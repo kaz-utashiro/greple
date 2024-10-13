@@ -556,7 +556,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
         C
 
     makes the pattern as `A|B|C`, or more precisely
-    `(?^m:A)(?^m:B)(?^m:C)`.
+    `(?^m:A)|(?^m:B)|(?^m:C)`.
 
     Each of these patterns are evaluated independently only with `m`
     modifier.  So if you enable some flags in a pattern, they are only
