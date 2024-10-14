@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.17 2024-10-14T06:48:13Z
+
+    - make @color_list and %color_hash accessible from modules.
+
 9.16 2024-10-07T17:55:53Z
 
     - introduce --cm=@ notation to reset indexed colormap
