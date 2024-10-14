@@ -702,7 +702,7 @@ $opt_join = 1 if $opt_joinby ne "";
 ##------------------------------------------------------------
 ## colors
 ##
-my %colormap = (
+our %colormap = (
     FILE     => "G",
     LINE     => "Y",
     TEXT     => "",
@@ -713,7 +713,7 @@ my %colormap = (
     BOTTOM   => "",
     );
 
-my @colors;
+our @colors;
 
 use Getopt::EX::Colormap;
 my $color_handler = Getopt::EX::Colormap
