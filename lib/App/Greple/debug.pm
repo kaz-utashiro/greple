@@ -71,25 +71,25 @@ use warnings;
 use Carp;
 use Data::Dumper;
 
-use App::Greple::Common;
+use App::Greple::Common qw(%debug);
 use Getopt::Long;
 
 my %flags = (
     getoptex  => \$Getopt::EX::Loader::debug,
     getopt    => { on  => sub { main::configure_getopt('debug')    },
 		   off => sub { main::configure_getopt('no_debug') } },
-    color     => \$opt_d{c},
-    directory => \$opt_d{d},
-    file      => \$opt_d{f},
-    number    => \$opt_d{n},
-    match     => \$opt_d{m},
-    misc      => \$opt_d{m},
-    option    => \$opt_d{o},
-    process   => \$opt_d{p},
-    stat      => \$opt_d{s},
-    grep      => \$opt_d{g},
-    filter    => \$opt_d{F},
-    unused    => \$opt_d{u},
+    color     => \$debug{c},
+    directory => \$debug{d},
+    file      => \$debug{f},
+    number    => \$debug{n},
+    match     => \$debug{m},
+    misc      => \$debug{m},
+    option    => \$debug{o},
+    process   => \$debug{p},
+    stat      => \$debug{s},
+    grep      => \$debug{g},
+    filter    => \$debug{F},
+    unused    => \$debug{u},
     );
 
 sub getoptex  { on ( getoptex  => 1 ) }

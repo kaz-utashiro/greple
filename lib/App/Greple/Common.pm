@@ -20,17 +20,34 @@ resources which can be accessed from the external modules.
 
 =head1 EXPORTED VARIABLES
 
-=head2 B<%color_list>
+=head2 CONSTANTS
+
+=over 7
+
+=item B<FILELABEL>
+
+A label corresponding to the filename passed in the
+L<App::Greple::Func> interface.
+
+=back
+
+=head2 VARIABLES
+
+=over 7
+
+=item B<%color_list>
 
 Indexed color pallet.
 
-=head2 B<%color_hash>
+=item B<%color_hash>
 
 Labeled color table.
 
-=head2 B<%debg>
+=item B<%debug>
 
 Debug flag.
+
+=back
 
 =head1 AUTHOR
 
@@ -53,9 +70,9 @@ our @EXPORT_OK   = qw();
 use constant FILELABEL => '__file__';
 push @EXPORT, qw(FILELABEL);
 
-*debug      = \%::opt_d;	push @EXPORT, qw(%opt_d);
-*color_list = \@::colors;	push @EXPORT, qw(@color_list);
-*color_hash = \%::colormap;	push @EXPORT, qw(%color_hash);
+*debug      = \%::opt_d;	push @EXPORT_OK, qw(%debug);
+*color_list = \@::colors;	push @EXPORT_OK, qw(@color_list);
+*color_hash = \%::colormap;	push @EXPORT_OK, qw(%color_hash);
 
 *setopt     = \&::setopt;	push @EXPORT_OK, qw(setopt);
 *newopt     = \&::newopt;	push @EXPORT_OK, qw(newopt);

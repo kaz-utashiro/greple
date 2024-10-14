@@ -15,7 +15,7 @@ use List::Util qw(min max reduce);
 
 use Getopt::EX::Func qw(callable);
 
-use App::Greple::Common;
+use App::Greple::Common qw(%debug &FILELABEL);
 use App::Greple::Regions;
 use App::Greple::Pattern;
 
@@ -198,7 +198,7 @@ sub prepare {
 	}
     }
 
-    show_match_table(\@match_table) if $opt_d{g};
+    show_match_table(\@match_table) if $debug{g};
 
     $self->{MATCH_TABLE} = \@match_table;
 
