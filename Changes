@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.1701 2024-10-14T23:48:28Z
+
+    - update access to common resources
+    - add summary section
+
 9.17 2024-10-14T06:48:13Z
 
     - make @color_list and %color_hash accessible from modules.
