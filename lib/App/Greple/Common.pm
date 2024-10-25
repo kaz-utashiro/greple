@@ -18,13 +18,17 @@ App::Greple::Common - interface for common resources
 This module provides interface to access L<App::Greple> common
 resources which can be accessed from the external modules.
 
+Historically, only C<&FILELABEL> is exported when used without
+arguments.  Note that when used with arguments, only the specified
+elements are exported.
+
 =head1 EXPORTED VARIABLES
 
 =head2 CONSTANTS
 
 =over 7
 
-=item B<FILELABEL>
+=item C<&FILELABEL>
 
 A label corresponding to the filename passed in the
 L<App::Greple::Func> interface.
@@ -35,15 +39,15 @@ L<App::Greple::Func> interface.
 
 =over 7
 
-=item B<%color_list>
+=item C<%color_list>
 
 Indexed color pallet.
 
-=item B<%color_hash>
+=item C<%color_hash>
 
 Labeled color table.
 
-=item B<%debug>
+=item C<%debug>
 
 Debug flag.
 

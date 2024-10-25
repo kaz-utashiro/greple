@@ -71,7 +71,7 @@ use warnings;
 use Carp;
 use Data::Dumper;
 
-use App::Greple::Common qw(%debug);
+use App::Greple::Common qw(%debug &FILELABEL);
 use Getopt::Long;
 
 my %flags = (

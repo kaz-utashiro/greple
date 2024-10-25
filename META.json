@@ -75,6 +75,6 @@
       "Mohammad S Anwar <Mohammad.Anwar@yahoo.com>",
       "Toshifumi Sakaguchi <sischkg@gmail.com>"
    ],
-   "x_serialization_backend" : "JSON::PP version 4.12",
+   "x_serialization_backend" : "JSON::PP version 4.16",
    "x_static_install" : 0
 }

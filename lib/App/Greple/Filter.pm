@@ -9,7 +9,7 @@ our %EXPORT_TAGS = ();
 our @EXPORT_OK   = qw();
 
 use Getopt::EX::Func qw(parse_func);
-use App::Greple::Common qw(%debug);
+use App::Greple::Common qw(%debug &FILELABEL);
 
 
 sub new {
