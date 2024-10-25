@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.1702 2024-10-25T02:18:07Z
+
+    - fix bug of exporting &App::Greple::Common::FILELABEL
+
 9.1701 2024-10-14T23:48:28Z
 
     - update access to common resources
