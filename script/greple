@@ -415,7 +415,8 @@ configure_getopt qw(debug) if $ENV{DEBUG_GETOPT};
 $Getopt::EX::Loader::debug = 1 if $ENV{DEBUG_GETOPTEX};
 
 ## decode
-@ARGV = map { utf8::is_utf8($_) ? $_ : decode('utf8', $_) } @ARGV;
+my  @ORIG_ARGV =
+    @ARGV = map { utf8::is_utf8($_) ? $_ : decode('utf8', $_) } @ARGV;
 
 ## ~/.greplerc
 unless ((@ARGV and $ARGV[0] eq "--norc" and shift)
@@ -481,9 +482,11 @@ if ($opt_d{u}) {
 
 ## show man pages
 if ($opt_man or $opt_show or $opt_path) {
-    my @bucket = $rcloader->buckets;
-    if (@bucket and not default_module($bucket[-1])) {
-	my $module = $bucket[-1]->module;
+    my @module = map {
+	/^-M(\w+(::\w++(?!.))*)/ ? "App::Greple::$1" : ()
+    } @ORIG_ARGV;
+    if (@module) {
+	my $module = $module[-1];
 	my $jp = first { -x "$_/perldocjp" } split /:/, $ENV{PATH};
 	my $perldoc = $jp ? "perldocjp" : "perldoc";
 	$ENV{PERL5LIB} = join ':', @INC;
