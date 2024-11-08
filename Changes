@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.1703 2024-11-08T11:58:43Z
+
+    - --{man,show,path} option looks last module in the command line
+
 9.1702 2024-10-25T02:18:07Z
 
     - fix bug of exporting &App::Greple::Common::FILELABEL
