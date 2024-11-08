@@ -171,12 +171,29 @@ this command find all of following lines.
     baz bar foo
     the foo, bar and baz
 
+### OR
+
 If you want to use OR syntax, use regular expression.
 
     greple -e foo -e bar -e baz -e 'yabba|dabba|doo'
 
 This command will print lines those contains all of `foo`, `bar` and
 `baz` and one or more of `yabba`, `dabba` or `doo`.
+
+Multiple patterns may be described in a file line-by-line, and
+specified with the **-f** option. In that case, the blocks matching any
+of the patterns in that file will be displayed.
+
+    greple -f patterns ...
+
+If multiple files are specified, the patterns in the files are
+evaluated in the OR and each file in the AND context.
+
+The two commands below work the same way.
+
+    greple -f <(echo $'foo\nbar\nbaz') -f <(echo $'yabba\ndabba\ndoo')
+
+    greple -e 'foo|bar|baz' -e 'yabba|dabba|doo'
 
 ### NOT
 
@@ -263,9 +280,10 @@ a series of 10-line unit.
 
     greple -n --border='(.*\n){1,10}'
 
-You can also define arbitrary complex blocks by writing script.
+You can also define arbitrary complex blocks by writing module or
+script.
 
-    greple --block '&your_original_function' ...
+    greple -Myour_module --block '&your_function' ...
 
 ## MATCH AREA CONTROL
 
@@ -1053,7 +1071,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     - G (Group)
 
         Valid only when used with the **--capture-group** (or **-G**)
-        option. Assigns an index number corresponding to each captuer group.
+        option. Assigns an index number corresponding to each capture group.
 
     - N (Normal)
 
