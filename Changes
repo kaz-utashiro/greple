@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.18 2024-12-10T12:19:11Z
+
+    - fix bug of collecting module name from argv
+    - allow CRLF in -f pattern file
+
 9.1703 2024-11-08T11:58:43Z
 
     - --{man,show,path} option looks last module in the command line
