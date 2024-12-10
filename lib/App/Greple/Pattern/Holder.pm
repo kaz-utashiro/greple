@@ -125,7 +125,7 @@ sub load_file {
 	    $select = $+{n};
 	}
 	open my $fh, '<:encoding(utf8)', $file or die "$file: $!\n";
-	my @p = map s/\\(?=\n)//gr, split /(?<!\\)\n/, do { local $/; <$fh> };
+	my @p = map s/\\(?=\R)//gr, split /(?<!\\)\R/, do { local $/; <$fh> };
 	if ($select //= $arg->{select}) {
 	    my $numbers = Getopt::EX::Numbers->new(min => 1, max => int @p);
 	    my @select = do {
