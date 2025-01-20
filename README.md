@@ -513,7 +513,8 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     Fourth element is a callback function pointer which will be called to
     produce string to be shown in command output.  Callback function is
     called with four arguments (start position, end position, index,
-    matched string) and expected to return replacement string.
+    matched string) and expected to return replacement string.  If the
+    function returns `undef`, the result is not changed.
 
 - **-E** _pattern_, **--re**=_pattern_
 
@@ -1460,7 +1461,8 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     four labeled parameters: **start**, **end**, **index** and **match**,
     which corresponds to start and end position in the text, pattern
     index, and the matched string.  Matched string in the text is replaced
-    by returned string from the function.
+    by returned string from the function.  If the function returns
+    `undef`, the result is not changed.
 
     Multiple functions can be specified, and if there are multiple search
     patterns, they are applied in order and cyclically.

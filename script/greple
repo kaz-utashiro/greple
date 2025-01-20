@@ -1383,7 +1383,7 @@ sub output {
 			    match => $b);
 		    }
 		    else { die }
-		};
+		} // $b;
 	    }
 
 	    if ($opt_join) {
@@ -1906,7 +1906,8 @@ extra elements besides start/end position.  Third element is index.
 Fourth element is a callback function pointer which will be called to
 produce string to be shown in command output.  Callback function is
 called with four arguments (start position, end position, index,
-matched string) and expected to return replacement string.
+matched string) and expected to return replacement string.  If the
+function returns C<undef>, the result is not changed.
 
 =item B<-E> I<pattern>, B<--re>=I<pattern>
 
@@ -2931,7 +2932,8 @@ Callback function is called before printing every matched pattern with
 four labeled parameters: B<start>, B<end>, B<index> and B<match>,
 which corresponds to start and end position in the text, pattern
 index, and the matched string.  Matched string in the text is replaced
-by returned string from the function.
+by returned string from the function.  If the function returns
+C<undef>, the result is not changed.
 
 Multiple functions can be specified, and if there are multiple search
 patterns, they are applied in order and cyclically.
