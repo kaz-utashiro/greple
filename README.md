@@ -5,7 +5,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 9.18
+Version 9.19
 
 # SYNOPSIS
 
@@ -1916,7 +1916,7 @@ Kazumasa Utashiro
 
 # LICENSE
 
-Copyright 1991-2024 Kazumasa Utashiro
+Copyright 1991-2025 Kazumasa Utashiro
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

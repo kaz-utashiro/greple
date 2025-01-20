@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.19 2025-01-20T07:34:44Z
+
+    - callback function can return "undef" to do nothing
+    - greple -Mline accept negative value w/o -L option
+
 9.18 2024-12-10T12:19:11Z
 
     - fix bug of collecting module name from argv
