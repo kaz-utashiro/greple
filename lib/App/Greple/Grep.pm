@@ -341,6 +341,36 @@ sub blocks {
     @{ $obj->{BLOCKS} };
 }
 
+sub slice_result {
+    my $obj = shift;
+    my $result = shift;
+    my($block, @list) = @$result;
+    my $template = unpack_template(\@list, $block->[0]);
+    unpack($template, $obj->cut(@$block));
+}
+
+sub slice_index {
+    my $obj = shift;
+    my $result = shift;
+    my($block, @list) = @$result;
+    map { $_ * 2 + 1 } keys @list;
+}
+
+sub unpack_template {
+    ##
+    ## make template to split result text into matched and unmatched parts
+    ##
+    my($matched, $offset) = @_;
+    my @len;
+    for (@$matched) {
+	my($s, $e) = @$_;
+	$s = $offset if $s < $offset;
+	push @len, $s - $offset, $e - $s;
+	$offset = $e;
+    }
+    join '', map "a$_", @len, '*';
+}
+
 sub show_match_table {
     my $table = shift;
     local $Data::Dumper::Terse = 1;

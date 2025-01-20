@@ -1319,7 +1319,8 @@ sub output {
 	my $is_top    = $rix == 0;
 	my $is_bottom = $rix == $#results;
 
-	my($blk, @result) = @{$results[$rix]};
+	my $result = $results[$rix];
+	my($blk, @result) = @{$result};
 	my($block_start, $block_end) = @$blk;
 	my $block = $grep->cut($block_start, $block_end);
 
@@ -1360,9 +1361,7 @@ sub output {
 	    }
 	}
 
-	my $template = unpack_template(\@result, $block_start);
-	my @slice = unpack($template, $block);
-
+	my @slice = $grep->slice_result($result);
 	my $mark = "\001";
 	for my $i (keys @result) {
 	    my($start, $end, $pi, $callback) = @{$result[$i]};
@@ -1436,21 +1435,6 @@ sub output {
 	    print "$_middle\n" if $_middle ne '';
 	}
     }
-}
-
-##
-## split text using match information
-##
-sub unpack_template {
-    my($matched, $offset) = @_;
-    my @len;
-    for (@$matched) {
-	my($s, $e) = @$_;
-	$s = $offset if $s < $offset;
-	push @len, $s - $offset, $e - $s;
-	$offset = $e;
-    }
-    join '', map "a$_", @len, '*';
 }
 
 __END__
