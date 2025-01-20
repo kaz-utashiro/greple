@@ -153,7 +153,7 @@ sub finalize {
     $param{auto} or return;
     for (my $i = 0; $i < @$argv; $i++) {
 	local $_ = $argv->[$i];
-	(/^[\d:,]+$/ and ! -f $_) or last;
+	(/^-?[\d:,]+$/ and ! -f $_) or last;
 	splice(@$argv, $i, 1, '--le', sprintf("&line(%s)", $_));
 	$i++;
     }
