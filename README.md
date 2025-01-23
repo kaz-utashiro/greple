@@ -58,13 +58,13 @@ Version 9.19
       --colormap=color     R, G, B, C, M, Y etc.
       --colorsub=...       shortcut for --colormap="sub{...}"
       --colorful           use default multiple colors
-      --colorindex=flags   color index method: Ascend/Descend/Block/Random/Group
+      --colorindex=flags   color index method: Ascend/Descend/Block/Random/Unique/Group
+      --random             use random color each time (--colorindex=R)
+      --uniqcolor          use different color for unique string (--colorindex=U)
+      --uniqsub=func       preprocess function before check uniqueness
       --ansicolor=s        ANSI color 16, 256 or 24bit
       --[no]256            same as --ansicolor 256 or 16
       --regioncolor        use different color for inside/outside regions
-      --uniqcolor          use different color for unique string
-      --uniqsub=func       preprocess function before check uniqueness
-      --random             use random color each time
       --face               set/unset visual effects
     BLOCK
       -p, --paragraph      paragraph mode
@@ -1036,16 +1036,16 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     the pattern.  If multiple patterns and multiple colors are specified,
     each pattern is colored with corresponding color cyclically.
 
-    Option `--regioncolor`, `--uniqcolor` and `--colorindex` change
-    this behavior.
+    Option `--regioncolor` and `--colorindex` change this behavior.
 
 - **--colorindex**=_spec_, **--ci**=_spec_
 
-    Specify color index method by combination of spec characters.  **A**
-    (ascend) and **D** (descend) can be mixed with **B** (block) and/or **S**
-    (shuffle) like `--ci=ABS`.  **R** (random) can be too but it does not
-    make sense.  When **S** is used alone, colormap is shuffled with normal
-    behavior.
+    Specify the color index method by combination of spec characters.
+    **A** (ascend) and **D** (descend) can be mixed with **B** (block) and/or
+    **S** (shuffle) like `--ci=ABS`.  **R** (random) can be too but it does
+    not make sense.  When **S** is used alone, colormap is shuffled with
+    normal behavior.  **U** (unique) assigns unique color for each
+    identical string.
 
     - A (Ascending)
 
@@ -1074,37 +1074,25 @@ If you don't want these conversion, use `-E` (or `--re`) option.
         Valid only when used with the **--capture-group** (or **-G**)
         option. Assigns an index number corresponding to each capture group.
 
+    - U (Unique)
+
+        Use different colors for different string matched.
+
     - N (Normal)
 
-        Reset to normal behavior.  Because the last option takes effect,
-        `--ci=N` can be used to reset the behavior set by previous options.
+        Reset to normal behavior.  Because the last option overrides earlier
+        ones, `--ci=N` can be used to reset the behavior set by previous
+        options.
 
 - **--random**
 
     Shortcut for `--colorindex=R`.
 
-- **--ansicolor**=\[`16`,`256`,`24bit`\]
+- **--uniqcolor**, **--uc**
 
-    If set as `16`, use ANSI 16 colors as a default color set, otherwise
-    ANSI 256 colors.  When set as `24bit`, 6 hex digits notation produces
-    24bit color sequence.  Default is `256`.
-
-- **--\[no\]256**
-
-    Shortcut for `--ansicolor`=`256` or `16`.
-
-- **--\[no\]regioncolor**, **--\[no\]rc**
-
-    Use different colors for each `--inside` and `--outside` region.
-
-    Disabled by default, but automatically enabled when only single search
-    pattern is specified.  Use `--no-regioncolor` to cancel automatic
-    action.
-
-- **--\[no\]uniqcolor**, **--\[no\]uc**
+    Shortcut for `--colorindex=U`.
 
     Use different colors for different string matched.
-    Disabled by default.
 
     Next example prints all words start by `color` and display them all
     in different colors.
@@ -1114,6 +1102,11 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     When used with option `-i`, color is selected still in case-sensitive
     fashion.  If you want case-insensitive color selection, use next
     `--uniqsub` option.
+
+    In **greple** versions 9.20 and later, the `--colorindex` option
+    resets the effect of earlier `--uniqcolor` option.  If used in
+    combination with other options, it is safer to specify like
+    `--ci=US`.
 
 - **--uniqsub**=_function_, **--us**=_function_
 
@@ -1133,6 +1126,24 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     color for each entire line by their commit ids.
 
         git blame ... | greple .+ --uc --us='sub{s/\s.*//r}' --face=E-D
+
+- **--ansicolor**=\[`16`,`256`,`24bit`\]
+
+    If set as `16`, use ANSI 16 colors as a default color set, otherwise
+    ANSI 256 colors.  When set as `24bit`, 6 hex digits notation produces
+    24bit color sequence.  Default is `256`.
+
+- **--\[no\]256**
+
+    Shortcut for `--ansicolor`=`256` or `16`.
+
+- **--\[no\]regioncolor**, **--\[no\]rc**
+
+    Use different colors for each `--inside` and `--outside` region.
+
+    Disabled by default, but automatically enabled when only single search
+    pattern is specified.  Use `--no-regioncolor` to cancel automatic
+    action.
 
 - **--face**=\[+-=\]_effect_
 

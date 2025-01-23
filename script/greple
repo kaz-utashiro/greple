@@ -118,13 +118,13 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --colormap=color     R, G, B, C, M, Y etc.
     --colorsub=...       shortcut for --colormap="sub{...}"
     --colorful           use default multiple colors
-    --colorindex=flags   color index method: Ascend/Descend/Block/Random/Group
+    --colorindex=flags   color index method: Ascend/Descend/Block/Random/Unique/Group
+    --random             use random color each time (--colorindex=R)
+    --uniqcolor          use different color for unique string (--colorindex=U)
+    --uniqsub=func       preprocess function before check uniqueness
     --ansicolor=s        ANSI color 16, 256 or 24bit
     --[no]256            same as --ansicolor 256 or 16
     --regioncolor        use different color for inside/outside regions
-    --uniqcolor          use different color for unique string
-    --uniqsub=func       preprocess function before check uniqueness
-    --random             use random color each time
     --face               set/unset visual effects
   BLOCK
     -p, --paragraph      paragraph mode
@@ -278,7 +278,6 @@ newopt
     ' colorindex         |ci =s ' => \(my $opt_colorindex = '') ,
     ' ansicolor              =s ' => \(my $opt_ansicolor = '256') ,
     ' regioncolor        |rc !  ' => \ my $opt_regioncolor ,
-    ' uniqcolor          |uc !  ' => \(my $opt_uniqcolor) ,
     ' uniqsub            |us =s ' => \ my @opt_uniqsub ,
     ' face                   =s ' => \ my @opt_face ,
     ' nocolor | no-color ' => sub {
@@ -290,6 +289,9 @@ newopt
     ' random! ' => sub {
 	if ($_[1]) { opt('colorindex') .= 'R' }
 	else       { opt('colorindex') =~ s/R//gi }
+    },
+    ' uniqcolor |uc ' => sub {
+	opt('colorindex') = 'U';
     },
 
     ##
@@ -810,25 +812,26 @@ sub dump_uniqcolor {
 }
 
 # --colorindex
+my %color_index = map { uc $_ => 1 } $opt_colorindex =~ /\w/g;
 my $indexer = do {
-    my %ci = map { uc $_ => 1 } $opt_colorindex =~ /\w/g;
-    if ($ci{S}) {
+    if ($color_index{S}) {
 	@colors = shuffle @colors;
     }
-    if ($ci{A} or $ci{D}) {
+    if ($color_index{A} or $color_index{D}) {
 	my $i = 0;
 	Indexer->new(
 	    index   => sub { $i++   },
 	    reset   => sub { $i = 0 },
-	    block   => $ci{B},
-	    reverse => $ci{D},
+	    block   => $color_index{B},
+	    reverse => $color_index{D},
 	    );
     }
-    elsif ($ci{R}) {
+    elsif ($color_index{R}) {
 	Indexer->new(index => sub { int rand @colors });
     }
     else { undef }
 };
+my $opt_uniqcolor = $color_index{U};
 
 # -dc
 if ($opt_d{c}) {
@@ -2443,16 +2446,16 @@ When single pattern is specified, first color in colormap is used for
 the pattern.  If multiple patterns and multiple colors are specified,
 each pattern is colored with corresponding color cyclically.
 
-Option C<--regioncolor>, C<--uniqcolor> and C<--colorindex> change
-this behavior.
+Option C<--regioncolor> and C<--colorindex> change this behavior.
 
 =item B<--colorindex>=I<spec>, B<--ci>=I<spec>
 
-Specify color index method by combination of spec characters.  B<A>
-(ascend) and B<D> (descend) can be mixed with B<B> (block) and/or B<S>
-(shuffle) like C<--ci=ABS>.  B<R> (random) can be too but it does not
-make sense.  When B<S> is used alone, colormap is shuffled with normal
-behavior.
+Specify the color index method by combination of spec characters.
+B<A> (ascend) and B<D> (descend) can be mixed with B<B> (block) and/or
+B<S> (shuffle) like C<--ci=ABS>.  B<R> (random) can be too but it does
+not make sense.  When B<S> is used alone, colormap is shuffled with
+normal behavior.  B<U> (unique) assigns unique color for each
+identical string.
 
 =over 4
 
@@ -2483,10 +2486,15 @@ Use random color index every time.
 Valid only when used with the B<--capture-group> (or B<-G>)
 option. Assigns an index number corresponding to each capture group.
 
+=item U (Unique)
+
+Use different colors for different string matched.
+
 =item N (Normal)
 
-Reset to normal behavior.  Because the last option takes effect,
-C<--ci=N> can be used to reset the behavior set by previous options.
+Reset to normal behavior.  Because the last option overrides earlier
+ones, C<--ci=N> can be used to reset the behavior set by previous
+options.
 
 =back
 
@@ -2494,28 +2502,11 @@ C<--ci=N> can be used to reset the behavior set by previous options.
 
 Shortcut for C<--colorindex=R>.
 
-=item B<--ansicolor>=[C<16>,C<256>,C<24bit>]
+=item B<--uniqcolor>, B<--uc>
 
-If set as C<16>, use ANSI 16 colors as a default color set, otherwise
-ANSI 256 colors.  When set as C<24bit>, 6 hex digits notation produces
-24bit color sequence.  Default is C<256>.
-
-=item B<--[no]256>
-
-Shortcut for C<--ansicolor>=C<256> or C<16>.
-
-=item B<--[no]regioncolor>, B<--[no]rc>
-
-Use different colors for each C<--inside> and C<--outside> region.
-
-Disabled by default, but automatically enabled when only single search
-pattern is specified.  Use C<--no-regioncolor> to cancel automatic
-action.
-
-=item B<--[no]uniqcolor>, B<--[no]uc>
+Shortcut for C<--colorindex=U>.
 
 Use different colors for different string matched.
-Disabled by default.
 
 Next example prints all words start by C<color> and display them all
 in different colors.
@@ -2525,6 +2516,11 @@ in different colors.
 When used with option C<-i>, color is selected still in case-sensitive
 fashion.  If you want case-insensitive color selection, use next
 C<--uniqsub> option.
+
+In B<greple> versions 9.20 and later, the C<--colorindex> option
+resets the effect of earlier C<--uniqcolor> option.  If used in
+combination with other options, it is safer to specify like
+C<--ci=US>.
 
 =item B<--uniqsub>=I<function>, B<--us>=I<function>
 
@@ -2544,6 +2540,24 @@ Next command read the output from C<git blame> command and set unique
 color for each entire line by their commit ids.
 
     git blame ... | greple .+ --uc --us='sub{s/\s.*//r}' --face=E-D
+
+=item B<--ansicolor>=[C<16>,C<256>,C<24bit>]
+
+If set as C<16>, use ANSI 16 colors as a default color set, otherwise
+ANSI 256 colors.  When set as C<24bit>, 6 hex digits notation produces
+24bit color sequence.  Default is C<256>.
+
+=item B<--[no]256>
+
+Shortcut for C<--ansicolor>=C<256> or C<16>.
+
+=item B<--[no]regioncolor>, B<--[no]rc>
+
+Use different colors for each C<--inside> and C<--outside> region.
+
+Disabled by default, but automatically enabled when only single search
+pattern is specified.  Use C<--no-regioncolor> to cancel automatic
+action.
 
 =item B<--face>=[+-=]I<effect>
 
