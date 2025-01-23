@@ -63,7 +63,7 @@ greple - extensible grep with lexical expression and region control
 =head1 VERSION
 
 
-Version 9.19
+Version 9.20
 
 
 =head1 SYNOPSIS
@@ -2428,11 +2428,11 @@ to use user defined function for 'TEXT' field.
 C<--colorsub> or C<--cs> is a shortcut for subroutine colormap.  It
 simply enclose the argument by C<sub{ ... }> expression.  So
 
-    greple -cm 'sub{uc}'
+    greple --cm 'sub{uc}'
 
 can be written as simple as this.
 
-    greple -cs uc
+    greple --cs uc
 
 You can not use this option for labeled color.
 

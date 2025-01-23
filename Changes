@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.20 2025-01-23T03:03:09Z
+
+    - make --uniqcolor as a shortcut for --colorindex
+
 9.19 2025-01-20T07:34:44Z
 
     - callback function can return "undef" to do nothing

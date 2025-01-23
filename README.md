@@ -5,7 +5,7 @@ greple - extensible grep with lexical expression and region control
 
 # VERSION
 
-Version 9.19
+Version 9.20
 
 # SYNOPSIS
 
@@ -1018,11 +1018,11 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     `--colorsub` or `--cs` is a shortcut for subroutine colormap.  It
     simply enclose the argument by `sub{ ... }` expression.  So
 
-        greple -cm 'sub{uc}'
+        greple --cm 'sub{uc}'
 
     can be written as simple as this.
 
-        greple -cs uc
+        greple --cs uc
 
     You can not use this option for labeled color.
 
