@@ -1261,6 +1261,9 @@ sub grep_data {
     ## --postgrep
     for my $f (@opt_postgrep) {
 	$f->call($grep);
+	# remove emptied results
+	my $ref = $grep->result_ref;
+	@$ref = grep { @{$_} > 0 } @$ref;
     }
     ## -m
     for my $splice (@splicer) {
