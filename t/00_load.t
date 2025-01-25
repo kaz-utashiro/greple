@@ -1,12 +1,28 @@
-use 5.006;
+use 5.014;
 use strict;
 use warnings;
 use Test::More;
 
-plan tests => 1;
+use_ok $_ for qw(
+    App::Greple
+    App::Greple::Common
+    App::Greple::Filter
+    App::Greple::Grep
+    App::Greple::Pattern
+    App::Greple::Pattern::Holder
+    App::Greple::PgpDecryptor
+    App::Greple::Regions
+    App::Greple::Util
+    App::Greple::colors
+    App::Greple::debug
+    App::Greple::dig
+    App::Greple::find
+    App::Greple::line
+    App::Greple::perl
+    App::Greple::pgp
+    App::Greple::select
+);
 
-BEGIN {
-    use_ok( 'App::Greple' ) || print "Bail out!\n";
-}
+diag( "Testing App::Greple $App::Greple::VERSION, Perl $^V, $^X" );
 
-diag( "Testing App::Greple $App::Greple::VERSION, Perl $], $^X" );
+done_testing;
