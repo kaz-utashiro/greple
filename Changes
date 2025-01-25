@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.21 2025-01-25T15:37:37Z
+
+    - remove emptied item from result list after --postgrep call
+    - update t/00_load.t
+
 9.20 2025-01-23T03:03:09Z
 
     - make --uniqcolor as a shortcut for --colorindex
