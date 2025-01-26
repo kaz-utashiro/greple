@@ -1466,6 +1466,10 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     about the search.  This interface highly depends on the internal
     structure, so use with the utmost caution.
 
+    The search results are held as a list of blocks.  By emptying the
+    contents of a block element, the matches for that block can be
+    canceled.
+
 - **--callback**=_function_(_..._)
 
     Callback function is called before printing every matched pattern with
