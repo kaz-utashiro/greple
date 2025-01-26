@@ -1274,7 +1274,7 @@ sub grep_data {
 	if ($matched) {
 	    $progress_reset->() if $progress_reset;
 	    print $current_file;
-	    printf ":%d", scalar $grep->blocks if $opt_c;
+	    printf ":%d", scalar $grep->result if $opt_c;
 	    print "\n";
 	}
     }
