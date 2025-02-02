@@ -43,7 +43,7 @@ use Getopt::EX::Func qw(parse_func callable);
 
 use App::Greple;
 use App::Greple::Common;
-use App::Greple::Util;
+use App::Greple::Util qw(shellquote);
 use App::Greple::Grep;
 use App::Greple::Regions;
 use App::Greple::Pattern;

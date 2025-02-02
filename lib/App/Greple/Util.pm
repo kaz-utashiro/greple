@@ -1,5 +1,10 @@
+package App::Greple::Util;
+
 use v5.14;
 use warnings;
+
+use Exporter 'import';
+our @EXPORT_OK = qw(shellquote);
 
 use App::Greple::Common;
 
@@ -7,13 +12,9 @@ use App::Greple::Common;
 ## easy implementation. don't be serious.
 ##
 sub shellquote {
-    my $quote = qr/[\s\\(){}\|\*?]/;
-    map { /^(-+\w+=)(.*$quote.*)$/
-	      ? "$1\'$2\'"
-	      :  /^(.*$quote.*)$/
-	      ? "\'$1\'"
-	      : $_ }
-    @_;
+    state $option  = qr/-++[-:\w]+=/;
+    state $special = qr/[\s\\(){}\|\*?]/;
+    map { s/^(${option}?)(.*${special}.*)\z/$1\'$2\'/sr } @_;
 }
 
 package #
