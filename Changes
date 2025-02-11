@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.22 2025-02-11T09:41:42Z
+
+    - -Mline module disables color only when line-number follows -Mline
+
 9.2101 2025-01-26T01:58:12Z
 
     - calculate matched count on demand
