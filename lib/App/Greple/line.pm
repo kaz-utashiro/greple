@@ -87,6 +87,10 @@ above example can also be specified as follows:
 
     greple -Mline ::10:3
 
+When this notation is used, the option C<--cm N> is added to disable
+coloring of matched portion.  This is to make it easier to use as a
+filter to extract a specific range of lines.
+
 =item B<L>=I<line numbers>
 
 This notation just define function spec, which can be used in
@@ -151,12 +155,16 @@ my %param = (
 sub finalize {
     my($app, $argv) = @_;
     $param{auto} or return;
+    my $update = 0;
     for (my $i = 0; $i < @$argv; $i++) {
 	local $_ = $argv->[$i];
 	(/^-?[\d:,]+$/ and ! -f $_) or last;
 	splice(@$argv, $i, 1, '--le', sprintf("&line(%s)", $_));
 	$i++;
+	$update++;
     }
+    $update or return;
+    $app->setopt(default => qw(--cm N));
 }
 
 sub line_to_region {
@@ -212,8 +220,6 @@ sub offload {
 __DATA__
 
 builtin offload-command=s $offload_command
-
-option default --cm N
 
 option --offload --le &offload --offload-command
 
