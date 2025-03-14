@@ -16,7 +16,7 @@ Version 9.22
       -x, --le   pattern   lexical expression (same as bare pattern)
       -e, --and  pattern   pattern match across line boundary
       -r, --must pattern   pattern cannot be compromised
-      -t, --may  pattern   pattern may be exist
+      -t, --may  pattern   pattern may exist
       -v, --not  pattern   pattern not to be matched
       -E, --re   pattern   regular expression
           --fe   pattern   fixed expression
@@ -24,8 +24,8 @@ Version 9.22
       --select index       select indexed pattern from -f file
     MATCH
       -i, --ignore-case    ignore case
-      -G, --capture-group  match capture groups rather than whole pattern
-      -S, --stretch        stretch matched area to the enclosing block
+      -G, --capture-group  match capture groups rather than the whole pattern
+      -S, --stretch        stretch the matched area to the enclosing block
       --need=[+-]n         required positive match count
       --allow=[+-]n        acceptable negative match count
       --matchcount=n[,m]   required match count for each block
@@ -38,70 +38,70 @@ Version 9.22
       --all                print entire data
       -m, --max=n[,m]      max count of blocks to be shown
       -A,-B,-C [n]         after/before/both match context
-      --join               delete newline in the matched part
-      --joinby=string      replace newline in the matched text by string
-      --nonewline          do not add newline character at block end
-      --filestyle=style    how filename printed (once, separate, line)
-      --linestyle=style    how line number printed (separate, line)
-      --separate           set filestyle and linestyle both "separate"
-      --format LABEL=...   define line number and file name format
-      --frame-top          top frame
-      --frame-middle       middle frame
-      --frame-bottom       bottom frame
+      --join               remove newline in the matched part
+      --joinby=string      replace newline in the matched text with a string
+      --nonewline          do not add newline character at the end of block
+      --filestyle=style    how filenames are printed (once, separate, line)
+      --linestyle=style    how line numbers are printed (separate, line)
+      --separate           set both filestyle and linestyle "separate"
+      --format LABEL=...   define the format for line number and file name
+      --frame-top          top frame line
+      --frame-middle       middle frame line
+      --frame-bottom       bottom frame line
     FILE
       --glob=glob          glob target files
       --chdir=dir          change directory before search
       --readlist           get filenames from stdin
     COLOR
-      --color=when         use terminal color (auto, always, never)
+      --color=when         use terminal colors (auto, always, never)
       --nocolor            same as --color=never
-      --colormap=color     R, G, B, C, M, Y etc.
+      --colormap=color     R, G, B, C, M, Y, etc.
       --colorsub=...       shortcut for --colormap="sub{...}"
       --colorful           use default multiple colors
       --colorindex=flags   color index method: Ascend/Descend/Block/Random/Unique/Group
-      --random             use random color each time (--colorindex=R)
-      --uniqcolor          use different color for unique string (--colorindex=U)
-      --uniqsub=func       preprocess function before check uniqueness
+      --random             use a random color each time (--colorindex=R)
+      --uniqcolor          use a different color for each unique string (--colorindex=U)
+      --uniqsub=func       preprocess function to check uniqueness
       --ansicolor=s        ANSI color 16, 256 or 24bit
       --[no]256            same as --ansicolor 256 or 16
-      --regioncolor        use different color for inside/outside regions
-      --face               set/unset visual effects
+      --regioncolor        use different color for inside and outside regions
+      --face               enable or disable visual effects
     BLOCK
-      -p, --paragraph      paragraph mode
-      --border=pattern     border pattern
-      --block=pattern      block of records
-      --blockend=s         block end mark (Default: "--")
-      --join-blocks        join back-to-back consecutive blocks
+      -p, --paragraph      enable paragraph mode
+      --border=pattern     specify a border pattern
+      --block=pattern      specify a block of records
+      --blockend=s         block-end mark (Default: "--")
+      --join-blocks        join consecutive blocks that are back-to-back
     REGION
       --inside=pattern     select matches inside of pattern
       --outside=pattern    select matches outside of pattern
-      --include=pattern    reduce matches to the area
-      --exclude=pattern    reduce matches to outside of the area
-      --strict             strict mode for --inside/outside --block
+      --include=pattern    limit matches to the area
+      --exclude=pattern    limit matches to outside of the area
+      --strict             enable strict mode for --inside/outside --block
     CHARACTER CODE
-      --icode=name         file encoding
-      --ocode=name         output encoding
+      --icode=name         input file encoding
+      --ocode=name         output file encoding
     FILTER
       --if,--of=filter     input/output filter command
-      --pf=filter          post process filter command
-      --noif               disable default input filter
+      --pf=filter          post-process filter command
+      --noif               disable the default input filter
     RUNTIME FUNCTION
-      --begin=func         call function before search
-      --end=func           call function after search
-      --prologue=func      call function before command execution
-      --epilogue=func      call function after command execution
-      --postgrep=func      call function after each grep operation
-      --callback=func      callback function for matched string
+      --begin=func         call a function before starting the search
+      --end=func           call a function after completing the search
+      --prologue=func      call a function before executing the command
+      --epilogue=func      call a function after executing the command
+      --postgrep=func      call a function after each grep operation
+      --callback=func      callback function for each matched string
     OTHER
-      --usage[=expand]     show this message
-      --exit=n             command exit status
+      --usage[=expand]     show this help message
+      --exit=n             set the command exit status
       --norc               skip reading startup file
-      --man                display command or module manual page
-      --show               display module file
-      --path               show module file path
-      --error=action       action after read error
-      --warn=type          run time error control
-      --alert [name=#]     set alert parameter (size/time)
+      --man                display the manual page for the command or module
+      --show               display the module file contents
+      --path               display the path to the  module file
+      --error=action       action to take after a read error occurs
+      --warn=type          runtime error handling type
+      --alert [name=#]     set alert parameters (size/time)
       -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 # INSTALL

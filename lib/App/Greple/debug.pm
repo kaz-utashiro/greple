@@ -19,6 +19,7 @@ are available.
 
     getoptex         Getopt::EX
     getopt           Getopt::Long
+    alert       -da  Alert information
     color       -dc  Color information
     directory   -dd  Change directory information
     file        -df  Show search file names
@@ -78,6 +79,7 @@ my %flags = (
     getoptex  => \$Getopt::EX::Loader::debug,
     getopt    => { on  => sub { main::configure_getopt('debug')    },
 		   off => sub { main::configure_getopt('no_debug') } },
+    alert     => \$debug{a},
     color     => \$debug{c},
     directory => \$debug{d},
     file      => \$debug{f},
@@ -94,6 +96,7 @@ my %flags = (
 
 sub getoptex  { on ( getoptex  => 1 ) }
 sub getopt    { on ( getopt    => 1 ) }
+sub alert     { on ( alert     => 1 ) }
 sub color     { on ( color     => 1 ) }
 sub directory { on ( directory => 1 ) }
 sub file      { on ( file      => 1 ) }

@@ -305,11 +305,13 @@ sub borders {
 		": Counting lines, and it may take longer...\n");
 	};
 	alarm $self->{alert_time};
+        warn "alert timer start ($alarm_start)\n" if $debug{a};
     }
     my @borders = match_borders $self->{border};
     if (defined $alarm_start) {
 	if ($SIG{ALRM}) {
 	    alarm 0;
+	    warn "reset alert timer\n" if $debug{a};
 	} else {
 	    STDERR->printflush(sprintf("Count %d lines in %d seconds.\n",
 				       @borders - 1,
