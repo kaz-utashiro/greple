@@ -6,6 +6,12 @@ line - Greple module to produce result by line numbers
 
 greple -Mline
 
+=head1 CAUTION
+
+This module has been released independently under the name of C<-ML>.
+Since this module will not be maintained in the future, please use the
+new L<App::Greple::L> module by C<-ML> option.
+
 =head1 DESCRIPTION
 
 This module allows you to use line numbers to specify patterns or
@@ -127,6 +133,8 @@ file named F<L>?  Stop substitution by placing C<--> before the target
 files.
 
 =head1 SEE ALSO
+
+L<App::Greple::L>
 
 L<Getopt::EX::Numbers>
 
