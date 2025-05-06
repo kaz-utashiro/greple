@@ -2,6 +2,12 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+9.23 2025-05-06T08:25:36Z
+
+    - introduce alert debug message
+    - add caution section in line.pm to use -ML module
+    - use POSIX::_exit() to terminate output filter
+
 9.22 2025-02-11T09:41:42Z
 
     - -Mline module disables color only when line-number follows -Mline
