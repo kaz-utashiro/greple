@@ -57,6 +57,8 @@ sub get_filters {
     @f;
 }
 
+use POSIX();
+
 push @EXPORT, qw(push_output_filter);
 sub push_output_filter {
     my %arg = ref $_[0] eq 'HASH' ? %{+shift} : ();
@@ -75,7 +77,9 @@ sub push_output_filter {
 		do { exec $filter } ;
 		warn $@ if $@;
 	    }
-	    exit;
+	    STDOUT->flush();
+	    STDERR->flush();
+	    POSIX::_exit(0);
 	}
     }
 }
@@ -100,7 +104,7 @@ sub push_input_filter {
 	    if ($pid == 0) {
 		do { exec $filter } ;
 		warn $@ if $@;
-		exit;
+		POSIX::_exit(0);
 	    }
 	}
     }

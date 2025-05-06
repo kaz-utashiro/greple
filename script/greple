@@ -2825,7 +2825,9 @@ only once to find from multiple files, use C<-Mpgp> module.
 If the filter start with C<&>, perl subroutine is called instead of
 external command.  You can define the subroutine in F<.greplerc> or
 modules.  B<Greple> simply call the subroutine, so it should be
-responsible for process control.
+responsible for process control.  It may have to use C<POSIX::_exit()>
+to avoid executing an C<END> block on exit or calling destructor on
+the object.
 
 =item B<--noif>
 

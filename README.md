@@ -1378,7 +1378,9 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     If the filter start with `&`, perl subroutine is called instead of
     external command.  You can define the subroutine in `.greplerc` or
     modules.  **Greple** simply call the subroutine, so it should be
-    responsible for process control.
+    responsible for process control.  It may have to use `POSIX::_exit()`
+    to avoid executing an `END` block on exit or calling destructor on
+    the object.
 
 - **--noif**
 
