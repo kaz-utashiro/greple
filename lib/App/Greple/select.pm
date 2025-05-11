@@ -10,7 +10,7 @@ greple -Mdig -Mselect ... --dig .
     --suffix           file suffixes
     --select-name      regex match for file name
     --select-path      regex match for file path
-    --x-suffix	       exclusive version of --suffix	   
+    --x-suffix         exclusive version of --suffix
     --x-select-name    exclusive version of --select-name
     --x-select-path    exclusive version of --select-path
 
@@ -18,7 +18,7 @@ greple -Mdig -Mselect ... --dig .
     --shebang          included in #! line
     --select-data      regex match for file data
     --select-longer=#  contain lines longer than #
-    --x-shebang        exclusive version of --shebang	   
+    --x-shebang        exclusive version of --shebang
     --x-select-data    exclusive version of --select-data
     --x-select-longer  exclusive version of --select-longer
 
