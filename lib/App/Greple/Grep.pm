@@ -12,6 +12,7 @@ our @ISA = qw(App::Greple::Text);
 
 use Data::Dumper;
 use List::Util qw(min max reduce sum);
+use Clone qw(clone);
 
 use Getopt::EX::Func qw(callable);
 
@@ -62,6 +63,30 @@ sub run {
     $self->prepare->compose;
 }
 
+package App::Greple::Grep::Block {
+    use strict;
+    sub min    :lvalue { $_[0]->[0] }
+    sub max    :lvalue { $_[0]->[1] }
+    sub number :lvalue { $_[0]->[2] }
+}
+
+package App::Greple::Grep::Match {
+    use strict;
+    sub min      :lvalue { $_[0]->[0] }
+    sub max      :lvalue { $_[0]->[1] }
+    sub index    :lvalue { $_[0]->[2] }
+    sub callback :lvalue { $_[0]->[3] }
+}
+
+package App::Greple::Grep::Result {
+    use strict;
+    sub block   { $_[0]->[0] }
+    sub matched { @{$_[0]}[ 1 .. $#{$_[0]} ] }
+    sub min     { $_[0]->block->min }
+    sub max     { $_[0]->block->max }
+    sub number  { $_[0]->block->number }
+}
+
 sub prepare {
     my $self = shift;
 
@@ -98,18 +123,19 @@ sub prepare {
 	    ##
 	    return $self if $pat->is_required and $self->{need} >= 0;
 	} else {
+	    bless $_, 'App::Greple::Grep::Match' for @p;
 	    if ($pat->is_positive) {
-		push @blocks, map { [ @$_ ] } @p;
+		push @blocks, @{clone(\@p)};
 		$self->{stat}->{match_positive} += @p;
 		$positive_count++;
 	    }
 	    else {
 		$self->{stat}->{match_negative} += @p;
 	    }
-	    map { $_->[2] //= $i } @p;
+	    map { $_->index //= $i } @p;
 	    if (my $n = @{$self->{callback}}) {
 		if (my $callback = $self->{callback}->[ $i % $n ]) {
-		    map { $_->[3] //= $callback } @p;
+		    map { $_->callback //= $callback } @p;
 		}
 	    }
 	}
@@ -170,15 +196,18 @@ sub prepare {
 		        border => [ $self->borders ] );
 	    my $blocker = smart_blocker(\%opt);
 	    merge_regions { nojoin => 1, destructive => 1 }, map {
-		[ $blocker->(\%opt, $_->[0], $_->[1]) ]
+		[ $blocker->(\%opt, $_->min, $_->max) ]
 	    } @blocks;
 	}
 	else {
 	    ( [ 0, length ] );			# nothing matched
 	}
     } ];
-    # set 1-origined block number in the 3rd entry
-    $bp->[$_][2] = $_ + 1 for keys @$bp;
+    while (my($i, $blk) = each @$bp) {
+	bless $blk, 'App::Greple::Grep::Block';
+	# set 1-origined block number in the 3rd entry
+	$blk->number = $i + 1;
+    }
 
     ##
     ## build match table
@@ -257,7 +286,7 @@ sub compose {
 	    my $b = $bp->[$bi];
 	    my $m = $matched[0];
 	    my $i = min map { $_->[2] // 0 } @matched;
-	    @matched = [ $b->[0], $b->[1], $i, $m->[3] ];
+	    @matched = [ $b->min, $b->max, $i, $m->[3] ];
 	}
 	if ($self->{only}) {
 	    push @list, map({ [ $_, $_ ] } @matched);
@@ -268,14 +297,21 @@ sub compose {
 	    push @list, [ $bp->[$bi], @matched ];
 	}
     }
+    for my $r (@list) {
+	bless $r, 'App::Greple::Grep::Result';
+	bless $r->block, 'App::Greple::Grep::Block';
+	for my $m ($r->matched) {
+	    bless $m, 'App::Greple::Grep::Match';
+	}
+    }
 
     ##
     ## --join-blocks
     ##
     if ($self->{join_blocks} and @list > 1) {
 	reduce {
-	    if ($a->[-1][0][1] == $b->[0][0]) {
-		$a->[-1][0][1]  = $b->[0][1];
+	    if ($a->[-1][0]->max == $b->[0]->min) {
+		$a->[-1][0]->max  = $b->[0]->max;
 		push @{$a->[-1]}, splice @$b, 1;
 	    } else {
 		push @$a, $b;
@@ -346,7 +382,7 @@ sub slice_result {
     my $obj = shift;
     my $result = shift;
     my($block, @list) = @$result;
-    my $template = unpack_template(\@list, $block->[0]);
+    my $template = unpack_template(\@list, $block->min);
     unpack($template, $obj->cut(@$block));
 }
 

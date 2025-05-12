@@ -42,6 +42,7 @@
       },
       "runtime" : {
          "requires" : {
+            "Clone" : "0",
             "Getopt::EX" : "v2.2.1",
             "Hash::Util" : "0",
             "List::BinarySearch" : "0",
