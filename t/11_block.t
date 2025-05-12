@@ -16,10 +16,10 @@ like(run(qw{ ox --block ^.*\P{ASCII}.* t/SAMPLE.txt })->stdout,
 like(run(qw{ ox --block ^.*\P{ASCII}.* -C1 t/SAMPLE.txt })->stdout,
      qr/\A(?:(?:.*\n){1}--\n){3}\z/, "--block -C1");
 
-like(run(qw{ fox --block .* -C1 t/SAMPLE.txt })->stdout,
+like(run(qw{ fox --block .+ -C1 t/SAMPLE.txt })->stdout,
      qr/\A(?:(?:.*\n){1}--\n){2}\z/, "--block -C1 (block 0)");
 
-like(run(qw{ tocaba --block .* -C1 t/SAMPLE.txt })->stdout,
+like(run(qw{ tocaba --block .+ -C1 t/SAMPLE.txt })->stdout,
      qr/\A(?:(?:.*\n){1}--\n){2}\z/, "--block -C1 (last block)");
 
 is(run(qw{ -e fox --block . --blockend= t/SAMPLE.txt })->stdout,

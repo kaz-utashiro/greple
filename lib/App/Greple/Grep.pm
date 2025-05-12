@@ -161,7 +161,6 @@ sub prepare {
 	if (@{$self->{block}}) {		# --block
 	    my $text = \$_;
 	    merge_regions { nojoin => 1, destructive => 1 }, map {
-		grep { $_->[0] != $_->[1] }
 		get_regions($self->{filename}, $text, $_);
 	    } @{$self->{block}};
 	}
@@ -178,6 +177,8 @@ sub prepare {
 	    ( [ 0, length ] );			# nothing matched
 	}
     } ];
+    # set 1-origined block number in the 3rd entry
+    $bp->[$_][2] = $_ + 1 for keys @$bp;
 
     ##
     ## build match table
@@ -273,8 +274,8 @@ sub compose {
     ##
     if ($self->{join_blocks} and @list > 1) {
 	reduce {
-	    if ($a->[-1][0][-1] == $b->[0][0]) {
-		$a->[-1][0][-1]  = $b->[0][1];
+	    if ($a->[-1][0][1] == $b->[0][0]) {
+		$a->[-1][0][1]  = $b->[0][1];
 		push @{$a->[-1]}, splice @$b, 1;
 	    } else {
 		push @$a, $b;
@@ -284,8 +285,8 @@ sub compose {
     }
 
     ##
-    ## ( [ [blockstart, blockend], [start, end], [start, end], ... ],
-    ##   [ [blockstart, blockend], [start, end], [start, end], ... ], ... )
+    ## ( [ [blockstart, blockend, number ], [start, end], [start, end], ... ],
+    ##   [ [blockstart, blockend, number ], [start, end], [start, end], ... ], ... )
     ##
     $self->{RESULT} = \@list;
 
