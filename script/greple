@@ -276,7 +276,7 @@ newopt
     ' color                  =s ' => \(my $opt_color = 'auto') ,
     ' colormap           |cm =s ' => \&opt_colormap ,
     ' colorsub           |cs =s ' => \&opt_colorsub ,
-    ' colorful              !   ' => \(my $opt_colorful = 1) ,
+    ' colorful               !  ' => \(my $opt_colorful = 1) ,
     ' colorindex         |ci =s ' => \(my $opt_colorindex = '') ,
     ' ansicolor              =s ' => \(my $opt_ansicolor = '256') ,
     ' regioncolor        |rc !  ' => \ my $opt_regioncolor ,
@@ -775,7 +775,7 @@ if (!$need_color) {
 }
 
 for (values %opt_format) {
-    s{\\(.)}{ { t => "\t", n => "\n" }->{$1} // $1 }egx;
+    s{\\(.)}{ { t=>"\t", n=>"\n", f=>"\f" }->{$1} // $1 }egx;
 }
 
 my $blockend = "--";
