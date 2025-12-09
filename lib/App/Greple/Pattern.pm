@@ -99,12 +99,13 @@ sub field {
     }
 }
 
-sub flag     { shift->field ( FLAG     => @_ ) // 0 }
-sub string   { shift->field ( STRING   => @_ )      }
-sub cooked   { shift->field ( COOKED   => @_ )      }
-sub regex    { shift->field ( REGEX    => @_ )      }
-sub category { shift->field ( CATEGORY => @_ )      }
-sub function { shift->field ( FUNCTION => @_ )      }
+sub flag        { shift->field ( FLAG        => @_ ) // 0 }
+sub string      { shift->field ( STRING      => @_ )      }
+sub cooked      { shift->field ( COOKED      => @_ )      }
+sub regex       { shift->field ( REGEX       => @_ )      }
+sub category    { shift->field ( CATEGORY    => @_ )      }
+sub function    { shift->field ( FUNCTION    => @_ )      }
+sub group_count { shift->field ( GROUP_COUNT => @_ )      }
 
 sub is_positive   { !($_[0]->flag & FLAG_NEGATIVE)  };
 sub is_negative   {   $_[0]->flag & FLAG_NEGATIVE   };

@@ -30,4 +30,11 @@ is(run(q[-G --ci=GP --need=1 -o -e '(quick).*(brown)' -e '(fox)' t/SAMPLE.txt])-
    "quick\nbrown\nfox\n",
    "--ci=GP with multiple patterns");
 
+# Test --ci=G with non-matching pattern in between
+# Pattern 2 "(xxx).*(yyy)" doesn't match, but should still consume index 2,3
+# So "lazy" should get index 4, not 2
+is(run(q[-G --ci=G --need=1 -o -e '(quick).*(brown)' -e '(xxx).*(yyy)' -e '(lazy)' t/SAMPLE.txt])->stdout,
+   "quick\nbrown\nlazy\n",
+   "--ci=G with non-matching pattern updates offset");
+
 done_testing;
