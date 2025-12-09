@@ -102,6 +102,7 @@ sub prepare {
     ##
     my @result;
     my $positive_count = 0;
+    my $group_index_offset = 0;
     my @patlist = $pat_holder->patterns;
     while (my($i, $pat) = each @patlist) {
 	my($func, @args) = do {
@@ -110,8 +111,8 @@ sub prepare {
 	    } else {
 		Getopt::EX::Func->new(\&match_regions,
 				      pattern => $pat->regex,
-				      group => $self->{group_match},
-				      index => $self->{group_index},
+				      group => $self->{group_index},
+				      index => $self->{group_index} >= 2,
 		    );
 	    }
 	};
@@ -131,6 +132,20 @@ sub prepare {
 	    }
 	    else {
 		$self->{stat}->{match_negative} += @p;
+	    }
+	    ##
+	    ## Adjust group index for --ci=G option
+	    ## group_index: 0=off, 1=group, 2=sequential, 3=per-pattern
+	    ##
+	    if ($self->{group_index} == 2) {
+		my $max_index = 0;
+		for (@p) {
+		    if (defined $_->index) {
+			$_->index += $group_index_offset;
+			$max_index = $_->index + 1 if $_->index >= $max_index;
+		    }
+		}
+		$group_index_offset = $max_index;
 	    }
 	    map { $_->index //= $i } @p;
 	    if (my $n = @{$self->{callback}}) {

@@ -118,7 +118,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --colormap=color     R, G, B, C, M, Y, etc.
     --colorsub=...       shortcut for --colormap="sub{...}"
     --colorful           use default multiple colors
-    --colorindex=flags   color index method: Ascend/Descend/Block/Random/Unique/Group
+    --colorindex=flags   color index method: Ascend/Descend/Block/Random/Unique/Group/GP
     --random             use a random color each time (--colorindex=R)
     --uniqcolor          use a different color for each unique string (--colorindex=U)
     --uniqsub=func       preprocess function to check uniqueness
@@ -1251,8 +1251,8 @@ sub grep_data {
 	countcheck   =>  $count_match_sub,
 	allow        =>  $count_allow,
 	strict       =>  $opt_strict,
-	group_match  =>  $opt_capture_group,
-	group_index  =>  $opt_colorindex =~ /G/i ? 1 : 0,
+	group_index  =>  do { local $_ = $opt_colorindex;
+			      $opt_capture_group ? /G/i ? /P/i ? 3 : 2 : 1 : 0 },
 	region_index =>  $opt_regioncolor,
 	stat         => \%stat,
 	callback     => \@opt_callback,
@@ -2500,8 +2500,15 @@ Use random color index every time.
 
 =item G (Group)
 
-Valid only when used with the B<--capture-group> (or B<-G>)
-option. Assigns an index number corresponding to each capture group.
+Valid only with B<-G> option.  Assigns a sequential index to each
+capture group across all patterns, starting from 0.  For example, if
+the first pattern has 2 groups and the second has 3, indices are
+assigned as 0, 1, 2, 3, 4.  Patterns without capture groups count as
+one group.  Use C<--cm N> to skip color for specific indices.
+
+=item GP (Group per Pattern)
+
+Same as B<G>, but index resets to 0 for each pattern.
 
 =item U (Unique)
 

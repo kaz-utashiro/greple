@@ -128,7 +128,7 @@ sub match_regions_by_group {
 	    for my $i (1 .. $#-) {
 		$-[$i] // next;
 		push @regions, [ $-[$i], $+[$i] ];
-		push @{$regions[-1]}, $i if $index
+		push @{$regions[-1]}, $i - 1 if $index
 	    }
 	}
     }

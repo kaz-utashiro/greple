@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/kaz-utashiro/greple/workflows/test/badge.svg)](https://github.com/kaz-utashiro/greple/actions) [![MetaCPAN Release](https://badge.fury.io/pl/App-Greple.svg)](https://metacpan.org/release/App-Greple)
+[![Actions Status](https://github.com/kaz-utashiro/greple/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/kaz-utashiro/greple/actions?workflow=test) [![MetaCPAN Release](https://badge.fury.io/pl/App-Greple.svg)](https://metacpan.org/release/App-Greple)
 # NAME
 
 greple - extensible grep with lexical expression and region control
@@ -58,7 +58,7 @@ Version 9.23
       --colormap=color     R, G, B, C, M, Y, etc.
       --colorsub=...       shortcut for --colormap="sub{...}"
       --colorful           use default multiple colors
-      --colorindex=flags   color index method: Ascend/Descend/Block/Random/Unique/Group
+      --colorindex=flags   color index method: Ascend/Descend/Block/Random/Unique/Group/GP
       --random             use a random color each time (--colorindex=R)
       --uniqcolor          use a different color for each unique string (--colorindex=U)
       --uniqsub=func       preprocess function to check uniqueness
@@ -1071,8 +1071,15 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
     - G (Group)
 
-        Valid only when used with the **--capture-group** (or **-G**)
-        option. Assigns an index number corresponding to each capture group.
+        Valid only with **-G** option.  Assigns a sequential index to each
+        capture group across all patterns, starting from 0.  For example, if
+        the first pattern has 2 groups and the second has 3, indices are
+        assigned as 0, 1, 2, 3, 4.  Patterns without capture groups count as
+        one group.  Use `--cm N` to skip color for specific indices.
+
+    - GP (Group per Pattern)
+
+        Same as **G**, but index resets to 0 for each pattern.
 
     - U (Unique)
 
