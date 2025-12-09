@@ -142,7 +142,7 @@ L<Getopt::EX::Numbers>
 
 package App::Greple::line;
 
-use v5.14;
+use v5.24;
 use warnings;
 
 use Carp;

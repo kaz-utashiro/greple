@@ -48,7 +48,7 @@
             "List::BinarySearch" : "0",
             "List::Util" : "1.45",
             "Term::ANSIColor::Concise" : "2.08",
-            "perl" : "v5.18.2"
+            "perl" : "v5.24.0"
          }
       },
       "test" : {

@@ -27,7 +27,7 @@ recommended to use.
 
 package App::Greple::pgp;
 
-use v5.14;
+use v5.24;
 use warnings;
 use Carp;
 

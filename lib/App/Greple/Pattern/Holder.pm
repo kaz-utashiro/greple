@@ -1,6 +1,6 @@
 package App::Greple::Pattern::Holder;
 
-use v5.14;
+use v5.24;
 use warnings;
 use Data::Dumper;
 use Carp;

@@ -1,6 +1,6 @@
 package App::Greple::Common;
 
-use v5.14;
+use v5.24;
 use warnings;
 
 =encoding utf-8

@@ -38,7 +38,7 @@ L<App::Greple::select>
 
 package App::Greple::find;
 
-use v5.14;
+use v5.24;
 use warnings;
 use Carp;
 use Data::Dumper;

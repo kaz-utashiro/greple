@@ -133,7 +133,7 @@ L<App::Greple::type>
 
 package App::Greple::select;
 
-use v5.14;
+use v5.24;
 use warnings;
 use Hash::Util qw(lock_keys);
 use Data::Dumper;

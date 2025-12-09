@@ -42,7 +42,7 @@ L<https://github.com/altercation/solarized>
 
 =cut
 
-use v5.14;
+use v5.24;
 use warnings;
 
 1;

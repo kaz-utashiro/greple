@@ -1,6 +1,6 @@
 package App::Greple::Pattern;
 
-use v5.14;
+use v5.24;
 use warnings;
 no  warnings "experimental::regex_sets";
 use Data::Dumper;

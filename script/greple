@@ -5,7 +5,7 @@
 ## Since Mar 29 1991
 ##
 
-use v5.14;
+use v5.24;
 use warnings;
 
 use File::stat;

@@ -44,7 +44,7 @@ Reset internal status.
 
 package App::Greple::PgpDecryptor;
 
-use v5.14;
+use v5.24;
 use warnings;
 use Carp;
 
