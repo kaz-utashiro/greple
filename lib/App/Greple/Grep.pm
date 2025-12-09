@@ -127,12 +127,10 @@ sub prepare {
 	    ## Update offset even when no match for --ci=G
 	    ##
 	    if ($self->{group_index} == 2 and not $pat->is_function) {
-		my $count = $pat->group_count // do {
+		$group_index_offset += $pat->group_count //= do {
 		    "" =~ /@{[$pat->regex]}?/;
-		    $pat->group_count($#+ || 1);
 		    $#+ || 1;
 		};
-		$group_index_offset += $count;
 	    }
 	} else {
 	    bless $_, 'App::Greple::Grep::Match' for @p;

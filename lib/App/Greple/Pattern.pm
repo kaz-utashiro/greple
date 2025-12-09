@@ -45,7 +45,7 @@ sub new {
     my $obj = bless {
 	STRING   => undef,
 	COOKED   => undef,
-	FLAG     => undef,
+	FLAG     => FLAG_NONE,
 	REGEX    => undef,
 	CATEGORY => undef,
 	FUNCTION => undef,
@@ -88,7 +88,7 @@ sub setup {
     $obj;
 }
 
-sub field {
+sub field : lvalue {
     my $obj = shift;
     my $name = shift;
     if (@_) {
@@ -99,13 +99,13 @@ sub field {
     }
 }
 
-sub flag        { shift->field ( FLAG        => @_ ) // 0 }
-sub string      { shift->field ( STRING      => @_ )      }
-sub cooked      { shift->field ( COOKED      => @_ )      }
-sub regex       { shift->field ( REGEX       => @_ )      }
-sub category    { shift->field ( CATEGORY    => @_ )      }
-sub function    { shift->field ( FUNCTION    => @_ )      }
-sub group_count { shift->field ( GROUP_COUNT => @_ )      }
+sub flag        : lvalue { shift->field ( FLAG        => @_ )      }
+sub string      : lvalue { shift->field ( STRING      => @_ )      }
+sub cooked      : lvalue { shift->field ( COOKED      => @_ )      }
+sub regex       : lvalue { shift->field ( REGEX       => @_ )      }
+sub category    : lvalue { shift->field ( CATEGORY    => @_ )      }
+sub function    : lvalue { shift->field ( FUNCTION    => @_ )      }
+sub group_count : lvalue { shift->field ( GROUP_COUNT => @_ )      }
 
 sub is_positive   { !($_[0]->flag & FLAG_NEGATIVE)  };
 sub is_negative   {   $_[0]->flag & FLAG_NEGATIVE   };
