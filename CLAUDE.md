@@ -72,3 +72,20 @@ greple has a powerful module system invoked with `-M`:
 - User configuration: `~/.greplerc`
 - Supports `option`, `define`, `expand`, `help`, `builtin`, and `autoload` directives
 - Perl code after `__PERL__` line in config files is evaluated
+
+## Known Issues
+
+### `@-`/`@+` Performance with UTF-8
+
+In `Regions.pm`, we avoid using `$-[0]`/`$+[0]` and instead use `pos()` with `${^MATCH}` because accessing `@-`/`@+` is extremely slow with UTF-8 text.
+
+**Benchmark results (Perl 5.34, 50000 matches on UTF-8 text):**
+- Using `@-`/`@+`: 42.3 sec
+- Using `pos()`/`${^MATCH}`: 0.012 sec
+- Ratio: ~3500x slower
+
+With ASCII text the difference is only ~1.4x, but UTF-8 triggers severe performance degradation.
+
+This issue exists since at least Perl 5.12 and is still not fixed in Perl 5.34. Not yet reported to perl5 issue tracker.
+
+Reference: https://qiita.com/kaz-utashiro/items/2facc87ea9ba25e81cd9

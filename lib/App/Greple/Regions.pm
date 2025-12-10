@@ -103,10 +103,9 @@ sub match_regions {
 
     while (/$regex/gp) {
 	##
-	## this is much faster than:
-	## my($s, $e) = ($-[0], $+[0]);
-	##
-	## calling pos() cost is not neglective, either.
+	## Using $-[0]/$+[0] is extremely slow with UTF-8 text.
+	## Still not fixed in Perl 5.34.
+	## https://qiita.com/kaz-utashiro/items/2facc87ea9ba25e81cd9
 	##
 	my $pos = pos();
 	push @regions, [ $pos - length(${^MATCH}), $pos ];
