@@ -14,8 +14,8 @@ greple -Mcolors --solarized ...
 
 =head1 DESCRIPTION
 
-This module provides predefined color schemes for different terminal
-backgrounds and preferences.  Colors are specified using
+Provides predefined color schemes optimized for light, dark, and
+Solarized terminal backgrounds.  All colors use
 L<Term::ANSIColor::Concise> format.
 
 =head2 COLOR FORMAT

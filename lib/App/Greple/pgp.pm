@@ -10,12 +10,10 @@ greple -Mpgp --pgppass 'passphrase' pattern file.gpg
 
 =head1 DESCRIPTION
 
-This module enables greple to search within PGP/GPG encrypted files.
-Files with I<.pgp>, I<.gpg>, or I<.asc> suffix are automatically
-decrypted before searching.
-
-The passphrase is requested interactively only once at the beginning
-of command execution and cached in memory for subsequent files.
+Enables searching within PGP/GPG encrypted files.  Files with
+I<.pgp>, I<.gpg>, or I<.asc> extensions are automatically decrypted.
+Passphrase is requested interactively once and cached for subsequent
+files.
 
 =head1 REQUIREMENTS
 
