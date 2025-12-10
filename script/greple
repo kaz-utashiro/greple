@@ -352,10 +352,6 @@ newopt
     ' error                  =s ' => \(my $opt_error = 'skip') ,
     ' alert                  =i ' => \    %opt_alert ,
     ' debug              |d  =s ' => \ my @opt_d ,
-    ' persist                   ' => sub {
-	warn "Option --persist will be deprecated. Use --error=retry.\n";
-	opt('error') = 'retry';
-    },
     'warn|w:1%' => sub {
 	map { $opt_warn{$_} = $_[2] }
 	map { $_ eq 'all' ? keys %opt_warn : $_ }
@@ -2045,11 +2041,6 @@ specified by C<--select> option.  Next commands are all equivalent.
 
     greple -f pattern_file --select 2,7:9
 
-Next C<[index]> style is obsolete and will be deprecated in the
-future.
-
-    greple -f pattern_file[2,7:9]
-
 See L<App::Greple::subst> module.
 
 =item B<--select>=I<index>
@@ -3102,10 +3093,6 @@ information can be display by giving appropriate flag to -d option.
     v: internal match information
 
 =end comment
-
-=item B<--persist>
-
-Use C<--error=retry>.  Will be deprecated in the future.
 
 =item B<--error>=I<action>
 

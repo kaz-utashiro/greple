@@ -646,11 +646,6 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
         greple -f pattern_file --select 2,7:9
 
-    Next `[index]` style is obsolete and will be deprecated in the
-    future.
-
-        greple -f pattern_file[2,7:9]
-
     See [App::Greple::subst](https://metacpan.org/pod/App%3A%3AGreple%3A%3Asubst) module.
 
 - **--select**=_index_
@@ -1598,10 +1593,6 @@ interpreted as a bare word.
     Do not read startup file: `~/.greplerc`.  This option have to be
     placed before any other options including `-M` module options.
     Setting `GREPLE_NORC` environment have same effect.
-
-- **--persist**
-
-    Use `--error=retry`.  Will be deprecated in the future.
 
 - **--error**=_action_
 

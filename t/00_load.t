@@ -17,7 +17,6 @@ use_ok $_ for qw(
     App::Greple::debug
     App::Greple::dig
     App::Greple::find
-    App::Greple::line
     App::Greple::perl
     App::Greple::pgp
     App::Greple::select

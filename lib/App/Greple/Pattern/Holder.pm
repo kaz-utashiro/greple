@@ -121,7 +121,7 @@ sub load_file {
 
     for my $file (@_) {
 	my $select;
-	if (!-f $file and $file =~ s/(?:(?<b>\[)|\@) (?<n>[\d:,]+) (?(<b>)\]|) $//x) {
+	if (!-f $file and $file =~ s/\@ (?<n>[\d:,]+) $//x) {
 	    $select = $+{n};
 	}
 	open my $fh, '<:encoding(utf8)', $file or die "$file: $!\n";

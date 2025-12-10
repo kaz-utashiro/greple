@@ -17,9 +17,6 @@ like(run(q(-f t/JA.txt --select 2 t/JA.txt))->stdout,
 like(run(q(-f t/JA.txt --select 2,7:9 t/JA.txt))->stdout,
      qr/\A(?:.*\n){4}\z/, "-f and --select 2,7:9");
 
-like(run(q(-f t/JA.txt[2,7:9] t/JA.txt))->stdout,
-     qr/\A(?:.*\n){4}\z/, "-f with [2,7:9]");
-
 like(run(q(-f t/JA.txt@2,7:9 t/JA.txt))->stdout,
      qr/\A(?:.*\n){4}\z/, "-f with @2,7:9");
 
