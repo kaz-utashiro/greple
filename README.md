@@ -110,46 +110,27 @@ Version 9.23
 
     $ cpanm App::Greple
 
-# SUMMARY (AI GENERATED)
+# SUMMARY
 
-**GREPLE** is a sophisticated and versatile grep-like command-line tool
-designed primarily for advanced text searching and manipulation in
-document files. While it can handle various text formats, it
-particularly excels in processing structured documents, such as source
-code, markup files, and other text-based content. Here are some key
-features that make greple especially suitable for document processing:
+**greple** is a grep-like tool designed for searching structured text
+such as source code and documents.  Key features include:
 
-- Flexible pattern matching: greple supports complex search
-patterns, including multi-line matching and logical combinations of
-keywords, which is particularly useful for searching within structured
-documents.
-- Region control: With options like `--inside`, `--outside`,
-`--include`, and `--exclude`, greple allows precise targeting of
-specific sections within documents, such as code blocks, comments, or
-particular markup regions.
-- Block-oriented processing: The ability to define and work with
-custom text blocks makes it ideal for handling document structures
-like paragraphs, sections, or other logical units within a text.
-- Multi-byte text support: greple is particularly adept at
-handling Asian languages, especially Japanese, making it valuable for
-multilingual document processing.
-- Extensibility through modules: Users can create custom modules
-to implement document-specific search and manipulation functions,
-enhancing its capabilities for particular document types or formats.
-- Colorized output: The advanced color options allow for clear
-visualization of search results, which is particularly helpful when
-analyzing document structure or content.
-- Integration with other text processing tools: greple can be
-easily combined with other Unix tools and custom scripts for more
-complex document analysis and transformation tasks.
+- **Flexible pattern matching**: Multiple keyword search with AND/OR/NOT
+logic, including multi-line matching and lexical expressions.
+- **Region control**: Target specific sections with `--inside`,
+`--outside`, `--include`, and `--exclude` options.  Useful for
+searching only within code blocks, comments, or other delimited
+regions.
+- **Block-oriented processing**: Define and search custom text blocks
+such as paragraphs or function definitions.
+- **Multi-byte support**: Native handling of Japanese and other Asian
+languages with proper character encoding.
+- **Extensibility**: Module system allows custom search patterns and
+filters for specific document types or use cases.
 
-While greple can be used for various text processing tasks, its
-feature set is particularly well-suited for working with structured
-documents, source code files, and other text-based content where
-context, structure, and precise matching are important. It may not be
-the best choice for processing very large data files or high-volume
-log analysis, but it excels in scenarios where detailed examination
-and manipulation of document content is required.
+While it can be used for general text search, greple excels at
+searching source code, structured documents, and multi-byte text where
+context and precision matter.
 
 # DESCRIPTION
 
@@ -159,13 +140,13 @@ and manipulation of document content is required.
 
 **greple** can take multiple search patterns with the `-e` option, but
 unlike the [egrep(1)](http://man.he.net/man1/egrep) command, it will search them in AND context.
-For example, the next command print lines those containing all of
+For example, the next command prints lines that contain all of
 `foo` and `bar` and `baz`.
 
     greple -e foo -e bar -e baz ...
 
 Each word can appear in any order and any place in the string.  So
-this command find all of following lines.
+this command finds all of the following lines.
 
     foo bar baz
     baz bar foo
@@ -177,7 +158,7 @@ If you want to use OR syntax, use regular expression.
 
     greple -e foo -e bar -e baz -e 'yabba|dabba|doo'
 
-This command will print lines those contains all of `foo`, `bar` and
+This command will print lines that contain all of `foo`, `bar` and
 `baz` and one or more of `yabba`, `dabba` or `doo`.
 
 Multiple patterns may be described in a file line-by-line, and
@@ -197,8 +178,8 @@ The two commands below work the same way.
 
 ### NOT
 
-Use option `-v` to specify keyword which should not found in the data
-record.  Next example will show lines those contain both `foo` and
+Use option `-v` to specify keyword which should not be found in the data
+record.  Next example shows lines that contain both `foo` and
 `bar` but none of `yabba`, `dabba` or `doo`.
 
     greple -e foo -e bar -v yabba -v dabba -v doo
@@ -206,15 +187,15 @@ record.  Next example will show lines those contain both `foo` and
 
 ### MAY
 
-When you are focusing on multiple words, there may be words those are
-not necessary but would be of interest if there were.
+When you are focusing on multiple words, there may be words that are
+not necessary but would be of interest if they were present.
 
 Use option `--may` or `-t` (tentative) to specify that kind of
-words.  They will be a subject of search, and highlighted if exist,
+words.  They will be a subject of search, and highlighted if they exist,
 but are optional.
 
-Next command print all lines including `foo` and `bar`, and
-highlight `baz` as well.
+Next command prints all lines including `foo` and `bar`, and
+highlights `baz` as well.
 
     greple -e foo -e bar -t baz
 
@@ -243,8 +224,8 @@ baz` to search lines including all of them.
 
     greple 'foo bar baz'
 
-Next command show lines which include `foo`, but does not include
-`bar`, and highlight `baz` if exists.
+Next command shows lines which include `foo`, but do not include
+`bar`, and highlights `baz` if it exists.
 
     greple 'foo -bar ?baz'
 
@@ -268,15 +249,15 @@ in the bare or `--le` pattern.
 
 ## FLEXIBLE BLOCKS
 
-Default data block **greple** search and print is a line.  Using
+Default data block **greple** searches and prints is a line.  Using
 `--paragraph` (or `-p` in short) option, series of text separated by
-empty line is taken as a record block.  So next command will print
+empty line is taken as a record block.  So the next command prints
 whole paragraph which contains the word `foo`, `bar` and `baz`.
 
     greple -p 'foo bar baz'
 
-Block also can be defined by pattern.  Next command treat the data as
-a series of 10-line unit.
+Block can also be defined by pattern.  Next command treats the data as
+a series of 10-line units.
 
     greple -n --border='(.*\n){1,10}'
 
@@ -413,15 +394,15 @@ Classes" in perlrecharclass](https://metacpan.org/pod/perlrecharclass#Extended-B
 
 - **-e** _pattern_, **--and**=_pattern_
 
-    Specify the positive match pattern.  Next command print lines contains
+    Specify the positive match pattern.  Next command prints lines containing
     all of `foo`, `bar` and `baz`.
 
         greple -e foo -e bar -e baz
 
 - **-t** _pattern_, **--may**=_pattern_
 
-    Specify the optional (tentative) match pattern.  Next command print
-    lines contains `foo` and `bar`, and highlight `baz` if exists.
+    Specify the optional (tentative) match pattern.  Next command prints
+    lines containing `foo` and `bar`, and highlights `baz` if it exists.
 
         greple -e foo -e bar -t baz
 
@@ -439,15 +420,15 @@ Classes" in perlrecharclass](https://metacpan.org/pod/perlrecharclass#Extended-B
 
         greple -r foo -r bar -e baz
 
-    Because `-t` promote all other `-e` patterns required, next command
-    do the same thing.  Mixing `-r`, `-e` and `-t` is not recommended,
+    Because `-t` promotes all other `-e` patterns to required, the next command
+    does the same thing.  Mixing `-r`, `-e` and `-t` is not recommended,
     though.
 
         greple -r foo -e bar -t baz
 
 - **-v** _pattern_, **--not**=_pattern_
 
-    Specify the negative match pattern.  Because it does not affect to the
+    Specify the negative match pattern.  Because it does not affect the
     bare pattern argument, you can narrow down the search result like
     this.
 
@@ -480,7 +461,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     start with `-` means **negative** pattern, `?` means **optional**, and
     `+` does **required**.
 
-    The next example prints lines which containing `foo` and `yabba`,
+    The next example prints lines containing `foo` and `yabba`,
     and none of `bar` and `dabba`, with highlighting `baz` and `doo`
     if they exist.
 
@@ -599,8 +580,8 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
         greple --matchcount=,3 ';' file
 
-    In fact, _min_ and _max_ can repeat to represent multiple range.
-    Missing, negative or zero _max_ means infinite.  Next command find
+    In fact, _min_ and _max_ can repeat to represent multiple ranges.
+    Missing, negative or zero _max_ means infinite.  Next command finds
     match count 0 to 10, 20 to 30, and 40-or-greater.
 
         greple --matchcount=,10,20,30,40
@@ -656,7 +637,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     [Getopt::EX::Numbers](https://metacpan.org/pod/Getopt%3A%3AEX%3A%3ANumbers) module.  Take a look at the module document for
     detail.
 
-    Next command use 2nd and 7,8,9th lines in the pattern file.
+    Next command uses 2nd and 7,8,9th lines in the pattern file.
 
         greple -f pattern_file --select 2,7:9
 
@@ -723,7 +704,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
         greple -m 0,10,10
 
-    Next command get first 20 (by `20,`) and get last 10 (by `,-10`),
+    Next command gets first 20 (by `20,`) and gets last 10 (by `,-10`),
     producing same result.  Empty string behaves like absence for
     _length_ and zero for _offset_.
 
@@ -1465,8 +1446,8 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 - **--postgrep**=_function_(_..._)
 - **--postgrep**=_function_=_..._
 
-    Specify the function called after each search operation.  Funciton is
-    called with `App::Greple::Grep` object which cotains all information
+    Specify the function called after each search operation.  Function is
+    called with `App::Greple::Grep` object which contains all information
     about the search.  This interface highly depends on the internal
     structure, so use with the utmost caution.
 

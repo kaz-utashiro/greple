@@ -1464,57 +1464,45 @@ __END__
     $ cpanm App::Greple
 
 
-=head1 SUMMARY (AI GENERATED)
+=head1 SUMMARY
 
+B<greple> is a grep-like tool designed for searching structured text
+such as source code and documents.  Key features include:
 
-B<GREPLE> is a sophisticated and versatile grep-like command-line tool
-designed primarily for advanced text searching and manipulation in
-document files. While it can handle various text formats, it
-particularly excels in processing structured documents, such as source
-code, markup files, and other text-based content. Here are some key
-features that make greple especially suitable for document processing:
+=over 4
 
-=over 2
+=item *
 
-=item * Flexible pattern matching: greple supports complex search
-patterns, including multi-line matching and logical combinations of
-keywords, which is particularly useful for searching within structured
-documents.
+B<Flexible pattern matching>: Multiple keyword search with AND/OR/NOT
+logic, including multi-line matching and lexical expressions.
 
-=item * Region control: With options like C<--inside>, C<--outside>,
-C<--include>, and C<--exclude>, greple allows precise targeting of
-specific sections within documents, such as code blocks, comments, or
-particular markup regions.
+=item *
 
-=item * Block-oriented processing: The ability to define and work with
-custom text blocks makes it ideal for handling document structures
-like paragraphs, sections, or other logical units within a text.
+B<Region control>: Target specific sections with C<--inside>,
+C<--outside>, C<--include>, and C<--exclude> options.  Useful for
+searching only within code blocks, comments, or other delimited
+regions.
 
-=item * Multi-byte text support: greple is particularly adept at
-handling Asian languages, especially Japanese, making it valuable for
-multilingual document processing.
+=item *
 
-=item * Extensibility through modules: Users can create custom modules
-to implement document-specific search and manipulation functions,
-enhancing its capabilities for particular document types or formats.
+B<Block-oriented processing>: Define and search custom text blocks
+such as paragraphs or function definitions.
 
-=item * Colorized output: The advanced color options allow for clear
-visualization of search results, which is particularly helpful when
-analyzing document structure or content.
+=item *
 
-=item * Integration with other text processing tools: greple can be
-easily combined with other Unix tools and custom scripts for more
-complex document analysis and transformation tasks.
+B<Multi-byte support>: Native handling of Japanese and other Asian
+languages with proper character encoding.
+
+=item *
+
+B<Extensibility>: Module system allows custom search patterns and
+filters for specific document types or use cases.
 
 =back
 
-While greple can be used for various text processing tasks, its
-feature set is particularly well-suited for working with structured
-documents, source code files, and other text-based content where
-context, structure, and precise matching are important. It may not be
-the best choice for processing very large data files or high-volume
-log analysis, but it excels in scenarios where detailed examination
-and manipulation of document content is required.
+While it can be used for general text search, greple excels at
+searching source code, structured documents, and multi-byte text where
+context and precision matter.
 
 
 =head1 DESCRIPTION
@@ -1527,13 +1515,13 @@ and manipulation of document content is required.
 
 B<greple> can take multiple search patterns with the C<-e> option, but
 unlike the L<egrep(1)> command, it will search them in AND context.
-For example, the next command print lines those containing all of
+For example, the next command prints lines that contain all of
 C<foo> and C<bar> and C<baz>.
 
     greple -e foo -e bar -e baz ...
 
 Each word can appear in any order and any place in the string.  So
-this command find all of following lines.
+this command finds all of the following lines.
 
     foo bar baz
     baz bar foo
@@ -1545,7 +1533,7 @@ If you want to use OR syntax, use regular expression.
 
     greple -e foo -e bar -e baz -e 'yabba|dabba|doo'
 
-This command will print lines those contains all of C<foo>, C<bar> and
+This command will print lines that contain all of C<foo>, C<bar> and
 C<baz> and one or more of C<yabba>, C<dabba> or C<doo>.
 
 Multiple patterns may be described in a file line-by-line, and
@@ -1565,8 +1553,8 @@ The two commands below work the same way.
 
 =head3 NOT
 
-Use option C<-v> to specify keyword which should not found in the data
-record.  Next example will show lines those contain both C<foo> and
+Use option C<-v> to specify keyword which should not be found in the data
+record.  Next example shows lines that contain both C<foo> and
 C<bar> but none of C<yabba>, C<dabba> or C<doo>.
 
     greple -e foo -e bar -v yabba -v dabba -v doo
@@ -1574,15 +1562,15 @@ C<bar> but none of C<yabba>, C<dabba> or C<doo>.
 
 =head3 MAY
 
-When you are focusing on multiple words, there may be words those are
-not necessary but would be of interest if there were.
+When you are focusing on multiple words, there may be words that are
+not necessary but would be of interest if they were present.
 
 Use option C<--may> or C<-t> (tentative) to specify that kind of
-words.  They will be a subject of search, and highlighted if exist,
+words.  They will be a subject of search, and highlighted if they exist,
 but are optional.
 
-Next command print all lines including C<foo> and C<bar>, and
-highlight C<baz> as well.
+Next command prints all lines including C<foo> and C<bar>, and
+highlights C<baz> as well.
 
     greple -e foo -e bar -t baz
 
@@ -1613,8 +1601,8 @@ baz> to search lines including all of them.
 
     greple 'foo bar baz'
 
-Next command show lines which include C<foo>, but does not include
-C<bar>, and highlight C<baz> if exists.
+Next command shows lines which include C<foo>, but do not include
+C<bar>, and highlights C<baz> if it exists.
 
     greple 'foo -bar ?baz'
 
@@ -1642,15 +1630,15 @@ in the bare or C<--le> pattern.
 =head2 FLEXIBLE BLOCKS
 
 
-Default data block B<greple> search and print is a line.  Using
+Default data block B<greple> searches and prints is a line.  Using
 C<--paragraph> (or C<-p> in short) option, series of text separated by
-empty line is taken as a record block.  So next command will print
+empty line is taken as a record block.  So the next command prints
 whole paragraph which contains the word C<foo>, C<bar> and C<baz>.
 
     greple -p 'foo bar baz'
 
-Block also can be defined by pattern.  Next command treat the data as
-a series of 10-line unit.
+Block can also be defined by pattern.  Next command treats the data as
+a series of 10-line units.
 
     greple -n --border='(.*\n){1,10}'
 
@@ -1802,15 +1790,15 @@ Classes">.
 
 =item B<-e> I<pattern>, B<--and>=I<pattern>
 
-Specify the positive match pattern.  Next command print lines contains
+Specify the positive match pattern.  Next command prints lines containing
 all of C<foo>, C<bar> and C<baz>.
 
     greple -e foo -e bar -e baz
 
 =item B<-t> I<pattern>, B<--may>=I<pattern>
 
-Specify the optional (tentative) match pattern.  Next command print
-lines contains C<foo> and C<bar>, and highlight C<baz> if exists.
+Specify the optional (tentative) match pattern.  Next command prints
+lines containing C<foo> and C<bar>, and highlights C<baz> if it exists.
 
     greple -e foo -e bar -t baz
 
@@ -1828,15 +1816,15 @@ exist, other positive match pattern becomes optional.
 
     greple -r foo -r bar -e baz
 
-Because C<-t> promote all other C<-e> patterns required, next command
-do the same thing.  Mixing C<-r>, C<-e> and C<-t> is not recommended,
+Because C<-t> promotes all other C<-e> patterns to required, the next command
+does the same thing.  Mixing C<-r>, C<-e> and C<-t> is not recommended,
 though.
 
     greple -r foo -e bar -t baz
 
 =item B<-v> I<pattern>, B<--not>=I<pattern>
 
-Specify the negative match pattern.  Because it does not affect to the
+Specify the negative match pattern.  Because it does not affect the
 bare pattern argument, you can narrow down the search result like
 this.
 
@@ -1873,7 +1861,7 @@ spaces.  Each token is interpreted by the first character.  Token
 start with C<-> means B<negative> pattern, C<?> means B<optional>, and
 C<+> does B<required>.
 
-The next example prints lines which containing C<foo> and C<yabba>,
+The next example prints lines containing C<foo> and C<yabba>,
 and none of C<bar> and C<dabba>, with highlighting C<baz> and C<doo>
 if they exist.
 
@@ -1994,8 +1982,8 @@ respectively.
 
     greple --matchcount=,3 ';' file
 
-In fact, I<min> and I<max> can repeat to represent multiple range.
-Missing, negative or zero I<max> means infinite.  Next command find
+In fact, I<min> and I<max> can repeat to represent multiple ranges.
+Missing, negative or zero I<max> means infinite.  Next command finds
 match count 0 to 10, 20 to 30, and 40-or-greater.
 
     greple --matchcount=,10,20,30,40
@@ -2051,7 +2039,7 @@ separated by comma (,) character and each number is interpreted by
 L<Getopt::EX::Numbers> module.  Take a look at the module document for
 detail.
 
-Next command use 2nd and 7,8,9th lines in the pattern file.
+Next command uses 2nd and 7,8,9th lines in the pattern file.
 
     greple -f pattern_file --select 2,7:9
 
@@ -2124,7 +2112,7 @@ the result (by C<10>).  Consequently, get 10 blocks from 10th (10-19).
 
     greple -m 0,10,10
 
-Next command get first 20 (by C<20,>) and get last 10 (by C<,-10>),
+Next command gets first 20 (by C<20,>) and gets last 10 (by C<,-10>),
 producing same result.  Empty string behaves like absence for
 I<length> and zero for I<offset>.
 
@@ -2936,8 +2924,8 @@ therefore, file name is not given to those functions.
 
 =item B<--postgrep>=I<function>=I<...>
 
-Specify the function called after each search operation.  Funciton is
-called with C<App::Greple::Grep> object which cotains all information
+Specify the function called after each search operation.  Function is
+called with C<App::Greple::Grep> object which contains all information
 about the search.  This interface highly depends on the internal
 structure, so use with the utmost caution.
 
