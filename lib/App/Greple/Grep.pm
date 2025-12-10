@@ -156,10 +156,10 @@ sub prepare {
 		}
 		$group_index_offset = $max_index;
 	    }
-	    map { $_->index //= $i } @p;
+	    $_->index //= $i for @p;
 	    if (my $n = $self->{callback}->@*) {
 		if (my $callback = $self->{callback}->[ $i % $n ]) {
-		    map { $_->callback //= $callback } @p;
+		    $_->callback //= $callback for @p;
 		}
 	    }
 	}
@@ -485,39 +485,205 @@ sub blocker {
     @$border[ $bi, $ei ];
 }
 
-1;
-
-
-package App::Greple::Text;
-
-use strict;
-use warnings;
-
-use overload 
-    '""' => \&stringify;
-
-sub stringify {
-    my $obj = shift;
-    ${ $obj->{text} };
-}
-
-sub new {
-    my $class = shift;
-    my $obj = bless {
-	text => \$_[0],
-    }, $class;
-    $obj;
-}
-
-sub text {
-    my $obj = shift;
-    ${ $obj->{text} };
-}
-
-sub cut {
-    my $obj = shift;
-    my($from, $to) = @_;
-    substr ${ $obj->{text} }, $from, $to - $from;
+package App::Greple::Text {
+    use strict;
+    use warnings;
+    use overload '""' => sub { ${ $_[0]->{text} } };
+    sub new {
+	my $class = shift;
+	bless { text => \$_[0] }, $class;
+    }
+    sub text { ${ $_[0]->{text} } }
+    sub cut {
+	my($obj, $from, $to) = @_;
+	substr ${ $obj->{text} }, $from, $to - $from;
+    }
 }
 
 1;
+
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+App::Greple::Grep - Greple grep engine module
+
+=head1 SYNOPSIS
+
+    use App::Greple::Grep;
+
+    my $grep = App::Greple::Grep->new(
+        text     => \$text,
+        filename => $filename,
+        pattern  => $pattern_holder,
+        ...
+    )->run;
+
+    for my $result ($grep->result) {
+        my $block = $result->block;
+        for my $match ($result->matched) {
+            # process each match
+        }
+    }
+
+=head1 DESCRIPTION
+
+This module provides the core grep engine for the B<greple> command.
+It is typically not used directly, but can be accessed through the
+C<--postgrep> option to manipulate search results.
+
+=head1 CLASSES
+
+=head2 App::Greple::Grep::Block
+
+Represents a text block containing matched patterns.
+
+=over 4
+
+=item B<min>
+
+Start position of the block (0-origin byte offset).
+
+=item B<max>
+
+End position of the block.
+
+=item B<number>
+
+Block number (1-origin).
+
+=back
+
+=head2 App::Greple::Grep::Match
+
+Represents an individual match within a block.
+
+=over 4
+
+=item B<min>
+
+Start position of the match.
+
+=item B<max>
+
+End position of the match.
+
+=item B<index>
+
+Pattern index (0-origin) indicating which pattern matched.
+Used for colorization with C<--colorindex> option.
+
+=item B<callback>
+
+Callback function to be called when this match is output.
+The callback receives the following arguments:
+
+For CODE reference:
+
+    $callback->($start, $end, $index, $matched_string)
+
+For L<Getopt::EX::Func> object:
+
+    $callback->call(
+        &FILELABEL => $file,
+        start => $start,
+        end   => $end,
+        index => $index,
+        match => $matched_string,
+    )
+
+The callback should return the string to be output.  If it returns
+C<undef>, the original matched string is used.
+
+=back
+
+=head2 App::Greple::Grep::Result
+
+Represents the search result for a single block.
+
+=over 4
+
+=item B<block>
+
+Returns the C<App::Greple::Grep::Block> object.
+
+=item B<matched>
+
+Returns a list of C<App::Greple::Grep::Match> objects.
+
+=item B<min>, B<max>, B<number>
+
+Shortcuts for C<< $result->block->min >>, etc.
+
+=back
+
+=head1 METHODS
+
+=head2 App::Greple::Grep
+
+=over 4
+
+=item B<result>
+
+Returns a list of C<App::Greple::Grep::Result> objects.
+
+=item B<result_ref>
+
+Returns a reference to the result array.  This can be used to modify
+the results in a C<--postgrep> function.
+
+=item B<matched>
+
+Returns the total number of matches.
+
+=item B<blocks>
+
+Returns a list of all blocks.
+
+=item B<cut>(I<$from>, I<$to>)
+
+Returns the substring of the text from position I<$from> to I<$to>.
+
+=item B<slice_result>(I<$result>)
+
+Returns a list of strings alternating between unmatched and matched
+portions within the block.
+
+=back
+
+=head1 USING --postgrep OPTION
+
+The C<--postgrep> option allows you to process the Grep object after
+the search is complete.  The function receives the Grep object as its
+argument.
+
+    sub postgrep {
+        my $grep = shift;
+        for my $result ($grep->result) {
+            for my $match ($result->matched) {
+                # Modify match attributes
+                $match->callback = sub { ... };
+            }
+        }
+    }
+
+=head1 CALLBACK EXAMPLE
+
+The L<App::Greple::subst> module uses callbacks to replace matched
+text:
+
+    my $callback = sub {
+        my($start, $end, $index, $matched) = @_;
+        # Return replacement string
+        return $replacement;
+    };
+
+    for my $match ($result->matched) {
+        $match->callback = $callback;
+    }
+
+=head1 SEE ALSO
+
+L<greple>, L<App::Greple::subst>

@@ -2937,13 +2937,16 @@ therefore, file name is not given to those functions.
 =item B<--postgrep>=I<function>=I<...>
 
 Specify the function called after each search operation.  Function is
-called with C<App::Greple::Grep> object which contains all information
-about the search.  This interface highly depends on the internal
-structure, so use with the utmost caution.
+called with L<App::Greple::Grep> object which contains all information
+about the search.
 
-The search results are held as a list of blocks.  By emptying the
-contents of a block element, the matches for that block can be
-canceled.
+The search results are held as a list of L<App::Greple::Grep::Result>
+objects.  Each result contains a block and matched regions.  By
+emptying the contents of a result element, the matches for that block
+can be canceled.
+
+See L<App::Greple::Grep> for details about the object structure and
+callback mechanism.
 
 =item B<--callback>=I<function>(I<...>)
 
@@ -3443,7 +3446,9 @@ option interfaces, and change the command name. (2013.11)
 
 L<grep(1)>, L<perl(1)>
 
-L<App::Greple>, L<https://github.com/kaz-utashiro/greple>
+L<App::Greple>, L<App::Greple::Grep>
+
+L<https://github.com/kaz-utashiro/greple>
 
 L<Getopt::EX>, L<https://github.com/kaz-utashiro/Getopt-EX>
 

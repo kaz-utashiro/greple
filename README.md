@@ -1459,13 +1459,16 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 - **--postgrep**=_function_=_..._
 
     Specify the function called after each search operation.  Function is
-    called with `App::Greple::Grep` object which contains all information
-    about the search.  This interface highly depends on the internal
-    structure, so use with the utmost caution.
+    called with [App::Greple::Grep](https://metacpan.org/pod/App%3A%3AGreple%3A%3AGrep) object which contains all information
+    about the search.
 
-    The search results are held as a list of blocks.  By emptying the
-    contents of a block element, the matches for that block can be
-    canceled.
+    The search results are held as a list of [App::Greple::Grep::Result](https://metacpan.org/pod/App%3A%3AGreple%3A%3AGrep%3A%3AResult)
+    objects.  Each result contains a block and matched regions.  By
+    emptying the contents of a result element, the matches for that block
+    can be canceled.
+
+    See [App::Greple::Grep](https://metacpan.org/pod/App%3A%3AGreple%3A%3AGrep) for details about the object structure and
+    callback mechanism.
 
 - **--callback**=_function_(_..._)
 
@@ -1914,7 +1917,9 @@ option interfaces, and change the command name. (2013.11)
 
 [grep(1)](http://man.he.net/man1/grep), [perl(1)](http://man.he.net/man1/perl)
 
-[App::Greple](https://metacpan.org/pod/App%3A%3AGreple), [https://github.com/kaz-utashiro/greple](https://github.com/kaz-utashiro/greple)
+[App::Greple](https://metacpan.org/pod/App%3A%3AGreple), [App::Greple::Grep](https://metacpan.org/pod/App%3A%3AGreple%3A%3AGrep)
+
+[https://github.com/kaz-utashiro/greple](https://github.com/kaz-utashiro/greple)
 
 [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX), [https://github.com/kaz-utashiro/Getopt-EX](https://github.com/kaz-utashiro/Getopt-EX)
 
