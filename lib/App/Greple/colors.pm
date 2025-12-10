@@ -6,7 +6,36 @@ colors - Greple module for various colormap
 
 =head1 SYNOPSIS
 
-greple -Mcolors
+greple -Mcolors --light ...
+
+greple -Mcolors --dark ...
+
+greple -Mcolors --solarized ...
+
+=head1 DESCRIPTION
+
+This module provides predefined color schemes for different terminal
+backgrounds and preferences.  Colors are specified using
+L<Term::ANSIColor::Concise> format.
+
+=head2 COLOR FORMAT
+
+=over 4
+
+=item B<RGB format> (e.g., C<K/544>, C<555/100>)
+
+3-digit RGB values (0-5 each) for 216-color palette.  Format is
+C<foreground/background>.  C<K> means black, C<W> means white.
+
+=item B<Hex format> (e.g., C<#002b36>, C<080808>)
+
+6-digit hexadecimal RGB values for 24-bit true color.
+
+=item B<Grey levels> (e.g., C<L01> - C<L24>)
+
+24-level greyscale from dark (L01) to light (L24).
+
+=back
 
 =head1 OPTIONS
 
@@ -14,17 +43,30 @@ greple -Mcolors
 
 =item B<--light>
 
-For light terminal.  Same as a default.
+Color scheme for light background terminals.  Uses dark foreground
+colors on lighter backgrounds.
 
 =item B<--dark>
 
-For dark terminal.
+Color scheme for dark background terminals.  Uses light foreground
+colors on darker backgrounds.
+
+=item B<--bright>
+
+Alias for B<--light>.
 
 =item B<--grey24>
 
 =item B<--grey24-bg>
 
-24 level grey scales.
+24-level greyscale colors.  B<--grey24> uses grey foreground colors,
+B<--grey24-bg> uses grey background with contrasting foreground.
+
+=item B<--greyhex>
+
+=item B<--greyhex-bg>
+
+24-level greyscale using hex color codes for true color terminals.
 
 =item B<--solarized>
 
@@ -32,13 +74,54 @@ For dark terminal.
 
 =item B<--solarized-bg>
 
-Solarized colors.  B<--solarized> is same as B<--solarized-fg>.
+Ethan Schoonover's Solarized color palette.  B<--solarized> is an
+alias for B<--solarized-fg>.  B<--solarized-bg> uses Solarized colors
+as background.
 
 =back
 
 =head1 SEE ALSO
 
-L<https://github.com/altercation/solarized>
+L<App::Greple>, L<Term::ANSIColor::Concise>
+
+=head2 Color Adjustment
+
+L<Term::ANSIColor::Concise> provides color adjustment modifiers that
+can be appended to any color specification.  This allows you to
+customize colors without modifying this module.
+
+Modifier format: C<[+-=*][parameter][value]>
+
+    l - Lightness (0-100)      <red>+l20 (lighter red)
+    y - Luminance (0-100)      <blue>-y10 (darker blue)
+    s - Saturation (0-100)     <green>=s50 (less saturated)
+    h - Hue shift (degrees)    <red>+h30 (shift toward orange)
+    c - Complement             <red>c (cyan)
+    i - RGB Inverse            <blue>i (yellow)
+    g - Grayscale              <red>g
+
+Example:
+
+    greple --cm '<red>+l20,<blue>-s10,<green>+h15'
+
+See L<Term::ANSIColor::Concise> for complete documentation.
+
+=head2 Solarized
+
+Solarized is a sixteen color palette designed by Ethan Schoonover for
+use with terminal and GUI applications.
+
+=over 4
+
+=item L<https://ethanschoonover.com/solarized/>
+
+Official Solarized homepage.
+
+=item L<https://github.com/altercation/solarized>
+
+Solarized repository with color values and ports for various applications.
+
+=back
 
 =cut
 
