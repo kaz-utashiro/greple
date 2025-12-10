@@ -43,11 +43,11 @@
       "runtime" : {
          "requires" : {
             "Clone" : "0",
-            "Getopt::EX" : "v2.2.1",
+            "Getopt::EX" : "3.02",
             "Hash::Util" : "0",
             "List::BinarySearch" : "0",
             "List::Util" : "1.45",
-            "Term::ANSIColor::Concise" : "2.08",
+            "Term::ANSIColor::Concise" : "3.01",
             "perl" : "v5.24.0"
          }
       },
