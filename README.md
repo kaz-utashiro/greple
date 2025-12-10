@@ -33,6 +33,7 @@ Version 9.23
       -l                   list filename only
       -c                   print count of matched block only
       -n                   print line number
+      -b                   print block number
       -H, -h               do or do not display filenames
       -o                   print only the matching part
       --all                print entire data
@@ -43,7 +44,8 @@ Version 9.23
       --nonewline          do not add newline character at the end of block
       --filestyle=style    how filenames are printed (once, separate, line)
       --linestyle=style    how line numbers are printed (separate, line)
-      --separate           set both filestyle and linestyle "separate"
+      --blockstyle=style   how block numbers are printed (separate, line)
+      --separate           set filestyle, linestyle, blockstyle "separate"
       --format LABEL=...   define the format for line number and file name
       --frame-top          top frame line
       --frame-middle       middle frame line
@@ -271,14 +273,14 @@ script.
 Using option `--inside` and `--outside`, you can specify the text
 area to be matched.  Next commands search only in mail header and body
 area respectively.  In these cases, data block is not changed, so
-print lines which contains the pattern in the specified area.
+print lines which contain the pattern in the specified area.
 
     greple --inside '\A(.+\n)+' pattern
 
     greple --outside '\A(.+\n)+' pattern
 
 Option `--inside`/`--outside` can be used repeatedly to enhance the
-area to be matched.  There are similar option
+area to be matched.  There are similar options
 `--include`/`--exclude`, but they are used to trim down the area.
 
 These four options also take user defined function and any complex
@@ -302,7 +304,7 @@ module.  Modules are invoked by `-M` option immediately after command
 name.
 
 For example, **greple** does not have recursive search option, but it
-can be implemented by `--readlist` option which accept target file
+can be implemented by `--readlist` option which accepts target file
 list from standard input.  Using **find** module, it can be written
 like this:
 
@@ -323,8 +325,8 @@ but this command is finally translated into following option list.
 
 ## INCLUDED MODULES
 
-This release include some sample modules.  Read document in each
-modules for detail.  You can read the document by `--man` option or
+The distribution includes some sample modules.  Read document in each
+module for detail.  You can read the document by `--man` option or
 [perldoc](https://metacpan.org/pod/perldoc) command.
 
     greple -Mdig --man
@@ -445,7 +447,7 @@ even if they are separated by newlines.
     greple -e 'foo bar baz'
 
 This is done by converting pattern `foo bar baz` to
-`foo\s+bar\+baz`, so that word separator can match one or more white
+`foo\s+bar\s+baz`, so that word separator can match one or more white
 spaces.
 
 As for Asian wide characters, pattern is cooked as zero or more white
@@ -476,11 +478,11 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
 - **-x** \[**+?-**\]**&**_function_, **--le**=\[**+?-**\]**&**_function_
 
-    If the pattern start with ampersand (`&`), it is treated as a
+    If the pattern starts with ampersand (`&`), it is treated as a
     function, and the function is called instead of searching pattern.
-    Function call interface is same as the one for block/region options.
+    Function call interface is the same as the one for block/region options.
 
-    If you have a definition of _odd\_line_ function in you `.greplerc`,
+    If you have a definition of _odd\_line_ function in your `.greplerc`,
     which is described in this manual later, you can print odd number
     lines like this:
 
@@ -655,6 +657,10 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
     Show line number.
 
+- **-b**, **--block-number**
+
+    Show block number.
+
 - **-h**, **--no-filename**
 
     Do not display filename.
@@ -671,7 +677,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
 - **--all**
 
-    Print entire file.  This option does not affect to seach behavior or
+    Print entire file.  This option does not affect search behavior or
     block treatment.  Just print all contents.  Can be negated by the
     **--no-all** option
 
@@ -688,11 +694,11 @@ If you don't want these conversion, use `-E` (or `--re`) option.
         greple -m -10      # remove last 10 blocks
         greple -m  10,10   # remove 10 blocks from 10th (10-19)
 
-    This option does not affect to search performance and command exit
+    This option does not affect search performance or command exit
     status.
 
-    Note that **grep** command also has same option, but it's behavior is
-    different when invoked to multiple files.  **greple** produces given
+    Note that **grep** command also has the same option, but its behavior is
+    different when invoked with multiple files.  **greple** produces given
     number of output for each file, while **grep** takes it as a total
     number of output.
 
@@ -775,20 +781,28 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     beginning of each line.  Style _separate_ prints line number in the
     separate line before each line or block.
 
+- **--blockstyle**=\[`line`,`separate`\], **--bs**
+
+    Default style is _line_, and **greple** prints block numbers at the
+    beginning of each line.  Style _separate_ prints block number in the
+    separate line before each line or block.
+
 - **--separate**
 
-    Shortcut for `--filestyle=separate` `--linestyle=separate`.
-    This is convenient to use block mode search and visiting each location
-    from supporting tool, such as Emacs.
+    Shortcut for `--filestyle=separate` `--linestyle=separate`
+    `--blockstyle=separate`.  This is convenient to use block mode search
+    and visiting each location from supporting tool, such as Emacs.
 
 - **--format** **LABEL**=_format_
 
-    Define the format string of line number (LINE) and file name (FILE) to
-    be displayed.  Default is:
+    Define the format string of line number (LINE), file name (FILE) and
+    block number (BLOCK) to be displayed.  Default is:
 
         --format LINE='%d:'
 
         --format FILE='%s:'
+
+        --format BLOCK='%s:'
 
     Format string is passed to `sprintf` function.  Tab character can be
     expressed as `\t`.
@@ -820,7 +834,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     repeating option, `--glob` file expansion will be done for every
     directories.
 
-        greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
+        greple --chdir '/usr/share/man/man?' --glob '*.[0-9]' ...
 
 - **--readlist**
 
@@ -951,9 +965,9 @@ If you don't want these conversion, use `-E` (or `--re`) option.
         BLOCKEND  Block end mark
         PROGRESS  Progress status with -dnf option
 
-    In current release, `BLOCKEND` mark is colored with `E` effect
-    recently implemented in [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX) module, which allows to fill up
-    the line with background color.  This effect uses irregular escape
+    The `BLOCKEND` mark is colored with `E` effect provided by
+    [Getopt::EX](https://metacpan.org/pod/Getopt%3A%3AEX) module, which allows to fill up the line with background
+    color.  This effect uses irregular escape
     sequence, and you may need to define `LESSANSIENDCHARS` environment
     as "mK" to see the result with [less](https://metacpan.org/pod/less) command.
 
@@ -1077,8 +1091,8 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
     Use different colors for different string matched.
 
-    Next example prints all words start by `color` and display them all
-    in different colors.
+    Next example prints all words starting with `color` and displays them
+    all in different colors.
 
         greple --uniqcolor 'colou?r\w*'
 
@@ -1153,12 +1167,10 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
     Print a paragraph which contains the pattern.  Each paragraph is
     delimited by two or more successive newlines by default.  Be aware
-    that an empty line is not a paragraph delimiter if which contains
+    that an empty line is not a paragraph delimiter if it contains
     space characters.  Example:
 
-        greple -np 'setuid script' /usr/man/catl/perl.l
-
-        greple -pe '^struct sockaddr' /usr/include/sys/socket.h
+        greple -np -C4 -e 'find myself' script/greple
 
     It changes the unit of context specified by `-A`, `-B`, `-C`
     options.  Space gap between paragraphs are also treated as a block
@@ -1358,7 +1370,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     pass-phrase is asked for each file.  If you want to input pass-phrase
     only once to find from multiple files, use `-Mpgp` module.
 
-    If the filter start with `&`, perl subroutine is called instead of
+    If the filter starts with `&`, perl subroutine is called instead of
     external command.  You can define the subroutine in `.greplerc` or
     modules.  **Greple** simply call the subroutine, so it should be
     responsible for process control.  It may have to use `POSIX::_exit()`
@@ -1380,7 +1392,7 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
         greple --of 'cat -n' string file1 file2 ...
 
-    If the filter start with `&`, perl subroutine is called instead of
+    If the filter starts with `&`, perl subroutine is called instead of
     external command.  You can define the subroutine in `.greplerc` or
     modules.
 
@@ -1571,9 +1583,9 @@ interpreted as a bare word.
 
 - **--norc**
 
-    Do not read startup file: `~/.greplerc`.  This option have to be
+    Do not read startup file: `~/.greplerc`.  This option has to be
     placed before any other options including `-M` module options.
-    Setting `GREPLE_NORC` environment have same effect.
+    Setting `GREPLE_NORC` environment has the same effect.
 
 - **--error**=_action_
 
@@ -1616,7 +1628,7 @@ interpreted as a bare word.
 
     Control runtime message mainly about file operation related to
     `--error` option.  Repeatable.  Value is optional and 1 is assumed
-    when omitted.  So `-wall` option is same as `-wall=1` and enables
+    when omitted.  So `-wall` option is the same as `-wall=1` and enables
     all messages, and `-wall=0` disables all.
 
     Types are:

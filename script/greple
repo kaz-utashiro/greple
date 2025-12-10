@@ -93,6 +93,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -l                   list filename only
     -c                   print count of matched block only
     -n                   print line number
+    -b                   print block number
     -H, -h               do or do not display filenames
     -o                   print only the matching part
     --all                print entire data
@@ -103,7 +104,8 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --nonewline          do not add newline character at the end of block
     --filestyle=style    how filenames are printed (once, separate, line)
     --linestyle=style    how line numbers are printed (separate, line)
-    --separate           set both filestyle and linestyle "separate"
+    --blockstyle=style   how block numbers are printed (separate, line)
+    --separate           set filestyle, linestyle, blockstyle "separate"
     --format LABEL=...   define the format for line number and file name
     --frame-top          top frame line
     --frame-middle       middle frame line
@@ -256,7 +258,7 @@ newopt
     ' linestyle          |ls =s ' => \(my $opt_linestyle = 'line') ,
     ' blockstyle         |bs =s ' => \(my $opt_blockstyle = 'line') ,
     ' separate ' => sub {
-	opt('filestyle') = opt('linestyle') = $_[0];
+	opt('filestyle') = opt('linestyle') = opt('blockstyle') = $_[0];
     },
     ' format                 =s ' => \    %opt_format ,
     ' frame-top              :s ' => \(my $opt_frame_top    = '') ,
@@ -1654,14 +1656,14 @@ script.
 Using option C<--inside> and C<--outside>, you can specify the text
 area to be matched.  Next commands search only in mail header and body
 area respectively.  In these cases, data block is not changed, so
-print lines which contains the pattern in the specified area.
+print lines which contain the pattern in the specified area.
 
     greple --inside '\A(.+\n)+' pattern
 
     greple --outside '\A(.+\n)+' pattern
 
 Option C<--inside>/C<--outside> can be used repeatedly to enhance the
-area to be matched.  There are similar option
+area to be matched.  There are similar options
 C<--include>/C<--exclude>, but they are used to trim down the area.
 
 These four options also take user defined function and any complex
@@ -1687,7 +1689,7 @@ module.  Modules are invoked by C<-M> option immediately after command
 name.
 
 For example, B<greple> does not have recursive search option, but it
-can be implemented by C<--readlist> option which accept target file
+can be implemented by C<--readlist> option which accepts target file
 list from standard input.  Using B<find> module, it can be written
 like this:
 
@@ -1710,8 +1712,8 @@ but this command is finally translated into following option list.
 =head2 INCLUDED MODULES
 
 
-This release include some sample modules.  Read document in each
-modules for detail.  You can read the document by C<--man> option or
+The distribution includes some sample modules.  Read document in each
+module for detail.  You can read the document by C<--man> option or
 L<perldoc> command.
 
     greple -Mdig --man
@@ -1843,7 +1845,7 @@ even if they are separated by newlines.
     greple -e 'foo bar baz'
 
 This is done by converting pattern C<foo bar baz> to
-C<foo\s+bar\+baz>, so that word separator can match one or more white
+C<foo\s+bar\s+baz>, so that word separator can match one or more white
 spaces.
 
 As for Asian wide characters, pattern is cooked as zero or more white
@@ -1876,11 +1878,11 @@ This is the summary of start character for C<--le> option:
 
 =item B<-x> [B<+?->]B<&>I<function>, B<--le>=[B<+?->]B<&>I<function>
 
-If the pattern start with ampersand (C<&>), it is treated as a
+If the pattern starts with ampersand (C<&>), it is treated as a
 function, and the function is called instead of searching pattern.
-Function call interface is same as the one for block/region options.
+Function call interface is the same as the one for block/region options.
 
-If you have a definition of I<odd_line> function in you F<.greplerc>,
+If you have a definition of I<odd_line> function in your F<.greplerc>,
 which is described in this manual later, you can print odd number
 lines like this:
 
@@ -2063,6 +2065,10 @@ Print count of matched block.
 
 Show line number.
 
+=item B<-b>, B<--block-number>
+
+Show block number.
+
 =item B<-h>, B<--no-filename>
 
 Do not display filename.
@@ -2079,7 +2085,7 @@ you don't need extra newline.
 
 =item B<--all>
 
-Print entire file.  This option does not affect to seach behavior or
+Print entire file.  This option does not affect search behavior or
 block treatment.  Just print all contents.  Can be negated by the
 B<--no-all> option
 
@@ -2096,11 +2102,11 @@ I<offset> and I<length>.  Works like this:
     greple -m -10      # remove last 10 blocks
     greple -m  10,10   # remove 10 blocks from 10th (10-19)
 
-This option does not affect to search performance and command exit
+This option does not affect search performance or command exit
 status.
 
-Note that B<grep> command also has same option, but it's behavior is
-different when invoked to multiple files.  B<greple> produces given
+Note that B<grep> command also has the same option, but its behavior is
+different when invoked with multiple files.  B<greple> produces given
 number of output for each file, while B<grep> takes it as a total
 number of output.
 
@@ -2186,20 +2192,28 @@ Default style is I<line>, and B<greple> prints line numbers at the
 beginning of each line.  Style I<separate> prints line number in the
 separate line before each line or block.
 
+=item B<--blockstyle>=[C<line>,C<separate>], B<--bs>
+
+Default style is I<line>, and B<greple> prints block numbers at the
+beginning of each line.  Style I<separate> prints block number in the
+separate line before each line or block.
+
 =item B<--separate>
 
-Shortcut for C<--filestyle=separate> C<--linestyle=separate>.
-This is convenient to use block mode search and visiting each location
-from supporting tool, such as Emacs.
+Shortcut for C<--filestyle=separate> C<--linestyle=separate>
+C<--blockstyle=separate>.  This is convenient to use block mode search
+and visiting each location from supporting tool, such as Emacs.
 
 =item B<--format> B<LABEL>=I<format>
 
-Define the format string of line number (LINE) and file name (FILE) to
-be displayed.  Default is:
+Define the format string of line number (LINE), file name (FILE) and
+block number (BLOCK) to be displayed.  Default is:
 
     --format LINE='%d:'
 
     --format FILE='%s:'
+
+    --format BLOCK='%s:'
 
 Format string is passed to C<sprintf> function.  Tab character can be
 expressed as C<\t>.
@@ -2239,7 +2253,7 @@ are specified in C<--chdir> option, by using wildcard form or
 repeating option, C<--glob> file expansion will be done for every
 directories.
 
-    greple --chdir '/usr/man/man?' --glob '*.[0-9]' ...
+    greple --chdir '/usr/share/man/man?' --glob '*.[0-9]' ...
 
 =item B<--readlist>
 
@@ -2380,9 +2394,9 @@ Another form of colormap option to specify the color for fields:
     BLOCKEND  Block end mark
     PROGRESS  Progress status with -dnf option
 
-In current release, C<BLOCKEND> mark is colored with C<E> effect
-recently implemented in L<Getopt::EX> module, which allows to fill up
-the line with background color.  This effect uses irregular escape
+The C<BLOCKEND> mark is colored with C<E> effect provided by
+L<Getopt::EX> module, which allows to fill up the line with background
+color.  This effect uses irregular escape
 sequence, and you may need to define C<LESSANSIENDCHARS> environment
 as "mK" to see the result with L<less> command.
 
@@ -2511,8 +2525,8 @@ Shortcut for C<--colorindex=U>.
 
 Use different colors for different string matched.
 
-Next example prints all words start by C<color> and display them all
-in different colors.
+Next example prints all words starting with C<color> and displays them
+all in different colors.
 
     greple --uniqcolor 'colou?r\w*'
 
@@ -2593,12 +2607,10 @@ Next example clears all existing color specs.
 
 Print a paragraph which contains the pattern.  Each paragraph is
 delimited by two or more successive newlines by default.  Be aware
-that an empty line is not a paragraph delimiter if which contains
+that an empty line is not a paragraph delimiter if it contains
 space characters.  Example:
 
-    greple -np 'setuid script' /usr/man/catl/perl.l
-
-    greple -pe '^struct sockaddr' /usr/include/sys/socket.h
+    greple -np -C4 -e 'find myself' script/greple
 
 It changes the unit of context specified by C<-A>, C<-B>, C<-C>
 options.  Space gap between paragraphs are also treated as a block
@@ -2822,7 +2834,7 @@ File with C<.gpg> suffix is filtered by B<gpg> command.  In that case,
 pass-phrase is asked for each file.  If you want to input pass-phrase
 only once to find from multiple files, use C<-Mpgp> module.
 
-If the filter start with C<&>, perl subroutine is called instead of
+If the filter starts with C<&>, perl subroutine is called instead of
 external command.  You can define the subroutine in F<.greplerc> or
 modules.  B<Greple> simply call the subroutine, so it should be
 responsible for process control.  It may have to use C<POSIX::_exit()>
@@ -2845,7 +2857,7 @@ number for each file.
 
     greple --of 'cat -n' string file1 file2 ...
 
-If the filter start with C<&>, perl subroutine is called instead of
+If the filter starts with C<&>, perl subroutine is called instead of
 external command.  You can define the subroutine in F<.greplerc> or
 modules.
 
@@ -3057,16 +3069,16 @@ Show module file path.  Use with C<-M> option.
 
 =item B<--norc>
 
-Do not read startup file: F<~/.greplerc>.  This option have to be
+Do not read startup file: F<~/.greplerc>.  This option has to be
 placed before any other options including C<-M> module options.
-Setting C<GREPLE_NORC> environment have same effect.
+Setting C<GREPLE_NORC> environment has the same effect.
 
 =begin comment
 
 =item B<-d> I<flags>
 
-Display informations.  Various kind of debug, diagnostic, monitor
-information can be display by giving appropriate flag to -d option.
+Display information.  Various kinds of debug, diagnostic, monitor
+information can be displayed by giving appropriate flag to -d option.
 
     c: color information
     d: directory information
@@ -3127,7 +3139,7 @@ instead.
 
 Control runtime message mainly about file operation related to
 C<--error> option.  Repeatable.  Value is optional and 1 is assumed
-when omitted.  So C<-wall> option is same as C<-wall=1> and enables
+when omitted.  So C<-wall> option is the same as C<-wall=1> and enables
 all messages, and C<-wall=0> disables all.
 
 Types are:
