@@ -81,7 +81,7 @@ package App::Greple::Grep::Match {
 package App::Greple::Grep::Result {
     use strict;
     sub block   { $_[0]->[0] }
-    sub matched { @{$_[0]}[ 1 .. $#{$_[0]} ] }
+    sub matched { $_[0]->@[ 1 .. $#{$_[0]} ] }
     sub min     { $_[0]->block->min }
     sub max     { $_[0]->block->max }
     sub number  { $_[0]->block->number }
@@ -157,7 +157,7 @@ sub prepare {
 		$group_index_offset = $max_index;
 	    }
 	    map { $_->index //= $i } @p;
-	    if (my $n = @{$self->{callback}}) {
+	    if (my $n = $self->{callback}->@*) {
 		if (my $callback = $self->{callback}->[ $i % $n ]) {
 		    map { $_->callback //= $callback } @p;
 		}
@@ -208,11 +208,11 @@ sub prepare {
     ## Setup BLOCKS
     ##
     my $bp = $self->{BLOCKS} = [ do {
-	if (@{$self->{block}}) {		# --block
+	if ($self->{block}->@*) {		# --block
 	    my $text = \$_;
 	    merge_regions { nojoin => 1, destructive => 1 }, map {
 		get_regions($self->{filename}, $text, $_);
-	    } @{$self->{block}};
+	    } $self->{block}->@*;
 	}
 	elsif (@blocks) {			# from matched range
 	    my %opt = ( A => $self->{after},
@@ -279,7 +279,7 @@ sub compose {
     ##
     if (my $countcheck = $self->{countcheck}) {
 	@effective_index = do {
-	    grep { $countcheck->(int(@{$mp->[$_][POSI_LIST]})) }
+	    grep { $countcheck->(int($mp->[$_][POSI_LIST]->@*)) }
 	    @effective_index;
 	}
 	or return $self;
@@ -288,7 +288,7 @@ sub compose {
     ##
     ## --block with -ABC option
     ##
-    if (@{$self->{block}} and ($self->{after} or $self->{before})) {
+    if ($self->{block}->@* and ($self->{after} or $self->{before})) {
 	my @mark;
 	for my $i (@effective_index) {
 	    map { $mark[$_] = 1 if $_ >= 0 }
@@ -303,9 +303,9 @@ sub compose {
     my @list = ();
     for my $bi (@effective_index) {
 	my @matched = merge_regions({ nojoin => 1, destructive => 1 },
-				    @{$mp->[$bi][MUST_LIST]},
-				    @{$mp->[$bi][POSI_LIST]},
-				    @{$mp->[$bi][NEGA_LIST]});
+				    $mp->[$bi][MUST_LIST]->@*,
+				    $mp->[$bi][POSI_LIST]->@*,
+				    $mp->[$bi][NEGA_LIST]->@*);
 	if ($self->{stretch}) {
 	    my $b = $bp->[$bi];
 	    my $m = $matched[0];
@@ -394,12 +394,12 @@ sub result {
 
 sub matched {
     my $obj = shift;
-    sum(map { @{$_} - 1 } $obj->result) // 0;
+    sum(map { $_->@* - 1 } $obj->result) // 0;
 }
 
 sub blocks {
     my $obj = shift;
-    @{ $obj->{BLOCKS} };
+    $obj->{BLOCKS}->@*;
 }
 
 sub slice_result {

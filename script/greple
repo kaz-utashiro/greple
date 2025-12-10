@@ -1067,8 +1067,8 @@ if ($opt_uniqcolor and $opt_d{c}) {
 if ($opt_d{s}) {
 
     $stat{time_end} = [times];
-    my @s = @{$stat{time_start}};
-    my @e = @{$stat{time_end}};
+    my @s = $stat{time_start}->@*;
+    my @e = $stat{time_end}->@*;
     printf(STDERR "cpu %.3fu %.3fs\n", $e[0]-$s[0], $e[1]-$s[1]);
 
     local $" = ', ';
@@ -1283,7 +1283,7 @@ sub grep_data {
 	print "$current_file:" if $need_filename;
 	print scalar $grep->result, "\n";
     }
-    elsif (@{$grep->result_ref}) {
+    elsif ($grep->result_ref->@*) {
 	$progress_reset->() if $progress_reset;
 	# open output filter
 	@opt_of && push_output_filter(
@@ -1375,7 +1375,7 @@ sub output {
 	my @slice = $grep->slice_result($result);
 	my $mark = "\001";
 	for my $i (keys @result) {
-	    my($start, $end, $pi, $callback) = @{$result[$i]};
+	    my($start, $end, $pi, $callback) = $result[$i]->@*;
 	    local *b = \$slice[$i * 2 + 1];
 
 	    ## run callback function

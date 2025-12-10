@@ -144,7 +144,7 @@ sub classify_regions {
     my @by = @{+shift};
     my @table;
     for my $i (keys @by) {
-	my($from, $to) = @{$by[$i]};
+	my($from, $to) = $by[$i]->@*;
 	while (@list and $list[0][1] < $from) {
 	    shift @list;
 	}
@@ -153,7 +153,7 @@ sub classify_regions {
 	}
 	my $t = $table[$i] = [];
 	for (my $i = 0; ($i < @list) and ($list[$i][0] < $to); $i++) {
-	    push @$t, [ @{$list[$i]} ];
+	    push @$t, [ $list[$i]->@* ];
 	}
     }
     @table;
@@ -164,7 +164,7 @@ sub classify_regions_strict {
     my @by = @{+shift};
     my @table;
     for my $i (keys @by) {
-	my($from, $to) = @{$by[$i]};
+	my($from, $to) = $by[$i]->@*;
 	while (@list and $list[0][0] < $from) {
 	    shift @list;
 	}
