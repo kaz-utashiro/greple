@@ -2,6 +2,31 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+10.00 2025-12-11T03:23:27Z
+
+    - Bump major version to 10.00 to indicate minimum Perl version requirement
+      change from 5.14 to 5.24
+
+    - Add --block-number (-b) option to show block numbers
+    - Add --blockstyle support to --separate option
+    - Allow "\f" in --format string
+    - Improve DEFINE pattern support for -f option
+        - Fix: Each pattern now receives necessary DEFINE definitions
+          (previous implementation only added DEFINE to the last pattern)
+        - Support nested DEFINE patterns with recursive dependency resolution
+        - Add comprehensive documentation in POD and DEFINE.md
+        - Document recommended usage patterns as per perlre documentation
+    - Improve --ci=G to assign sequential index across multiple patterns
+    - Fix --ci=G offset update when pattern does not match
+    - Define class for result entry
+    - Remove deprecated features for v10 preparation
+    - Require Perl 5.24 for :lvalue and postfix dereferencing
+        - Add :lvalue attribute to Pattern.pm accessors
+        - Use postfix dereferencing for improved readability
+    - Update comment about @-/@+ performance issue
+    - Improve documentation for Grep.pm, colors.pm, pgp.pm and general docs
+    - Add CLAUDE.md for Claude Code guidance
+
 9.23 2025-05-06T08:25:36Z
 
     - introduce alert debug message
