@@ -137,11 +137,39 @@ sub load_file {
 	    };
 	    @p = @p[@select];
 	}
+	##
+	## Collect DEFINE patterns
+	##
+	my %DEFINE;
+	for (@p) {
+	    if (/^\Q(?(DEFINE)(?<\E(?<name>[^>]+)/) {
+		$DEFINE{$+{name}} = $_;
+	    }
+	}
 	@p = do {
-	    map  { chomp ; s{\s*//.*$}{}r }
+	    map  { chomp; s{\s*//.*$}{}r }
 	    grep { not m{^\s*(?:#|//|$)} }
+	    grep { not m{^\Q(?(DEFINE)\E} }
 	    @p;
 	};
+	##
+	## Collect and append DEFINE references
+	##
+	if (%DEFINE and @p) {
+	    my %define;
+	    (sub {
+		my($str, $seen) = @_;
+		$seen //= {};
+		while ($str =~ /\(\?&(?<name>[^)]+)\)/g) {
+		    my $name = $+{name};
+		    next if $seen->{$name}++;
+		    my $def = $DEFINE{$name} or next;
+		    $define{$name} //= $def;
+		    __SUB__->($def, $seen);
+		}
+	    })->(join '', @p);
+	    $p[-1] .= "(?x:\n" . join("\n", values %define) . ")";
+	}
 	$obj->append({ flag => $flag }, @p);
     }
 }
