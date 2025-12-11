@@ -153,22 +153,24 @@ sub load_file {
 	    @p;
 	};
 	##
-	## Collect and append DEFINE references
+	## Append DEFINE to each pattern that references it
 	##
-	if (%DEFINE and @p) {
-	    my %define;
-	    (sub {
-		my($str, $seen) = @_;
-		$seen //= {};
-		while ($str =~ /\(\?&(?<name>[^)]+)\)/g) {
-		    my $name = $+{name};
-		    next if $seen->{$name}++;
-		    my $def = $DEFINE{$name} or next;
-		    $define{$name} //= $def;
-		    __SUB__->($def, $seen);
-		}
-	    })->(join '', @p);
-	    $p[-1] .= "(?x:\n" . join("\n", values %define) . ")";
+	if (%DEFINE) {
+	    for my $p (@p) {
+		my %define;
+		(sub {
+		    my($str, $seen) = @_;
+		    $seen //= {};
+		    while ($str =~ /\(\?&(?<name>[^)]+)\)/g) {
+			my $name = $+{name};
+			next if $seen->{$name}++;
+			my $def = $DEFINE{$name} or next;
+			$define{$name} //= $def;
+			__SUB__->($def, $seen);
+		    }
+		})->($p);
+		$p .= "(?x:\n" . join("\n", values %define) . ")" if %define;
+	    }
 	}
 	$obj->append({ flag => $flag }, @p);
     }

@@ -619,6 +619,25 @@ If you don't want these conversion, use `-E` (or `--re`) option.
         (?(<b>) \] | )      # closing "]" if start with "["   \
         $                   # EOL
 
+    DEFINE patterns are supported for defining reusable subpatterns.
+    Lines starting with `(?(DEFINE)` are used for declarations only and
+    not included as search patterns.  Other patterns can reference these
+    definitions using `(?&name)` syntax.
+
+        (?(DEFINE)(?<digit>\d+))
+        (?&digit)+
+        (?&digit){4}
+
+    When writing DEFINE and pattern on the same line, place the pattern
+    first and DEFINE at the end (recommended in ["(DEFINE)" in perlre](https://metacpan.org/pod/perlre#DEFINE)):
+
+        (?&digit)+(?(DEFINE)(?<digit>\d+))
+
+    Or prefix with `(?:)` (empty non-capturing group that does nothing)
+    to place DEFINE at the beginning:
+
+        (?:)(?(DEFINE)(?<digit>\d+))(?&digit)+
+
     If multiple files are specified, a separate group pattern is generated
     for each file.
 
