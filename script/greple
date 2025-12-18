@@ -2066,6 +2066,10 @@ Next command uses 2nd and 7,8,9th lines in the pattern file.
 
 =back
 
+B<Related options:>
+B<--inside>/B<--outside>/B<--include>/B<--exclude> (L</REGIONS>),
+B<--block> (L</BLOCKS>)
+
 
 =head2 STYLES
 
@@ -2252,6 +2256,10 @@ printed at the beginning, C<bottom> frame at the end, C<middle> frame
 between blocks.
 
 =back
+
+B<Related options:>
+B<--block>/B<-p> (L</BLOCKS>),
+B<--color>/B<--colormap> (L</COLORS>)
 
 
 =head2 FILES
@@ -2616,6 +2624,10 @@ Next example clears all existing color specs.
 
 =back
 
+B<Related options:>
+B<-o> (L</STYLES>),
+B<--inside>/B<--outside>/B<--include>/B<--exclude> (L</REGIONS>)
+
 
 =head2 BLOCKS
 
@@ -2691,6 +2703,11 @@ individual blocks, but if the results are back-to-back connected, make
 them single block for final output.
 
 =back
+
+B<Related options:>
+B<-b>/B<--block-number> (L</STYLES>),
+B<-A>/B<-B>/B<-C> (L</STYLES>),
+B<--inside>/B<--outside>/B<--include>/B<--exclude> (L</REGIONS>)
 
 
 =head2 REGIONS
@@ -2784,6 +2801,11 @@ includes surrounding spaces, and satisfies both conditions partially.
 This match does not occur when option C<--strict> is given, either.
 
 =back
+
+B<Related options:>
+B<--block> (L</BLOCKS>),
+B<--regioncolor> (L</COLORS>),
+B<-e>/B<-v> (L</PATTERNS>)
 
 
 =head2 CHARACTER CODE
