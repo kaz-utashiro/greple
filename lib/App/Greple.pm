@@ -9,11 +9,11 @@ greple - extensible grep with lexical expression and region handling
 
 =head1 VERSION
 
-Version 10.00
+Version 10.01
 
 =cut
 
-our $VERSION = '10.00';
+our $VERSION = '10.01';
 
 =head1 AUTHOR
 

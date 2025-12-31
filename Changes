@@ -2,6 +2,11 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+10.01 2025-12-31T01:30:39Z
+
+    - Add escape sequence support (\t, \n, \r, \f) to --blockend option
+    - Unify escape sequence handling with shared expand_escape() function
+
 10.00 2025-12-11T03:23:27Z
 
     - Bump major version to 10.00 to indicate minimum Perl version requirement
