@@ -827,8 +827,8 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
         --format BLOCK='%s:'
 
-    Format string is passed to `sprintf` function.  Tab character can be
-    expressed as `\t`.
+    Format string is passed to `sprintf` function.  Escape sequences
+    `\t`, `\n`, `\r`, and `\f` are recognized.
 
     Next example will show line numbers in five digits with tab space:
 
@@ -1253,7 +1253,8 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 - **--blockend**=_string_
 
     Change the end mark displayed after `-pABC` or `--block` options.
-    Default value is "--".
+    Default value is "--".  Escape sequences `\t`, `\n`, `\r`, and
+    `\f` are recognized.
 
 - **--join-blocks**
 
