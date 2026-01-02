@@ -521,9 +521,10 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     the pattern does not contain any capturing groups, it matches the
     entire pattern.
 
-    If `G` is specified in the **--colorindex** option, a corresponding
-    capture group number is assigned as an index (0 for entire match).
-    This will cause the strings corresponding to each capture group to be
+    If `G` is specified in the **--colorindex** option, a sequential
+    index starting from 0 is assigned to each capture group across all
+    patterns.  Patterns without capture groups count as one group.  This
+    will cause the strings corresponding to each capture group to be
     displayed in a different color.
 
 - **-S**, **--stretch**

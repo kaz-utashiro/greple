@@ -1924,9 +1924,10 @@ to individual capture groups are searched, not the entire pattern.  If
 the pattern does not contain any capturing groups, it matches the
 entire pattern.
 
-If C<G> is specified in the B<--colorindex> option, a corresponding
-capture group number is assigned as an index (0 for entire match).
-This will cause the strings corresponding to each capture group to be
+If C<G> is specified in the B<--colorindex> option, a sequential
+index starting from 0 is assigned to each capture group across all
+patterns.  Patterns without capture groups count as one group.  This
+will cause the strings corresponding to each capture group to be
 displayed in a different color.
 
 =item B<-S>, B<--stretch>
