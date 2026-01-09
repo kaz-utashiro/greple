@@ -2,7 +2,10 @@ package App::Greple::Pattern;
 
 use v5.24;
 use warnings;
-no  warnings "experimental::regex_sets";
+BEGIN {
+    eval { warnings->unimport('experimental::regex_sets') };
+    eval { warnings->unimport('experimental::vlb') };
+}
 use Data::Dumper;
 
 use Exporter 'import';

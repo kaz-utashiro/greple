@@ -2,7 +2,10 @@ package App::Greple::Regions;
 
 use v5.24;
 use warnings;
-no  warnings "experimental::regex_sets";
+BEGIN {
+    eval { warnings->unimport('experimental::regex_sets') };
+    eval { warnings->unimport('experimental::vlb') };
+}
 use Carp;
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
