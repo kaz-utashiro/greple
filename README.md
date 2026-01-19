@@ -96,6 +96,7 @@ Version 10.02
       --callback=func      callback function for each matched string
     OTHER
       --usage[=expand]     show this help message
+      --version            show version
       --exit=n             set the command exit status
       --norc               skip reading startup file
       --man                display the manual page for the command or module
@@ -1607,6 +1608,10 @@ interpreted as a bare word.
     expanded, supply something not empty to `--usage` option, like:
 
         greple -Mmodule --usage=expand
+
+- **--version**
+
+    Show version.
 
 - **--exit**=_number_
 

@@ -156,6 +156,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --callback=func      callback function for each matched string
   OTHER
     --usage[=expand]     show this help message
+    --version            show version
     --exit=n             set the command exit status
     --norc               skip reading startup file
     --man                display the manual page for the command or module
@@ -346,6 +347,7 @@ newopt
     ## OTHERS
     ##
     ' usage                  :s ' => \ my $opt_usage ,
+    ' version                   ' => \ my $opt_version ,
     ' exit                   =i ' => \ my $opt_exit ,
     # norc
     ' man  | doc                ' => \ my $opt_man ,
@@ -439,6 +441,11 @@ $ENV{'GREPLEOPTS'} and unshift @ARGV, shellwords($ENV{'GREPLEOPTS'});
 ## GetOptions
 my @SAVEDARGV = @ARGV;
 $parser->getoptions(@optargs) || usage();
+
+if ($opt_version) {
+    print "$version\n";
+    exit 0;
+}
 
 our %opt_d;
 @opt_d = map { split // } @opt_d;
@@ -3096,6 +3103,10 @@ with help information if available.  If you want to see how they are
 expanded, supply something not empty to C<--usage> option, like:
 
     greple -Mmodule --usage=expand
+
+=item B<--version>
+
+Show version.
 
 =item B<--exit>=I<number>
 
