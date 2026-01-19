@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+10.03 2026-01-19T07:03:39Z
+
+    - Add --version option
+
 10.02 2026-01-09T04:59:40Z
 
     - Suppress experimental::vlb warning for Variable Length Lookbehind
