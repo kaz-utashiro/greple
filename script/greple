@@ -97,6 +97,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     -H, -h               do or do not display filenames
     -o                   print only the matching part
     --all                print entire data
+    -F, --filter         use as a filter (implies --all --need=0 --exit=0)
     -m, --max=n[,m]      max count of blocks to be shown
     -A,-B,-C [n]         after/before/both match context
     --join               remove newline in the matched part
@@ -248,6 +249,7 @@ newopt
     ' no-filename        |h     ' => \ my $opt_h ,
     ' only-matching      |o  !  ' => \ my $opt_o ,
     ' all                    !  ' => \ my $opt_all ,
+    ' filter             |F  !  ' => \ my $opt_filter ,
     ' max-count          |m  =s ' => \ my $opt_m ,
     ' after-context      |A  :2 ' => \(my $opt_A = 0) ,
     ' before-context     |B  :2 ' => \(my $opt_B = 0) ,
@@ -550,6 +552,15 @@ else {
 }
 
 ##
+## --filter
+##
+if ($opt_filter) {
+    $opt_all = 1;
+    push @opt_need, '0';
+    $opt_exit //= 0;
+}
+
+##
 ## Patterns
 ##
 
@@ -566,7 +577,7 @@ if (@opt_f) {
 			    $opt_f);
     }
 } else {
-    unless (grep { $_->[0] !~ /^(not|may)/ } @opt_pattern) {
+    unless ($opt_filter or grep { $_->[0] !~ /^(not|may)/ } @opt_pattern) {
 	unshift @opt_pattern, [ le => shift @ARGV // &usage ];
     }
 }
@@ -2122,7 +2133,21 @@ you don't need extra newline.
 
 Print entire file.  This option does not affect search behavior or
 block treatment.  Just print all contents.  Can be negated by the
-B<--no-all> option
+B<--no-all> option.
+
+=item B<-F>, B<--filter>
+
+Use B<greple> as a filter.  This option implicitly sets B<--all>,
+B<--need>=C<0> and B<--exit>=C<0>, so the entire input is printed
+regardless of whether or not any pattern is matched.
+
+With this option, a search pattern is not required.  The first
+argument is treated as a filename, not a pattern.  To specify a
+pattern, use an explicit option such as B<-E>.  When a
+pattern is given, matched parts are highlighted but no lines are
+excluded from the output.
+
+Can be negated by the B<--no-filter> option.
 
 =item B<-m> I<n>[,I<m>], B<--max-count>=I<n>[,I<m>]
 

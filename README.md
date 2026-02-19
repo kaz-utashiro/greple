@@ -37,6 +37,7 @@ Version 10.03
       -H, -h               do or do not display filenames
       -o                   print only the matching part
       --all                print entire data
+      -F, --filter         use as a filter (implies --all --need=0 --exit=0)
       -m, --max=n[,m]      max count of blocks to be shown
       -A,-B,-C [n]         after/before/both match context
       --join               remove newline in the matched part
@@ -705,7 +706,21 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
     Print entire file.  This option does not affect search behavior or
     block treatment.  Just print all contents.  Can be negated by the
-    **--no-all** option
+    **--no-all** option.
+
+- **-F**, **--filter**
+
+    Use **greple** as a filter.  This option implicitly sets **--all**,
+    **--need**=`0` and **--exit**=`0`, so the entire input is printed
+    regardless of whether or not any pattern is matched.
+
+    With this option, a search pattern is not required.  The first
+    argument is treated as a filename, not a pattern.  To specify a
+    pattern, use an explicit option such as **-E**.  When a
+    pattern is given, matched parts are highlighted but no lines are
+    excluded from the output.
+
+    Can be negated by the **--no-filter** option.
 
 - **-m** _n_\[,_m_\], **--max-count**=_n_\[,_m_\]
 
