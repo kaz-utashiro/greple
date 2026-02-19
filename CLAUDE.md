@@ -57,8 +57,66 @@ perl -Ilib script/greple [options] pattern [files...]
 - `Getopt::EX` - Extended option processing with module support
 - `Term::ANSIColor::Concise` - Color output handling
 
-### Test Framework
-Tests use `prove` with a custom runner (`t/runner/Runner.pm`) that wraps script execution. Test files follow the pattern `t/NN_name.t`. Note: avoid using `setstdin()` in tests as it may cause hangs in `minil dist` environment.
+## Adding Options
+
+### Option Definition (script/greple:215-382)
+- Defined via `newopt` function; stored as spec/handler pairs in `@optargs`
+- Organized by section: PATTERN, MATCH, STYLE, COLOR, REGION, FILE, OTHER
+- Boolean: `'name|X !'`, string: `'name|X =s'`, integer: `'name|X =i'`
+- Parsed by Getopt::Long with bundling, no_getopt_compat, no_ignore_case
+
+### Option Processing Flow (script/greple)
+1. Option parsing (~line 443)
+2. Encoding setup (~line 550)
+3. **Pre-processing for new options** (~line 556) — implicit settings go here
+4. Pattern construction (~line 565) — takes first ARGV as pattern if `@opt_pattern` is empty
+5. Count calculation (~line 610) — `$count_must`, `$count_need`, `$count_allow`
+6. Filter setup (~line 680)
+7. Color setup (~line 720)
+8. Grep execution loop (~line 1117)
+9. Exit — `exit($opt_exit // ($stat{match_effective} == 0))`
+
+### Controlling Pattern Requirement
+- Lines 569-571: if no positive pattern in `@opt_pattern`, first ARGV is taken as pattern
+- Adding a flag to the `unless` condition can bypass this requirement
+- Modules (`-M`) cannot bypass this logic from outside the main script
+
+## Grep Engine (lib/App/Greple/Grep.pm)
+
+### Processing Flow: `run` → `prepare` → `compose`
+
+#### prepare
+1. Execute pattern matching → build `@result` and `@blocks`
+2. Region selection via `--inside`/`--outside`
+3. Region filtering via `--include`/`--exclude`
+4. BLOCKS construction: generate blocks from match ranges; `[0, length]` when nothing matched
+5. Build match table: POSI/NEGA/MUST counts per block
+
+#### compose
+- Filter blocks by `need`, `must`, `allow`
+- When `need < 0`: `compromize = abs(need)` tolerates unmatched required patterns
+- `--all`: replaces first block with `[0, length]` to cover entire content
+
+### Match Table Constants
+```
+POSI_POSI(0), POSI_NEGA(1), POSI_LIST(2)  # positive patterns
+NEGA_POSI(3), NEGA_NEGA(4), NEGA_LIST(5)  # negative patterns
+MUST_POSI(6), MUST_NEGA(7), MUST_LIST(8)  # required patterns
+```
+
+### How --need=0 Works
+- `$count_need = $1 - $must` → when must=0, need=0
+- In compose, `POSI_POSI >= 0` is always true → all blocks become effective
+- Output is produced even with no matches
+
+## Test Framework
+
+Tests use `prove` with a custom runner (`t/runner/Runner.pm`) that wraps script execution. Test files follow the pattern `t/NN_name.t`.
+
+- `t/Util.pm`: `run()`, `greple()`, `line()` helpers
+- `run('options file')->stdout` for output, `->status` for exit code
+- `line(n)`: regex expecting n lines — `qr/\A(?:.*\n){n}\z/`
+- **Do not use `setstdin()`** — causes hangs in `minil dist` environment
 
 ## Module System
 
@@ -66,12 +124,20 @@ greple has a powerful module system invoked with `-M`:
 - Modules are loaded from `App::Greple::*` namespace
 - Module `__DATA__` sections define options using the same syntax as `~/.greplerc`
 - Functions defined in modules can be used in options (e.g., `--inside '&function'`)
+- `builtin` enables Perl code invocation from option definitions
+- Modules cannot control main script logic (e.g., pattern requirement)
 
 ## Configuration
 
 - User configuration: `~/.greplerc`
 - Supports `option`, `define`, `expand`, `help`, `builtin`, and `autoload` directives
 - Perl code after `__PERL__` line in config files is evaluated
+
+## Debugging
+- `-d g`: display grep engine match table
+- `-d o`: display original ARGV
+- `-d m`: display search pattern details
+- `-d f`: display file names being processed
 
 ## Known Issues
 
