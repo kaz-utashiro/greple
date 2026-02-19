@@ -2,6 +2,10 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+10.04 2026-02-19T03:53:45Z
+
+    - Add --filter (-F) option to use greple as a filter
+
 10.03 2026-01-19T07:03:39Z
 
     - Add --version option
