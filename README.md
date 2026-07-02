@@ -106,6 +106,7 @@ Version 10.04
       --error=action       action to take after a read error occurs
       --warn=type          runtime error handling type
       --alert [name=#]     set alert parameters (size/time)
+      -P, --parallel=n     search multiple patterns in parallel (experimental)
       -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 # INSTALL
@@ -1742,6 +1743,16 @@ interpreted as a bare word.
 
         --alert size=0
 
+- **-P** _n_, **--parallel**=_n_
+
+    (Experimental) Search multiple patterns in parallel using up to _n_
+    child processes.  This is effective when scanning a large file with
+    multiple time-consuming patterns.  Function patterns are always
+    processed sequentially.  Parallel processing is applied only when the
+    target text is larger than 1MB (can be changed by
+    `GREPLE_PARALLEL_THRESHOLD` environment variable) and two or more
+    eligible patterns exist.
+
 - **-Mdebug**, **-d**_x_
 
     Debug option is described in [App::Greple::debug](https://metacpan.org/pod/App%3A%3AGreple%3A%3Adebug) module.
@@ -1756,6 +1767,11 @@ interpreted as a bare word.
 - **GREPLE\_NORC**
 
     If set non-empty string, startup file `~/.greplerc` is not processed.
+
+- **GREPLE\_PARALLEL\_THRESHOLD**
+
+    Minimum text size to enable parallel pattern matching with the
+    **--parallel** option.  Default is 1048576 (1MB).
 
 - **DEBUG\_GETOPT**
 

@@ -13,6 +13,7 @@ our @ISA = qw(App::Greple::Text);
 use Data::Dumper;
 use List::Util qw(min max reduce sum);
 use Clone qw(clone);
+use POSIX ();
 
 use Getopt::EX::Func qw(callable);
 
@@ -87,6 +88,74 @@ package App::Greple::Grep::Result {
     sub number  { $_[0]->block->number }
 }
 
+##
+## Match multiple patterns in parallel using child processes.
+## Each child scans $_ (shared by copy-on-write) with a single
+## pattern and returns [from, to, index] triplets in packed binary
+## format.  Returns a list indexed by pattern number; undef elements
+## mean the pattern was not processed and should be matched in the
+## calling process.
+##
+use constant NO_INDEX => ~0;
+
+our $default_threshold = 1024 * 1024;
+
+sub parallel_match {
+    my $self = shift;
+    my $patlist = shift;
+    my $max = $self->{parallel} // 0;
+    return () if $max < 2;
+    my $threshold = $ENV{GREPLE_PARALLEL_THRESHOLD} // $default_threshold;
+    return () if length() < $threshold;
+    my @eligible = grep { not $patlist->[$_]->is_function } keys @$patlist;
+    return () if @eligible < 2;
+    warn sprintf("parallel_match: %d patterns, max %d processes\n",
+		 scalar @eligible, $max) if $debug{m};
+    my @result;
+    while (my @chunk = splice @eligible, 0, $max) {
+	my @child;
+	for my $i (@chunk) {
+	    my $pat = $patlist->[$i];
+	    pipe(my $r, my $w) or last;
+	    my $pid = fork;
+	    if (not defined $pid) {	# fall back to sequential
+		close $r; close $w;
+		last;
+	    }
+	    if ($pid == 0) {
+		close $r;
+		binmode $w;
+		my @p = match_regions(pattern => $pat->regex,
+				      group => $self->{group_index},
+				      index => $self->{group_index} >= 2);
+		my $data = pack 'J*',
+		    map { ($_->[0], $_->[1], $_->[2] // NO_INDEX) } @p;
+		syswrite $w, $data if length $data;
+		close $w;
+		POSIX::_exit(0);
+	    }
+	    close $w;
+	    binmode $r;
+	    push @child, [ $i, $pid, $r ];
+	}
+	for (@child) {
+	    my($i, $pid, $r) = @$_;
+	    my $data = do { local $/; <$r> };
+	    close $r;
+	    waitpid $pid, 0;
+	    next if $? != 0;		# fall back to sequential
+	    my @v = unpack 'J*', $data // '';
+	    my @p;
+	    for (my $j = 0; $j < @v; $j += 3) {
+		push @p, $v[$j+2] == NO_INDEX
+		    ? [ @v[$j, $j+1] ] : [ @v[$j .. $j+2] ];
+	    }
+	    $result[$i] = \@p;
+	}
+    }
+    @result;
+}
+
 sub prepare {
     my $self = shift;
 
@@ -104,6 +173,7 @@ sub prepare {
     my $positive_count = 0;
     my $group_index_offset = 0;
     my @patlist = $pat_holder->patterns;
+    my @parallel = $self->parallel_match(\@patlist);
     while (my($i, $pat) = each @patlist) {
 	my($func, @args) = do {
 	    if ($pat->is_function) {
@@ -116,7 +186,9 @@ sub prepare {
 		    );
 	    }
 	};
-	my @p = $func->call(@args, &FILELABEL => $self->{filename});
+	my @p = $parallel[$i]
+	    ? @{$parallel[$i]}
+	    : $func->call(@args, &FILELABEL => $self->{filename});
 	if (@p == 0) {
 	    ##
 	    ## $self->{need} can be negative value, which means

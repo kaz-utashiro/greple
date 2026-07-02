@@ -166,6 +166,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --error=action       action to take after a read error occurs
     --warn=type          runtime error handling type
     --alert [name=#]     set alert parameters (size/time)
+    -P, --parallel=n     search multiple patterns in parallel (experimental)
     -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 =cut
@@ -357,6 +358,7 @@ newopt
     ' path                      ' => \ my $opt_path ,
     ' error                  =s ' => \(my $opt_error = 'skip') ,
     ' alert                  =i ' => \    %opt_alert ,
+    ' parallel           |P  =i ' => \ my $opt_parallel ,
     ' debug              |d  =s ' => \ my @opt_d ,
     'warn|w:1%' => sub {
 	map { $opt_warn{$_} = $_[2] }
@@ -1278,6 +1280,7 @@ sub grep_data {
 	alert_size   =>  $opt_alert{size},
 	alert_time   =>  $opt_alert{time},
 	join_blocks  =>  $opt_join_blocks,
+	parallel     =>  $opt_parallel,
     )->run;
 
     ## --postgrep
@@ -3279,6 +3282,16 @@ To disable this alert, set the size as zero:
 
     --alert size=0
 
+=item B<-P> I<n>, B<--parallel>=I<n>
+
+(Experimental) Search multiple patterns in parallel using up to I<n>
+child processes.  This is effective when scanning a large file with
+multiple time-consuming patterns.  Function patterns are always
+processed sequentially.  Parallel processing is applied only when the
+target text is larger than 1MB (can be changed by
+C<GREPLE_PARALLEL_THRESHOLD> environment variable) and two or more
+eligible patterns exist.
+
 =item B<-Mdebug>, B<-d>I<x>
 
 Debug option is described in L<App::Greple::debug> module.
@@ -3299,6 +3312,11 @@ are inserted before command line options.
 =item B<GREPLE_NORC>
 
 If set non-empty string, startup file F<~/.greplerc> is not processed.
+
+=item B<GREPLE_PARALLEL_THRESHOLD>
+
+Minimum text size to enable parallel pattern matching with the
+B<--parallel> option.  Default is 1048576 (1MB).
 
 =item B<DEBUG_GETOPT>
 
