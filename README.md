@@ -127,6 +127,9 @@ searching only within code blocks, comments, or other delimited
 regions.
 - **Block-oriented processing**: Define and search custom text blocks
 such as paragraphs or function definitions.
+- **Colorized output**: Matches are highlighted with terminal colors;
+multiple patterns are shown in different colors, and color maps are
+fully customizable.
 - **Multi-byte support**: Native handling of Japanese and other Asian
 languages with proper character encoding.
 - **Extensibility**: Module system allows custom search patterns and
@@ -134,7 +137,9 @@ filters for specific document types or use cases.
 
 While it can be used for general text search, greple excels at
 searching source code, structured documents, and multi-byte text where
-context and precision matter.
+context and precision matter.  It is not optimized for scanning a
+large number of files; for fast recursive searches across big
+directory trees, tools like ripgrep(1) are better suited.
 
 # DESCRIPTION
 
