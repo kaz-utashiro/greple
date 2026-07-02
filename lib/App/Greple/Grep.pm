@@ -534,12 +534,34 @@ sub blocks {
     $obj->{BLOCKS}->@*;
 }
 
+##
+## Cut all result blocks (and gaps between them) from the text in a
+## single pass.  Returns ( gap0, block0, gap1, block1, ..., rest ),
+## or an empty list when not applicable.  Character based substr on
+## a large utf8 string requires linear scan for every call to convert
+## character offset to byte offset, so cutting each block separately
+## makes the output routine quadratic.
+##
+sub slice_blocks {
+    my $self = shift;
+    my @blocks = map { $_->block } $self->result;
+    return () if @blocks < 2;
+    my $pos = 0;
+    for (@blocks) {
+	return () if $_->[0] < $pos;	# not in order
+	$pos = $_->[1];
+    }
+    my $template = unpack_template(\@blocks, 0);
+    unpack $template, ${ $self->{text} };
+}
+
 sub slice_result {
     my $obj = shift;
     my $result = shift;
     my($block, @list) = @$result;
+    my $text = @_ ? shift : $obj->cut(@$block);
     my $template = unpack_template(\@list, $block->min);
-    unpack($template, $obj->cut(@$block));
+    unpack($template, $text);
 }
 
 sub slice_index {

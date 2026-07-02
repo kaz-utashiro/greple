@@ -1347,6 +1347,7 @@ sub output {
     my $line = 1;
     my $lastpos = 0;
     my @results = $grep->result;
+    my @pieces = $grep->slice_blocks;
     for my $rix (keys @results) {
 	my $is_top    = $rix == 0;
 	my $is_bottom = $rix == $#results;
@@ -1355,7 +1356,9 @@ sub output {
 	my($blk, @result) = @{$result};
 	my($block_start, $block_end, $block_number) = @$blk;
 	$block_number //= 0;
-	my $block = $grep->cut($block_start, $block_end);
+	my $block = @pieces
+	    ? $pieces[$rix * 2 + 1]
+	    : $grep->cut($block_start, $block_end);
 
 	## --print
 	if (@opt_print) {
@@ -1370,7 +1373,9 @@ sub output {
 	}
 
 	if ($opt_n) {
-	    my $gap = $grep->cut($lastpos, $block_start);
+	    my $gap = @pieces
+		? $pieces[$rix * 2]
+		: $grep->cut($lastpos, $block_start);
 	    $line += $gap =~ tr/\n/\n/;
 	}
 	$lastpos = $block_end;
@@ -1398,7 +1403,9 @@ sub output {
 	    }
 	}
 
-	my @slice = $grep->slice_result($result);
+	my @slice = @pieces
+	    ? $grep->slice_result($result, $pieces[$rix * 2 + 1])
+	    : $grep->slice_result($result);
 	my $mark = "\001";
 	for my $i (keys @result) {
 	    my($start, $end, $pi, $callback) = $result[$i]->@*;
