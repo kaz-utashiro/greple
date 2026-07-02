@@ -155,3 +155,29 @@ With ASCII text the difference is only ~1.4x, but UTF-8 triggers severe performa
 This issue exists since at least Perl 5.12 and is still not fixed in Perl 5.34. Not yet reported to perl5 issue tracker.
 
 Reference: https://qiita.com/kaz-utashiro/items/2facc87ea9ba25e81cd9
+
+### `substr` Performance Regression with UTF-8 (Perl 5.42)
+
+A sibling of the `@-`/`@+` issue, but in the opposite conversion direction:
+`substr` with a character offset performs char-to-byte conversion
+(`sv_pos_u2b`), and the UTF-8 position cache no longer works for this path
+in newer Perl versions.  Every call scans the string linearly, so cutting
+blocks one by one from a large text is quadratic.
+
+**Benchmark (100 substr calls at increasing positions on a 19M-char UTF-8 string):**
+- Perl 5.34.1: 0.039 sec (cache effective)
+- Perl 5.42.2: 1.05 sec (~27x slower; each call walks ~10M chars)
+
+This is a clear regression introduced somewhere between 5.34 and 5.42
+(exact version not yet bisected).  `${^UTF8CACHE}` is 1 in both.
+Interleaved operations (m//g, pos() write) make no difference — plain
+`substr` alone reproduces it.  Not yet reported to perl5 issue tracker.
+
+**Mitigation in greple:** the output routine slices all result blocks in a
+single `unpack` pass (`slice_blocks` in `Grep.pm`) instead of calling
+`cut`/`substr` per block.  `unpack` with an `a<len>` template scans the
+text only once regardless of block count.  Do not add per-block `substr`
+calls on the whole text in output paths.
+
+Note: the search phase is unaffected because `Regions.pm` uses `pos()` +
+`${^MATCH}` (see above), which remains fast in 5.42.
