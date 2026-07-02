@@ -2,6 +2,15 @@ Revision history for Perl application 'greple'.
 
 {{$NEXT}}
 
+10.05 2026-07-02T16:01:44Z
+
+    - Add -P (--parallel) option to search multiple patterns in
+      parallel using child processes.  Line border decomposition is
+      also performed concurrently when the first match is found.
+    - Fix quadratic slowdown printing many matched blocks from large
+      utf8 text, by slicing all blocks in a single pass.  This avoids
+      the substr/UTF-8 performance regression in newer Perl versions.
+
 10.04 2026-02-19T03:53:45Z
 
     - Add --filter (-F) option to use greple as a filter
