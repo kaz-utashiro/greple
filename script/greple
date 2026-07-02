@@ -166,7 +166,7 @@ B<greple> [B<-M>I<module>] [ B<-options> ] pattern [ file... ]
     --error=action       action to take after a read error occurs
     --warn=type          runtime error handling type
     --alert [name=#]     set alert parameters (size/time)
-    -P, --parallel=n     search multiple patterns in parallel (experimental)
+    -P, --parallel[=n]   search patterns in parallel (default: cpu cores)
     -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 =cut
@@ -358,7 +358,7 @@ newopt
     ' path                      ' => \ my $opt_path ,
     ' error                  =s ' => \(my $opt_error = 'skip') ,
     ' alert                  =i ' => \    %opt_alert ,
-    ' parallel           |P  =i ' => \ my $opt_parallel ,
+    ' parallel           |P  :i ' => \ my $opt_parallel ,
     ' debug              |d  =s ' => \ my @opt_d ,
     'warn|w:1%' => sub {
 	map { $opt_warn{$_} = $_[2] }
@@ -560,6 +560,27 @@ if ($opt_filter) {
     $opt_all = 1;
     push @opt_need, '0';
     $opt_exit //= 0;
+}
+
+##
+## --parallel
+## Value 0 (or omitted) means the number of CPU cores.
+##
+sub ncpu {
+    my $n = do {
+	if ($^O =~ /darwin|bsd/i) {
+	    `sysctl -n hw.ncpu 2>/dev/null`;
+	} elsif (-r "/proc/cpuinfo") {
+	    open my $fh, "<", "/proc/cpuinfo";
+	    scalar grep { /^processor\s*:/ } <$fh>;
+	} else {
+	    $ENV{NUMBER_OF_PROCESSORS};
+	}
+    } // '';
+    $n =~ /(\d+)/ ? $1 : 4;
+}
+if (defined $opt_parallel and $opt_parallel == 0) {
+    $opt_parallel = ncpu();
 }
 
 ##
@@ -3289,10 +3310,13 @@ To disable this alert, set the size as zero:
 
     --alert size=0
 
-=item B<-P> I<n>, B<--parallel>=I<n>
+=item B<-P>[I<n>], B<--parallel>[=I<n>]
 
 (Experimental) Search multiple patterns in parallel using up to I<n>
-child processes.  This is effective when scanning a large file with
+child processes.  When I<n> is omitted or zero, the number of CPU
+cores is used.  Note that a separate numeric argument following
+B<-P> is taken as its value; use the attached form (C<-P4>) or C<-e>
+to search a numeric pattern.  This is effective when scanning a large file with
 multiple time-consuming patterns.  Function patterns are always
 processed sequentially.  Parallel processing is applied only when the
 target text is larger than 1MB (can be changed by

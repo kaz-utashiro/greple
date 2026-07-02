@@ -22,6 +22,14 @@ sub compare {
 
 compare('-e fox -e dog t/SAMPLE.txt', 'multiple OR patterns');
 
+# -P without value (defaults to the number of CPU cores)
+{
+    my $seq = run('-e fox -e dog t/SAMPLE.txt');
+    my $par = run('-P -e fox -e dog t/SAMPLE.txt');
+    is($par->stdout, $seq->stdout, "bare -P (stdout)");
+    is($par->status, $seq->status, "bare -P (status)");
+}
+
 compare('--and fox --and dog t/SAMPLE.txt', 'AND patterns');
 
 compare('--and fox --and dog --and cat t/SAMPLE.txt', 'AND patterns (no match)');

@@ -106,7 +106,7 @@ Version 10.04
       --error=action       action to take after a read error occurs
       --warn=type          runtime error handling type
       --alert [name=#]     set alert parameters (size/time)
-      -P, --parallel=n     search multiple patterns in parallel (experimental)
+      -P, --parallel[=n]   search patterns in parallel (default: cpu cores)
       -d flags             display info (f:file d:dir c:color m:misc s:stat)
 
 # INSTALL
@@ -1743,10 +1743,13 @@ interpreted as a bare word.
 
         --alert size=0
 
-- **-P** _n_, **--parallel**=_n_
+- **-P**\[_n_\], **--parallel**\[=_n_\]
 
     (Experimental) Search multiple patterns in parallel using up to _n_
-    child processes.  This is effective when scanning a large file with
+    child processes.  When _n_ is omitted or zero, the number of CPU
+    cores is used.  Note that a separate numeric argument following
+    **-P** is taken as its value; use the attached form (`-P4`) or `-e`
+    to search a numeric pattern.  This is effective when scanning a large file with
     multiple time-consuming patterns.  Function patterns are always
     processed sequentially.  Parallel processing is applied only when the
     target text is larger than 1MB (can be changed by
