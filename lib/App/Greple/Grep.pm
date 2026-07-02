@@ -163,6 +163,7 @@ sub parallel_match {
 ##
 sub start_borders {
     my $self = shift;
+    return if $self->{BORDERS_CHILD};	# already started
     return if $self->{block}->@*;	# borders not used for --block
     my $threshold = $ENV{GREPLE_PARALLEL_THRESHOLD} // $default_threshold;
     return if length() < $threshold;
@@ -224,7 +225,6 @@ sub prepare {
     my $positive_count = 0;
     my $group_index_offset = 0;
     my @patlist = $pat_holder->patterns;
-    $self->start_borders if $self->{parallel};
     my @parallel = $self->parallel_match(\@patlist);
     while (my($i, $pat) = each @patlist) {
 	my($func, @args) = do {
@@ -259,6 +259,11 @@ sub prepare {
 	} else {
 	    bless $_, 'App::Greple::Grep::Match' for @p;
 	    if ($pat->is_positive) {
+		##
+		## Borders are required only when something matched.
+		## Do not fork a child process for unmatched files.
+		##
+		$self->start_borders if $self->{parallel} and not @blocks;
 		push @blocks, @{clone(\@p)};
 		$self->{stat}->{match_positive} += @p;
 		$positive_count++;

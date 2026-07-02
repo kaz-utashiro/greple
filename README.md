@@ -1756,9 +1756,11 @@ interpreted as a bare word.
     `GREPLE_PARALLEL_THRESHOLD` environment variable) and two or more
     eligible patterns exist.
 
-    Also, line border decomposition is performed in another child process
-    overlapping with the pattern search.  This works even with a single
-    search pattern.
+    Also, line border decomposition is performed in another child
+    process, overlapping with the rest of the search process.  The child
+    process is started when the first match is found, so no extra process
+    is created for unmatched files.  This works even with a single search
+    pattern.
 
 - **-Mdebug**, **-d**_x_
 
