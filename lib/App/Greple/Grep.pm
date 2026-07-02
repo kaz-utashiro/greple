@@ -156,6 +156,57 @@ sub parallel_match {
     @result;
 }
 
+##
+## Compute line borders in a child process, overlapping with pattern
+## matching in the calling process.  Border positions are independent
+## from the match result and required only after the search.
+##
+sub start_borders {
+    my $self = shift;
+    return if $self->{block}->@*;	# borders not used for --block
+    my $threshold = $ENV{GREPLE_PARALLEL_THRESHOLD} // $default_threshold;
+    return if length() < $threshold;
+    pipe(my $r, my $w) or return;
+    my $pid = fork;
+    if (not defined $pid) {		# fall back to sequential
+	close $r; close $w;
+	return;
+    }
+    if ($pid == 0) {
+	close $r;
+	binmode $w;
+	my $data = pack 'J*', match_borders $self->{border};
+	syswrite $w, $data if length $data;
+	close $w;
+	POSIX::_exit(0);
+    }
+    close $w;
+    binmode $r;
+    $self->{BORDERS_CHILD} = [ $pid, $r ];
+    warn "started borders child process\n" if $debug{m};
+}
+
+sub read_borders {
+    my $self = shift;
+    my($pid, $r) = @{delete $self->{BORDERS_CHILD}};
+    my $data = do { local $/; <$r> };
+    close $r;
+    waitpid $pid, 0;
+    return if $? != 0;			# fall back to sequential
+    unpack 'J*', $data // '';
+}
+
+sub discard_borders {
+    my $self = shift;
+    if (my $child = delete $self->{BORDERS_CHILD}) {
+	my($pid, $r) = @$child;
+	kill 'TERM', $pid;
+	close $r;
+	waitpid $pid, 0;
+    }
+    $self;
+}
+
 sub prepare {
     my $self = shift;
 
@@ -173,6 +224,7 @@ sub prepare {
     my $positive_count = 0;
     my $group_index_offset = 0;
     my @patlist = $pat_holder->patterns;
+    $self->start_borders if $self->{parallel};
     my @parallel = $self->parallel_match(\@patlist);
     while (my($i, $pat) = each @patlist) {
 	my($func, @args) = do {
@@ -194,7 +246,7 @@ sub prepare {
 	    ## $self->{need} can be negative value, which means
 	    ## required pattern can be compromised upto that number.
 	    ##
-	    return $self if $pat->is_required and $self->{need} >= 0;
+	    return $self->discard_borders if $pat->is_required and $self->{need} >= 0;
 	    ##
 	    ## Update offset even when no match for --ci=G
 	    ##
@@ -242,7 +294,7 @@ sub prepare {
     ##
     ## optimization for inadequate match
     ##
-    return $self if $positive_count < $self->{need} + $self->{must};
+    return $self->discard_borders if $positive_count < $self->{need} + $self->{must};
 
     ##
     ## --inside, --outside
@@ -299,6 +351,7 @@ sub prepare {
 	    ( [ 0, length ] );			# nothing matched
 	}
     } ];
+    $self->discard_borders;	# no-op if consumed by borders()
     while (my($i, $blk) = each @$bp) {
 	bless $blk, 'App::Greple::Grep::Block';
 	# set 1-origined block number in the 3rd entry
@@ -440,7 +493,14 @@ sub borders {
 	alarm $self->{alert_time};
         warn "alert timer start ($alarm_start)\n" if $debug{a};
     }
-    my @borders = match_borders $self->{border};
+    my @borders = do {
+	if ($self->{BORDERS_CHILD}) {
+	    my @b = $self->read_borders;
+	    @b ? @b : match_borders $self->{border};
+	} else {
+	    match_borders $self->{border};
+	}
+    };
     if (defined $alarm_start) {
 	if ($SIG{ALRM}) {
 	    alarm 0;

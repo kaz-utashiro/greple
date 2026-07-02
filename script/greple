@@ -3292,6 +3292,10 @@ target text is larger than 1MB (can be changed by
 C<GREPLE_PARALLEL_THRESHOLD> environment variable) and two or more
 eligible patterns exist.
 
+Also, line border decomposition is performed in another child process
+overlapping with the pattern search.  This works even with a single
+search pattern.
+
 =item B<-Mdebug>, B<-d>I<x>
 
 Debug option is described in L<App::Greple::debug> module.

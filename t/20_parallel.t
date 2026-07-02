@@ -42,7 +42,13 @@ compare('-c -e fox -e dog t/SAMPLE.txt', 'count mode');
 
 compare('-o -e "(\w+) fox" -e "(\w+) dog" --ci=G t/SAMPLE.txt', 'capture group');
 
-# single pattern: parallel is no-op but must work
+compare('-A1 -B1 -e fox -e dog t/SAMPLE.txt', 'context lines (-A/-B)');
+
+compare('--border "^\\\\w" -e fox -e dog t/SAMPLE.txt', 'custom border');
+
+# single pattern: pattern-parallel is no-op but async borders still works
 compare('-e fox t/SAMPLE.txt', 'single pattern');
+
+compare('-e nomatchpattern t/SAMPLE.txt', 'single pattern (no match)');
 
 done_testing;
