@@ -181,3 +181,27 @@ calls on the whole text in output paths.
 
 Note: the search phase is unaffected because `Regions.pm` uses `pos()` +
 `${^MATCH}` (see above), which remains fast in 5.42.
+
+### Child Process STDIN After Parent Reads to EOF
+
+When the parent process reads STDIN to EOF and then forks a child via
+`open(FH, '|-')`, the child cannot read its STDIN (the pipe) because the
+EOF flag persists on the inherited handle.
+
+**Workaround used in greple** (`Filter.pm`, in the child after fork):
+
+```perl
+open STDIN, '<&', 0 if eof STDIN;
+```
+
+This fdopen-style reinitialization works on both 5.34 and 5.42 (verified
+2026-07).  This is why output filters can be started lazily after the
+match result is known (see the design principle of not spawning per-file
+processes for unmatched files).
+
+**Perl 5.42 note:** the alternative workaround of reading input into `@_`
+(which mysteriously used to work) no longer works in 5.42.  Reading into
+a plain `my @x` also fails on 5.42 where it happened to work on 5.34.
+Only the explicit fdopen-style fix is reliable.
+
+Reference: https://qiita.com/kaz-utashiro/items/80fc83e56e645f19e927
