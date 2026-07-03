@@ -170,8 +170,15 @@ blocks one by one from a large text is quadratic.
 
 This is a clear regression introduced somewhere between 5.34 and 5.42
 (exact version not yet bisected).  `${^UTF8CACHE}` is 1 in both.
-Interleaved operations (m//g, pos() write) make no difference — plain
-`substr` alone reproduces it.  Not yet reported to perl5 issue tracker.
+The cost is proportional to the character position (verified up to
+10M chars), meaning every call walks from the head of the string —
+the position cache is completely ineffective for this path, even for
+repeated access to the same position.  Only strings actually
+containing multibyte characters are affected; ASCII strings are fast
+even with the UTF-8 flag set.  Not yet reported to perl5 issue
+tracker.
+
+Reference: https://qiita.com/kaz-utashiro/items/d7047abb8531d5afc40a
 
 **Mitigation in greple:** the output routine slices all result blocks in a
 single `unpack` pass (`slice_blocks` in `Grep.pm`) instead of calling
