@@ -168,8 +168,13 @@ blocks one by one from a large text is quadratic.
 - Perl 5.34.1: 0.039 sec (cache effective)
 - Perl 5.42.2: 1.05 sec (~27x slower; each call walks ~10M chars)
 
-This is a clear regression introduced somewhere between 5.34 and 5.42
-(exact version not yet bisected).  `${^UTF8CACHE}` is 1 in both.
+This is a regression introduced in 5.36.0 by commit e6e9dd2906
+(perl/perl5#18727, "Do not cache utf8 offsets for non-canonical
+lengths"): results computed via `S_sv_pos_u2b_midway` never set
+`canonical_position`, so they are never cached.  Verified on all
+releases 5.32.1–5.42.2; still present in blead as of 2026-07.
+Benchmark and bisection: https://github.com/kaz-utashiro/perl-substr-bench
+`${^UTF8CACHE}` is 1 in both.
 The cost is proportional to the character position (verified up to
 10M chars), meaning every call walks from the head of the string —
 the position cache is completely ineffective for this path, even for
