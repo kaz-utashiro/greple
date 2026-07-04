@@ -154,12 +154,14 @@ With ASCII text the difference is only ~1.4x, but UTF-8 triggers severe performa
 
 This issue exists since at least Perl 5.12 and is still not fixed in Perl 5.34. Not yet reported to perl5 issue tracker.
 
-**Update (2026-07, Perl 5.42.2):** re-measured with 20k matches —
-`@-`/`@+` improved from 13.3 sec (5.34.1) to 0.61 sec (5.42.2), so the
-penalty is now ~200x vs `pos()` instead of ~3500x.  Much better, still
+**Update (2026-07):** benchmarked all releases 5.32.1–5.42.2 (12k
+matches; see https://github.com/kaz-utashiro/perl-substr-bench).
+`@-`/`@+` improved ~12x in **5.38.0** (6.5–8.3 sec down to 0.52–0.59
+sec), but is still 150–190x slower than `pos()`/`${^MATCH}`.  Still
 worth avoiding.  Note this is a separate issue from the `substr`
-regression below (opposite conversion direction, not caused by the
-same commit).
+regression below: opposite conversion direction, different timeline
+(improved in 5.38.0 while substr regressed in 5.36.0), not caused by
+the same commit.
 
 Reference: https://qiita.com/kaz-utashiro/items/2facc87ea9ba25e81cd9
 
