@@ -154,6 +154,13 @@ With ASCII text the difference is only ~1.4x, but UTF-8 triggers severe performa
 
 This issue exists since at least Perl 5.12 and is still not fixed in Perl 5.34. Not yet reported to perl5 issue tracker.
 
+**Update (2026-07, Perl 5.42.2):** re-measured with 20k matches —
+`@-`/`@+` improved from 13.3 sec (5.34.1) to 0.61 sec (5.42.2), so the
+penalty is now ~200x vs `pos()` instead of ~3500x.  Much better, still
+worth avoiding.  Note this is a separate issue from the `substr`
+regression below (opposite conversion direction, not caused by the
+same commit).
+
 Reference: https://qiita.com/kaz-utashiro/items/2facc87ea9ba25e81cd9
 
 ### `substr` Performance Regression with UTF-8 (Perl 5.42)
@@ -180,8 +187,7 @@ The cost is proportional to the character position (verified up to
 the position cache is completely ineffective for this path, even for
 repeated access to the same position.  Only strings actually
 containing multibyte characters are affected; ASCII strings are fast
-even with the UTF-8 flag set.  Not yet reported to perl5 issue
-tracker.
+even with the UTF-8 flag set.  Reported: https://github.com/Perl/perl5/issues/24531
 
 Reference: https://qiita.com/kaz-utashiro/items/d7047abb8531d5afc40a
 
