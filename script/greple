@@ -2193,7 +2193,8 @@ Can be negated by the B<--no-filter> option.
 Set the maximum count of blocks to be shown to I<n>.
 
 Actually I<n> and I<m> are simply passed to perl L<splice> function as
-I<offset> and I<length>.  Works like this:
+I<offset> and I<length>, and the blocks left in the list are printed
+(not the ones returned by C<splice>).  Works like this:
 
     greple -m  10      # get first 10 blocks
     greple -m   0,-10  # get last 10 blocks
@@ -2217,9 +2218,9 @@ the result (by C<10>).  Consequently, get 10 blocks from 10th (10-19).
 
     greple -m 0,10,10
 
-Next command gets first 20 (by C<20,>) and gets last 10 (by C<,-10>),
-producing same result.  Empty string behaves like absence for
-I<length> and zero for I<offset>.
+Next command takes first 20 blocks (by C<20,>), then takes last 10 of
+them (by C<,-10>), producing same result.  Empty string behaves like
+absence for I<length> and zero for I<offset>.
 
     greple -m 20,,,-10
 

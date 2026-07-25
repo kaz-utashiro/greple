@@ -733,7 +733,8 @@ If you don't want these conversion, use `-E` (or `--re`) option.
     Set the maximum count of blocks to be shown to _n_.
 
     Actually _n_ and _m_ are simply passed to perl [splice](https://metacpan.org/pod/splice) function as
-    _offset_ and _length_.  Works like this:
+    _offset_ and _length_, and the blocks left in the list are printed
+    (not the ones returned by `splice`).  Works like this:
 
         greple -m  10      # get first 10 blocks
         greple -m   0,-10  # get last 10 blocks
@@ -757,9 +758,9 @@ If you don't want these conversion, use `-E` (or `--re`) option.
 
         greple -m 0,10,10
 
-    Next command gets first 20 (by `20,`) and gets last 10 (by `,-10`),
-    producing same result.  Empty string behaves like absence for
-    _length_ and zero for _offset_.
+    Next command takes first 20 blocks (by `20,`), then takes last 10 of
+    them (by `,-10`), producing same result.  Empty string behaves like
+    absence for _length_ and zero for _offset_.
 
         greple -m 20,,,-10
 
