@@ -219,9 +219,21 @@ This fdopen-style reinitialization works on both 5.34 and 5.42 (verified
 match result is known (see the design principle of not spawning per-file
 processes for unmatched files).
 
-**Perl 5.42 note:** the alternative workaround of reading input into `@_`
-(which mysteriously used to work) no longer works in 5.42.  Reading into
-a plain `my @x` also fails on 5.42 where it happened to work on 5.34.
-Only the explicit fdopen-style fix is reliable.
+**Update (2026-10):** measured on all 16 releases 5.12.5-5.44.0; the
+dates previously recorded here were wrong.  The alternative workaround of
+reading input into `@_` (which mysteriously used to work) stopped working
+in **5.38.0**, not 5.42, and reading into a plain `my @x` behaves
+identically and turns at the same release.  `@_` was never special: list
+context ends in a *failing* readline, and until 80c1f1e45e ("only clear
+the stream error state in readline() for glob()", 5.37.4) that failing
+read cleared the EOF state it had just set.  The same commit is why
+`<STDIN> if eof STDIN` no longer primes the handle either.
+
+`STDIN->clearerr` works on every release tested and is what the perl
+maintainers name for clearing a stale EOF (perl/perl5#21240).  The
+fdopen-style fix used here predates that and is equally reliable, so
+there is no need to change it.
+
+Probe and results: https://github.com/kaz-utashiro/perl-stdin-eof-bench
 
 Reference: https://qiita.com/kaz-utashiro/items/80fc83e56e645f19e927
